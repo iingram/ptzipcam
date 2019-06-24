@@ -1,49 +1,11 @@
 import cv2
 import numpy as np
-import time
 
-
-from onvif import ONVIFCamera
-
-# moverequest = None
-# ptz = None
+from ptz_camera import PtzCam
 
 mouseX = 250
 mouseY = 250
 
-class PtzCam():
-
-    def __init__(self):
-        IP="192.168.1.64"   # Camera IP address
-        PORT=80           # Port
-        USER="admin"         # Username
-        PASS="NyalaChow22"        # Password
-
-        mycam = ONVIFCamera(IP, PORT, USER, PASS)
-        # Create media service object
-        media = mycam.create_media_service()
-    
-        # Create ptz service object
-        # global ptz
-        self.ptz = mycam.create_ptz_service()
-
-        # Get target profile
-        media_profile = media.GetProfiles()[0]
-
-        # global moverequest
-        self.moverequest = self.ptz.create_type('ContinuousMove')
-        self.moverequest.ProfileToken = media_profile.token
-        if self.moverequest.Velocity is None:
-            self.moverequest.Velocity =  {'PanTilt': {'x': -1, 'y': -1}, 'Zoom': {'x': 0.0}}
-
-        self.moverequest.Velocity =  {'PanTilt': {'x': -1, 'y': 1}, 'Zoom': {'x': 0.0}}
-
-    def move(self, x_dir, y_dir):
-        self.moverequest.Velocity =  {'PanTilt': {'x': x_dir, 'y': y_dir}, 'Zoom': {'x': 0.0}}
-        self.ptz.ContinuousMove(self.moverequest)
-
-    def stop(self):
-        self.ptz.Stop({'ProfileToken': self.moverequest.ProfileToken})
     
 def getMouseCoords(event,x,y,flags,param):
     global mouseX
@@ -53,7 +15,7 @@ def getMouseCoords(event,x,y,flags,param):
         mouseX = x
         mouseY = y
 
-
+        
 if __name__ == '__main__':
     ptzCam = PtzCam()
 
@@ -90,8 +52,6 @@ if __name__ == '__main__':
 
         if x_dir == 0 and y_dir == 0:
             ptzCam.stop()
-
-           
            
     cv2.destroyAllWindows()
 
