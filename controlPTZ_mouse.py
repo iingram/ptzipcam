@@ -5,17 +5,46 @@ import time
 
 from onvif import ONVIFCamera
 
-IP="192.168.1.64"   # Camera IP address
-PORT=80           # Port
-USER="admin"         # Username
-PASS="NyalaChow22"        # Password
-
-moverequest = None
-ptz = None
+# moverequest = None
+# ptz = None
 
 mouseX = 250
 mouseY = 250
 
+class PtzCam():
+
+    def __init__(self):
+        IP="192.168.1.64"   # Camera IP address
+        PORT=80           # Port
+        USER="admin"         # Username
+        PASS="NyalaChow22"        # Password
+
+        mycam = ONVIFCamera(IP, PORT, USER, PASS)
+        # Create media service object
+        media = mycam.create_media_service()
+    
+        # Create ptz service object
+        # global ptz
+        self.ptz = mycam.create_ptz_service()
+
+        # Get target profile
+        media_profile = media.GetProfiles()[0]
+
+        # global moverequest
+        self.moverequest = self.ptz.create_type('ContinuousMove')
+        self.moverequest.ProfileToken = media_profile.token
+        if self.moverequest.Velocity is None:
+            self.moverequest.Velocity =  {'PanTilt': {'x': -1, 'y': -1}, 'Zoom': {'x': 0.0}}
+
+        self.moverequest.Velocity =  {'PanTilt': {'x': -1, 'y': 1}, 'Zoom': {'x': 0.0}}
+
+    def move(self, x_dir, y_dir):
+        self.moverequest.Velocity =  {'PanTilt': {'x': x_dir, 'y': y_dir}, 'Zoom': {'x': 0.0}}
+        self.ptz.ContinuousMove(self.moverequest)
+
+    def stop(self):
+        self.ptz.Stop({'ProfileToken': self.moverequest.ProfileToken})
+    
 def getMouseCoords(event,x,y,flags,param):
     global mouseX
     global mouseY
@@ -24,31 +53,9 @@ def getMouseCoords(event,x,y,flags,param):
         mouseX = x
         mouseY = y
 
-def setup_move():
-    mycam = ONVIFCamera(IP, PORT, USER, PASS)
-    # Create media service object
-    media = mycam.create_media_service()
-    
-    # Create ptz service object
-    global ptz
-    ptz = mycam.create_ptz_service()
 
-    # Get target profile
-    media_profile = media.GetProfiles()[0]
-
-    global moverequest
-    moverequest = ptz.create_type('ContinuousMove')
-    moverequest.ProfileToken = media_profile.token
-    if moverequest.Velocity is None:
-        # moverequest.Velocity = ptz.GetStatus({'ProfileToken': media_profile.token}).Position
-        moverequest.Velocity =  {'PanTilt': {'x': -1, 'y': -1}, 'Zoom': {'x': 0.0}}
-    
 if __name__ == '__main__':
-    # global mouseX
-    # global mouseY
-    
-    setup_move()
-    moverequest.Velocity =  {'PanTilt': {'x': -1, 'y': 1}, 'Zoom': {'x': 0.0}}
+    ptzCam = PtzCam()
 
     key = 'd'
     canvas = np.zeros((500,500), np.uint8)
@@ -56,16 +63,17 @@ if __name__ == '__main__':
     cv2.setMouseCallback('Control PTZ Camera', getMouseCoords)
 
     x_dir = 0
+    y_dir = 0
     
     while True:
-        print(f'mouseX: {mouseX}, mouseY: {mouseY}')
+        # print(f'mouseX: {mouseX}, mouseY: {mouseY}')
         key = cv2.waitKey(10)
                 
         if key == ord('w'):
             break
 
-        ptz.ContinuousMove(moverequest)
-
+        ptzCam.move(x_dir, y_dir)
+        
         if(mouseX < 200):
             x_dir = -1
         elif(mouseX > 300):
@@ -81,9 +89,8 @@ if __name__ == '__main__':
             y_dir = 0
 
         if x_dir == 0 and y_dir == 0:
-            ptz.Stop({'ProfileToken': moverequest.ProfileToken})
+            ptzCam.stop()
 
-        moverequest.Velocity =  {'PanTilt': {'x': x_dir, 'y': y_dir}, 'Zoom': {'x': 0.0}}
            
            
     cv2.destroyAllWindows()
