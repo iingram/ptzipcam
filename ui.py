@@ -27,7 +27,12 @@ class UI_Handler():
                 'end': (int(.7*width), int(.7*height))}
         
     def update(self, frame):
-        cv2.rectangle(frame, self.zone['start'], self.zone['end'], (255, 0, 0))
+
+        cv2.rectangle(frame,
+                      self.zone['start'],
+                      self.zone['end'],
+                      (255, 0, 0))
+        
         cv2.imshow(WINDOW_NAME, frame)
         key = cv2.waitKey(10)
 
