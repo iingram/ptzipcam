@@ -1,10 +1,8 @@
-import cv2
 import numpy as np
 import time
 
 from ptz_camera import PtzCam
 
-        
 if __name__ == '__main__':
     ptzCam = PtzCam()
 
@@ -15,36 +13,27 @@ if __name__ == '__main__':
 
     count = 0
 
-    # moves = [(-1, -1, 5),
-    #          (1, -1, 5),
-    #          (1, 0, 5),
-    #          (-1, 0, 5)]
-
     ptzCam.absmove(-1, -1)
     time.sleep(5)
-    
+
     step_dur = 1
     going_forward = True
     going_up = True
-    
-    while True:
 
-        for y_pos in np.linspace(-1,0,10):
+    while True:
+        if going_up:
+            tilt_positions = np.linspace(-1, 0, 5)
+        else:
+            tilt_positions = np.linspace(0, -1, 5)
+        for y_pos in tilt_positions:
             if going_forward:
-                for x_pos in np.linspace(-1,-.5,10):
-                    ptzCam.absmove(x_pos, y_pos)
-                    time.sleep(step_dur)
-                    # ptzCam.stop()
-                going_forward = not going_forward
+                pan_positions = np.linspace(-1, -.5, 5)
             else:
-                for x_pos in np.linspace(-.5,-1,10):
-                    ptzCam.absmove(x_pos, y_pos)
-                    time.sleep(step_dur)
-                    # ptzCam.stop()
-                going_forward = not going_forward
+                pan_positions = np.linspace(-.5, -1, 5)
+            for x_pos in pan_positions:
+                ptzCam.absmove(x_pos, y_pos)
+                time.sleep(step_dur)
+            going_forward = not going_forward
+        going_up = not going_up
 
     ptzCam.stop()
-           
-
-
-    
