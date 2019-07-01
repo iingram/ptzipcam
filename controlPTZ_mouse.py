@@ -59,6 +59,7 @@ if __name__ == '__main__':
             ptzCam.stop()
            
     cv2.destroyAllWindows()
+    ptzCam.stop()
 
 
     
