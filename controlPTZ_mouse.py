@@ -3,6 +3,11 @@ import numpy as np
 
 from ptz_camera import PtzCam
 
+IP = "192.168.1.64"   # Camera IP address
+PORT = 80           # Port
+USER = "admin"         # Username
+PASS = "NyalaChow22"        # Password
+
 mouseX = 250
 mouseY = 250
 
@@ -17,7 +22,7 @@ def getMouseCoords(event,x,y,flags,param):
 
         
 if __name__ == '__main__':
-    ptzCam = PtzCam()
+    ptzCam = PtzCam(IP, PORT, USER, PASS)
 
     key = 'd'
     canvas = np.zeros((500,500), np.uint8)

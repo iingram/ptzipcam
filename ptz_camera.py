@@ -3,27 +3,22 @@ from onvif import ONVIFCamera
 
 class PtzCam():
 
-    def __init__(self):
-        IP = "192.168.1.64"   # Camera IP address
-        PORT = 80           # Port
-        USER = "admin"         # Username
-        PASS = "NyalaChow22"        # Password
+    def __init__(self,
+                 ip = '192.168.1.64',
+                 port = '80',
+                 user = 'admin',
+                 pword = 'NyalaChow22'):
 
-        mycam = ONVIFCamera(IP, PORT, USER, PASS)
-        # Create media service object
+        mycam = ONVIFCamera(ip, port, user, pword)
         media = mycam.create_media_service()
-
-        # Create ptz service object
         self.ptz = mycam.create_ptz_service()
-
-        # Get target profile
         media_profile = media.GetProfiles()[0]
 
         self.moverequest = self.ptz.create_type('ContinuousMove')
         self.moverequest.ProfileToken = media_profile.token
-        if self.moverequest.Velocity is None:
-            self.moverequest.Velocity = {'PanTilt': {'x': -1, 'y': -1},
-                                         'Zoom': {'x': 0.0}}
+        # if self.moverequest.Velocity is None:
+            # self.moverequest.Velocity = {'PanTilt': {'x': -1, 'y': -1},
+            #                              'Zoom': {'x': 0.0}}
 
         self.moverequest.Velocity = {'PanTilt': {'x': -1, 'y': 1},
                                      'Zoom': {'x': 0.0}}
