@@ -1,17 +1,12 @@
-import numpy as np
 import time
+import threading
+
+import numpy as np
 
 from ptz_camera import PtzCam
 
-if __name__ == '__main__':
+def mow_the_lawn():
     ptzCam = PtzCam()
-
-    key = 'd'
-
-    x_dir = 0
-    y_dir = 0
-
-    count = 0
 
     ptzCam.absmove(-1, -1)
     time.sleep(5)
@@ -37,3 +32,12 @@ if __name__ == '__main__':
         going_up = not going_up
 
     ptzCam.stop()
+
+
+if __name__ == '__main__':
+    movement_control_thread = threading.Thread(target=mow_the_lawn,
+                                               daemon=True)
+    movement_control_thread.start()
+    
+    while True:
+        pass
