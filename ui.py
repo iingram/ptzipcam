@@ -55,3 +55,6 @@ class UI_Handler():
             y_dir = 0
 
         return x_dir, y_dir
+
+    def clean_up(self):
+        cv2.destroyAllWindows()
