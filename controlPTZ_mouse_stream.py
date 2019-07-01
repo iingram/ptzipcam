@@ -1,3 +1,5 @@
+#!/home/ian/.virtualenvs/ptzSpotter/bin/python
+
 import cv2
 import threading
 
