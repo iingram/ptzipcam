@@ -2,12 +2,15 @@ from onvif import ONVIFCamera
 
 
 class PtzCam():
+    """Class for controlling the pan-tilt-zoom of an ONVIF-compliant IP
+    camera that has PTZ capability.
 
+    """
     def __init__(self,
-                 ip = '192.168.1.64',
-                 port = '80',
-                 user = 'admin',
-                 pword = 'NyalaChow22'):
+                 ip='192.168.1.64',
+                 port='80',
+                 user='admin',
+                 pword='NyalaChow22'):
 
         mycam = ONVIFCamera(ip, port, user, pword)
         media = mycam.create_media_service()
