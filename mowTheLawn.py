@@ -15,6 +15,14 @@ PASS = "NyalaChow22"        # Password
 
 camera_still = False
 
+PAN_MIN = -.94
+PAN_MAX = -.5
+PAN_STEPS = 10 #400
+
+TILT_MIN = -.55
+TILT_MAX = 0
+TILT_STEPS = 10
+
 
 def mow_the_lawn():
     global camera_still
@@ -29,14 +37,22 @@ def mow_the_lawn():
 
     while True:
         if going_up:
-            tilt_positions = np.linspace(-.55, 0, 10)
+            tilt_positions = np.linspace(TILT_MIN,
+                                         TILT_MAX,
+                                         TILT_STEPS)
         else:
-            tilt_positions = np.linspace(0, -.55, 10)
+            tilt_positions = np.linspace(TILT_MAX,
+                                         TILT_MIN,
+                                         TILT_STEPS)
         for y_pos in tilt_positions:
             if going_forward:
-                pan_positions = np.linspace(-.94, -.5, 400)
+                pan_positions = np.linspace(PAN_MIN,
+                                            PAN_MAX,
+                                            PAN_STEPS)
             else:
-                pan_positions = np.linspace(-.5, -.94, 400)
+                pan_positions = np.linspace(PAN_MAX,
+                                            PAN_MIN,
+                                            PAN_STEPS)
             for x_pos in pan_positions:
                 ptzCam.absmove(x_pos, y_pos)
                 time.sleep(step_dur)
