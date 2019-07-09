@@ -24,7 +24,11 @@ if __name__ == '__main__':
         key = ui.update(frame)
         if key == ord('q'):
             break
-
+        elif key == ord('o'):
+            ptzCam.zoom_out_full()
+        elif key == ord('i'):
+            ptzCam.zoom_in_full()
+        
         ptzCam.move(x_dir, y_dir)
 
         x_dir, y_dir = ui.read_mouse()
