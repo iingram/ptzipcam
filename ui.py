@@ -19,7 +19,7 @@ def mouse_callback(event, x, y, flags, param):
 
     if event == cv2.EVENT_LBUTTONDOWN:
         zoom_command = 'i'
-    elif event == cv2.EVENT_LBUTTONUP:
+    elif event == cv2.EVENT_LBUTTONUP or event == cv2.EVENT_RBUTTONDOWN:
         zoom_command = 'o'
 
 class UI_Handler():
