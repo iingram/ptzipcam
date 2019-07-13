@@ -44,9 +44,11 @@ if __name__ == '__main__':
 
     x_dir = 0
     y_dir = 0
-    zoom_command = 'o'
+    zoom_command = None
     ptzCam.zoom_out_full()
-    
+
+    x_err = 0
+
     while True:
         frame = cam.get_frame()
         outs, inferenceTime = network.infer(frame)
@@ -55,20 +57,25 @@ if __name__ == '__main__':
                                                       CONF_THRESHOLD,
                                                       NMS_THRESHOLD)
 
-        x_err = 0
-        # highest_confidence_box = None
+        highest_person_confidence = 0
+        highest_confidence_lbox = None
         for lbox in lboxes:
             if classes[lbox['classId']] == 'person':
-                # print(lbox['confidence'])
-                draw.labeledBox(frame, classes, lbox)
-                xc, yc = draw.box_to_coords(lbox['box'], return_kind='center')
-                x_err = frame.shape[1]/2 - xc
+                if lbox['confidence'] > highest_person_confidence:
+                    highest_person_confidence = lbox['confidence']
+                    highest_confidence_lbox = lbox
+
+        if highest_confidence_lbox:
+            draw.labeledBox(frame, classes, lbox)
+            xc, yc = draw.box_to_coords(lbox['box'], return_kind='center')
+            x_err = frame.shape[1]/2 - xc
                 # print(frame.shape[1], xc, x_err)
-        #         if x_err < 50:
-        #             zoom_command = 'i'
+                # if x_err < 50:
+                #     zoom_command = 'i'
         # else:
         #     zoom_command = 'o'
-                
+        
+        
         key = ui.update(frame)
      
         if key == ord('q'):
@@ -83,7 +90,7 @@ if __name__ == '__main__':
 
         # x_dir, y_dir, zoom_command = ui.read_mouse()
 
-        x_dir = - .01 * x_err
+        x_dir = - .005 * x_err
         if x_dir >= 1.0:
             x_dir = 1.0
         if x_dir <= -1.0:
