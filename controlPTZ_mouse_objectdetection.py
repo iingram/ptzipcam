@@ -1,6 +1,7 @@
 #!/home/ian/.virtualenvs/ptzSpotter/bin/python
 
 import os
+import yaml
 
 from ptz_camera import PtzCam
 from camera import Camera
@@ -9,15 +10,18 @@ import ui
 from zooSpotter import neuralnetwork as nn
 from zooSpotter import draw
 
-IP = "192.168.1.64"   # Camera IP address
-PORT = 80           # Port
-USER = "admin"         # Username
-PASS = "NyalaChow22"        # Password
+with open('configs.yaml') as f:
+    configs = yaml.load(f, Loader=yaml.SafeLoader)
 
-CONF_THRESHOLD = .2
-NMS_THRESHOLD = .4
-INPUT_WIDTH = 416
-INPUT_HEIGHT = 416
+IP = configs['IP']
+PORT = configs['PORT']
+USER = configs['USER']        
+PASS = configs['PASS']
+
+CONF_THRESHOLD = configs['CONF_THRESHOLD']
+NMS_THRESHOLD = configs['NMS_THRESHOLD']
+INPUT_WIDTH = configs['INPUT_WIDTH']
+INPUT_HEIGHT = configs['INPUT_HEIGHT']
 
 path = '/home/ian/zooSpotter/models/'
 
