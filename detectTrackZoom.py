@@ -4,6 +4,9 @@ import os
 import yaml
 # import time
 
+import cv2
+import numpy as np
+
 from ptz_camera import PtzCam
 from camera import Camera
 import ui
@@ -53,6 +56,15 @@ if __name__ == '__main__':
                                       INPUT_WIDTH,
                                       INPUT_HEIGHT)
 
+    frame = cam.get_frame()
+    frame_width = frame.shape[1]
+    frame_height = frame.shape[0]
+
+    vid_writer = cv2.VideoWriter('detectTrackZoom.avi',
+                                 cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
+                                 15,
+                                 (frame_width, frame_height))
+    
     x_dir = 0
     y_dir = 0
     zoom_command = 0
@@ -63,12 +75,10 @@ if __name__ == '__main__':
     x_err = 0
     y_err = 0
 
-    frame = cam.get_frame()
-    frame_width = frame.shape[1]
-    frame_height = frame.shape[0]
     
     while True:
         frame = cam.get_frame()
+
         outs, inferenceTime = network.infer(frame)
         lboxes = nn.NeuralNetworkHandler.filterBoxes(outs,
                                                      frame,
@@ -99,7 +109,7 @@ if __name__ == '__main__':
             if box_width >= .7 * frame_width or box_height >= .7 * frame_height:
                 zoom_command = 0.0
         else:
-            # x_err = 0
+            x_err = -50
             # y_err = 0
             zoom_command -= .1
             if zoom_command <= -1.0:
@@ -110,8 +120,9 @@ if __name__ == '__main__':
         zoom_command = checkZeroness(zoom_command)
 
                 
-        key = ui.update(frame)
-
+        key = ui.update(frame, hud=False)
+        vid_writer.write(frame.astype(np.uint8))
+        
         if key == ord('q'):
             break
 
@@ -141,6 +152,7 @@ if __name__ == '__main__':
         # if x_dir == 0 and y_dir == 0:
         #     ptzCam.stop()
 
+    vid_writer.release()
     cam.release()
     ptzCam.stop()
     ui.clean_up()

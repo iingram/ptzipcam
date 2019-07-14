@@ -35,12 +35,13 @@ class UI_Handler():
         self.zone = {'start': (int(.3*width), int(.3*height)),
                      'end': (int(.7*width), int(.7*height))}
 
-    def update(self, frame):
+    def update(self, frame, hud=True):
 
-        cv2.rectangle(frame,
-                      self.zone['start'],
-                      self.zone['end'],
-                      (255, 0, 0))
+        if hud:
+            cv2.rectangle(frame,
+                          self.zone['start'],
+                          self.zone['end'],
+                          (255, 0, 0))
 
         cv2.imshow(self.WINDOW_NAME, frame)
         key = cv2.waitKey(10)
