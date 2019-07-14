@@ -15,7 +15,7 @@ with open('configs.yaml') as f:
 
 IP = configs['IP']
 PORT = configs['PORT']
-USER = configs['USER']        
+USER = configs['USER']
 PASS = configs['PASS']
 
 CONF_THRESHOLD = configs['CONF_THRESHOLD']
@@ -25,8 +25,8 @@ INPUT_HEIGHT = configs['INPUT_HEIGHT']
 
 MODEL_PATH = configs['MODEL_PATH']
 
-model_config =  os.path.join(MODEL_PATH, configs['MODEL_CONFIG_FILE'])
-model_weights =  os.path.join(MODEL_PATH, configs['MODEL_WEIGHTS_FILE'])
+model_config = os.path.join(MODEL_PATH, configs['MODEL_CONFIG_FILE'])
+model_weights = os.path.join(MODEL_PATH, configs['MODEL_WEIGHTS_FILE'])
 classes_file = os.path.join(MODEL_PATH, configs['CLASS_NAMES_FILE'])
 classes = nn.read_classes_from_file(classes_file)
 
@@ -52,10 +52,10 @@ if __name__ == '__main__':
     while True:
         frame = cam.get_frame()
         outs, inferenceTime = network.infer(frame)
-        lboxes =  nn.NeuralNetworkHandler.filterBoxes(outs,
-                                                      frame,
-                                                      CONF_THRESHOLD,
-                                                      NMS_THRESHOLD)
+        lboxes = nn.NeuralNetworkHandler.filterBoxes(outs,
+                                                     frame,
+                                                     CONF_THRESHOLD,
+                                                     NMS_THRESHOLD)
 
         highest_person_confidence = 0
         highest_confidence_lbox = None
@@ -69,23 +69,22 @@ if __name__ == '__main__':
             draw.labeledBox(frame, classes, lbox)
             xc, yc = draw.box_to_coords(lbox['box'], return_kind='center')
             x_err = frame.shape[1]/2 - xc
-                # print(frame.shape[1], xc, x_err)
-                # if x_err < 50:
-                #     zoom_command = 'i'
+            # print(frame.shape[1], xc, x_err)
+            # if x_err < 50:
+            #     zoom_command = 'i'
         # else:
         #     zoom_command = 'o'
-        
-        
+
         key = ui.update(frame)
-     
+
         if key == ord('q'):
             break
-        
+
         if zoom_command == 'i':
             ptzCam.zoom_in_full()
         elif zoom_command == 'o':
             ptzCam.zoom_out_full()
-        
+
         ptzCam.move(x_dir, y_dir)
 
         # x_dir, y_dir, zoom_command = ui.read_mouse()
@@ -95,7 +94,7 @@ if __name__ == '__main__':
             x_dir = 1.0
         if x_dir <= -1.0:
             x_dir = -1.0
-        
+
         print(x_dir)
 
         if x_dir == 0 and y_dir == 0:
