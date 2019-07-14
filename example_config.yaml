@@ -8,3 +8,8 @@ CONF_THRESHOLD: .5
 NMS_THRESHOLD: .9
 INPUT_WIDTH: 416
 INPUT_HEIGHT: 416
+
+MODEL_PATH: /home/ian/zooSpotter/models/
+MODEL_CONFIG_FILE: yolov3-tiny.cfg
+MODEL_WEIGHTS_FILE: yolov3-tiny.weights
+CLASS_NAMES_FILE: coco.labels

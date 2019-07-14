@@ -23,11 +23,11 @@ NMS_THRESHOLD = configs['NMS_THRESHOLD']
 INPUT_WIDTH = configs['INPUT_WIDTH']
 INPUT_HEIGHT = configs['INPUT_HEIGHT']
 
-path = '/home/ian/zooSpotter/models/'
+MODEL_PATH = configs['MODEL_PATH']
 
-model_config =  os.path.join(path, 'yolov3-tiny.cfg')
-model_weights =  os.path.join(path, 'yolov3-tiny.weights')
-classes_file = os.path.join(path, 'coco.labels')
+model_config =  os.path.join(MODEL_PATH, configs['MODEL_CONFIG_FILE'])
+model_weights =  os.path.join(MODEL_PATH, configs['MODEL_WEIGHTS_FILE'])
+classes_file = os.path.join(MODEL_PATH, configs['CLASS_NAMES_FILE'])
 classes = nn.read_classes_from_file(classes_file)
 
 if __name__ == '__main__':
