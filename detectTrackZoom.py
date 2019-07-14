@@ -48,6 +48,7 @@ if __name__ == '__main__':
     ptzCam.zoom_out_full()
 
     x_err = 0
+    y_err = 0
 
     while True:
         frame = cam.get_frame()
@@ -69,6 +70,7 @@ if __name__ == '__main__':
             draw.labeledBox(frame, classes, lbox)
             xc, yc = draw.box_to_coords(lbox['box'], return_kind='center')
             x_err = frame.shape[1]/2 - xc
+            y_err = frame.shape[0]/2 - yc
             # print(frame.shape[1], xc, x_err)
             # if x_err < 50:
             #     zoom_command = 'i'
@@ -89,12 +91,18 @@ if __name__ == '__main__':
 
         # x_dir, y_dir, zoom_command = ui.read_mouse()
 
-        x_dir = - .005 * x_err
-        if x_dir >= 1.0:
-            x_dir = 1.0
-        if x_dir <= -1.0:
-            x_dir = -1.0
+        def calc_command(err, k):
+            command = k * err
+            if command >= 1.0:
+                command = 1.0
+            if command <= -1.0:
+                command = -1.0
 
+            return command
+                
+        x_dir = calc_command(x_err, -.005)
+        y_dir = calc_command(y_err, .005)
+            
         print(x_dir)
 
         if x_dir == 0 and y_dir == 0:
