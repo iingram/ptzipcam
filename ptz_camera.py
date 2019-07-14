@@ -33,6 +33,13 @@ class PtzCam():
                                      'Zoom': {'x': 0.0}}
         self.ptz.ContinuousMove(self.moverequest)
 
+    def move_w_zoom(self, x_dir, y_dir, zoom_command):
+        self.moverequest = self.ptz.create_type('ContinuousMove')
+        self.moverequest.ProfileToken = self.media_profile.token
+        self.moverequest.Velocity = {'PanTilt': {'x': x_dir, 'y': y_dir},
+                                     'Zoom': {'x': zoom_command}}
+        self.ptz.ContinuousMove(self.moverequest)
+
     def _prep_abs_move(self):
         self.moverequest = self.ptz.create_type('AbsoluteMove')
         self.moverequest.ProfileToken = self.media_profile.token

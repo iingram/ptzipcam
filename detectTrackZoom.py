@@ -2,6 +2,7 @@
 
 import os
 import yaml
+# import time
 
 from ptz_camera import PtzCam
 from camera import Camera
@@ -13,7 +14,7 @@ from zooSpotter import draw
 with open('configs.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
-TRACKED_CLASS = 'cup' # 'person'
+TRACKED_CLASS = 'person'
     
 IP = configs['IP']
 PORT = configs['PORT']
@@ -32,6 +33,14 @@ model_weights = os.path.join(MODEL_PATH, configs['MODEL_WEIGHTS_FILE'])
 classes_file = os.path.join(MODEL_PATH, configs['CLASS_NAMES_FILE'])
 classes = nn.read_classes_from_file(classes_file)
 
+def checkZeroness(number):
+    e = .001
+
+    if number < e and number > -e:
+        return 0
+    else:
+        return number
+
 if __name__ == '__main__':
     ptzCam = PtzCam(IP, PORT, USER, PASS)
     cam = Camera()
@@ -46,9 +55,11 @@ if __name__ == '__main__':
 
     x_dir = 0
     y_dir = 0
-    zoom_command = None
+    zoom_command = 0
     ptzCam.zoom_out_full()
-
+    # ptzCam.absmove(-1, 0)
+    # time.sleep(10)
+    
     x_err = 0
     y_err = 0
 
@@ -73,23 +84,35 @@ if __name__ == '__main__':
             xc, yc = draw.box_to_coords(target_lbox['box'], return_kind='center')
             x_err = frame.shape[1]/2 - xc
             y_err = frame.shape[0]/2 - yc
-            # print(frame.shape[1], xc, x_err)
-            # if x_err < 50:
-            #     zoom_command = 'i'
-        # else:
-        #     zoom_command = 'o'
 
+            if x_err < 50 and y_err < 50:
+                zoom_command += .1
+                if zoom_command >= 1.0:
+                    zoom_command = 1.0
+                # zoom_command = 1.0
+        else:
+            # x_err = 0
+            # y_err = 0
+            zoom_command -= .1
+            if zoom_command <= -1.0:
+                zoom_command = -1.0
+            # zoom_command = -1.0
+
+        
+        zoom_command = checkZeroness(zoom_command)
+
+                
         key = ui.update(frame)
 
         if key == ord('q'):
             break
 
-        if zoom_command == 'i':
-            ptzCam.zoom_in_full()
-        elif zoom_command == 'o':
-            ptzCam.zoom_out_full()
+        # if zoom_command == 'i':
+        #     ptzCam.zoom_in_full()
+        # elif zoom_command == 'o':
+        #     ptzCam.zoom_out_full()
 
-        ptzCam.move(x_dir, y_dir)
+        ptzCam.move_w_zoom(x_dir, y_dir, zoom_command)
 
         # x_dir, y_dir, zoom_command = ui.read_mouse()
 
@@ -105,10 +128,10 @@ if __name__ == '__main__':
         x_dir = calc_command(x_err, -.005)
         y_dir = calc_command(y_err, .005)
             
-        print(x_dir)
+        print(x_dir, y_dir, zoom_command)
 
-        if x_dir == 0 and y_dir == 0:
-            ptzCam.stop()
+        # if x_dir == 0 and y_dir == 0:
+        #     ptzCam.stop()
 
     cam.release()
     ptzCam.stop()
