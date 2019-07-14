@@ -63,6 +63,10 @@ if __name__ == '__main__':
     x_err = 0
     y_err = 0
 
+    frame = cam.get_frame()
+    frame_width = frame.shape[1]
+    frame_height = frame.shape[0]
+    
     while True:
         frame = cam.get_frame()
         outs, inferenceTime = network.infer(frame)
@@ -82,14 +86,18 @@ if __name__ == '__main__':
         if target_lbox:
             draw.labeledBox(frame, classes, target_lbox)
             xc, yc = draw.box_to_coords(target_lbox['box'], return_kind='center')
-            x_err = frame.shape[1]/2 - xc
-            y_err = frame.shape[0]/2 - yc
+            x, y, box_width, box_height = draw.box_to_coords(target_lbox['box'])
+            x_err = frame_width/2 - xc
+            y_err = frame_height/2 - yc
 
             if x_err < 50 and y_err < 50:
                 zoom_command += .1
                 if zoom_command >= 1.0:
                     zoom_command = 1.0
                 # zoom_command = 1.0
+
+            if box_width >= .7 * frame_width or box_height >= .7 * frame_height:
+                zoom_command = 0.0
         else:
             # x_err = 0
             # y_err = 0
@@ -128,7 +136,7 @@ if __name__ == '__main__':
         x_dir = calc_command(x_err, -.005)
         y_dir = calc_command(y_err, .005)
             
-        print(x_dir, y_dir, zoom_command)
+        # print(x_dir, y_dir, zoom_command)
 
         # if x_dir == 0 and y_dir == 0:
         #     ptzCam.stop()
