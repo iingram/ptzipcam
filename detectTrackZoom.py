@@ -13,6 +13,8 @@ from zooSpotter import draw
 with open('configs.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
+TRACKED_CLASS = 'cup' # 'person'
+    
 IP = configs['IP']
 PORT = configs['PORT']
 USER = configs['USER']
@@ -58,17 +60,17 @@ if __name__ == '__main__':
                                                      CONF_THRESHOLD,
                                                      NMS_THRESHOLD)
 
-        highest_person_confidence = 0
-        highest_confidence_lbox = None
+        highest_confidence_tracked_class = 0
+        target_lbox= None
         for lbox in lboxes:
-            if classes[lbox['classId']] == 'person':
-                if lbox['confidence'] > highest_person_confidence:
-                    highest_person_confidence = lbox['confidence']
-                    highest_confidence_lbox = lbox
+            if classes[lbox['classId']] == TRACKED_CLASS:
+                if lbox['confidence'] > highest_confidence_tracked_class:
+                    highest_confidence_tracked_class = lbox['confidence']
+                    target_lbox = lbox
 
-        if highest_confidence_lbox:
-            draw.labeledBox(frame, classes, lbox)
-            xc, yc = draw.box_to_coords(lbox['box'], return_kind='center')
+        if target_lbox:
+            draw.labeledBox(frame, classes, target_lbox)
+            xc, yc = draw.box_to_coords(target_lbox['box'], return_kind='center')
             x_err = frame.shape[1]/2 - xc
             y_err = frame.shape[0]/2 - yc
             # print(frame.shape[1], xc, x_err)
