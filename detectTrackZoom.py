@@ -17,12 +17,14 @@ from zooSpotter import draw
 with open('configs.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
-TRACKED_CLASS = 'person'
+TRACKED_CLASS = configs['TRACKED_CLASS']
     
 IP = configs['IP']
 PORT = configs['PORT']
 USER = configs['USER']
 PASS = configs['PASS']
+
+INIT_POS = configs['INIT_POS']
 
 CONF_THRESHOLD = configs['CONF_THRESHOLD']
 NMS_THRESHOLD = configs['NMS_THRESHOLD']
@@ -69,7 +71,9 @@ if __name__ == '__main__':
     y_dir = 0
     zoom_command = 0
     ptzCam.zoom_out_full()
-    ptzCam.absmove(0, -0.5)
+    time.sleep(1)
+    ptzCam.absmove(INIT_POS[0], INIT_POS[1])
+    # ptzCam.absmove(0, -0.5)
     time.sleep(2)
     
     x_err = 0
@@ -113,7 +117,8 @@ if __name__ == '__main__':
         else:
             frames_since_last_acq += 1
             if frames_since_last_acq > 5:
-                x_err = 0
+                # x_err = 0
+                x_err = 400  # TEMPORARY: IS HACK TO GET A SCAN
                 y_err = 0
             zoom_command -= .1
             if zoom_command <= -1.0:
@@ -153,7 +158,7 @@ if __name__ == '__main__':
                 
         # x_dir = calc_command(x_err, -.005)
         # y_dir = calc_command(y_err, .005)
-        x_dir = calc_command(x_err, -.001)
+        x_dir = calc_command(x_err, -.0008)
         y_dir = calc_command(y_err, .002)
             
         # print(x_dir, y_dir, zoom_command)
