@@ -2,7 +2,7 @@
 
 import os
 import yaml
-# import time
+import time
 
 import cv2
 import numpy as np
@@ -69,12 +69,13 @@ if __name__ == '__main__':
     y_dir = 0
     zoom_command = 0
     ptzCam.zoom_out_full()
-    # ptzCam.absmove(-1, 0)
-    # time.sleep(10)
+    ptzCam.absmove(0, -0.5)
+    time.sleep(2)
     
     x_err = 0
     y_err = 0
 
+    frames_since_last_acq = 0
     
     while True:
         frame = cam.get_frame()
@@ -94,6 +95,7 @@ if __name__ == '__main__':
                     target_lbox = lbox
 
         if target_lbox:
+            frames_since_last_acq = 0
             draw.labeledBox(frame, classes, target_lbox)
             xc, yc = draw.box_to_coords(target_lbox['box'], return_kind='center')
             x, y, box_width, box_height = draw.box_to_coords(target_lbox['box'])
@@ -109,8 +111,10 @@ if __name__ == '__main__':
             if box_width >= .7 * frame_width or box_height >= .7 * frame_height:
                 zoom_command = 0.0
         else:
-            x_err = -50
-            # y_err = 0
+            frames_since_last_acq += 1
+            if frames_since_last_acq > 5:
+                x_err = 0
+                y_err = 0
             zoom_command -= .1
             if zoom_command <= -1.0:
                 zoom_command = -1.0
@@ -142,15 +146,20 @@ if __name__ == '__main__':
             if command <= -1.0:
                 command = -1.0
 
+            # if command > -0.1 and command < 0.1:
+            #     command = 0.0
+
             return command
                 
-        x_dir = calc_command(x_err, -.005)
-        y_dir = calc_command(y_err, .005)
+        # x_dir = calc_command(x_err, -.005)
+        # y_dir = calc_command(y_err, .005)
+        x_dir = calc_command(x_err, -.001)
+        y_dir = calc_command(y_err, .002)
             
         # print(x_dir, y_dir, zoom_command)
 
-        # if x_dir == 0 and y_dir == 0:
-        #     ptzCam.stop()
+        if x_dir == 0 and y_dir == 0:
+            ptzCam.stop()
 
     vid_writer.release()
     cam.release()
