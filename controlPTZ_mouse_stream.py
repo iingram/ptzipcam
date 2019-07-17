@@ -14,7 +14,8 @@ if __name__ == '__main__':
     cam = Camera()
 
     frame = cam.get_frame()
-    ui = ui.UI_Handler(frame)
+    window_name = 'Control PTZ Camera with mouse'
+    ui = ui.UI_Handler(frame, window_name)
 
     x_dir = 0
     y_dir = 0

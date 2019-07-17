@@ -23,11 +23,12 @@ def mouse_callback(event, x, y, flags, param):
         zoom_command = 'o'
 
 class UI_Handler():
-    WINDOW_NAME = 'Control PTZ Camera with mouse'
 
-    def __init__(self, frame):
-        cv2.imshow(self.WINDOW_NAME, frame)
-        cv2.setMouseCallback(self.WINDOW_NAME, mouse_callback)
+    def __init__(self, frame, window_name):
+        self.window_name = window_name
+        
+        cv2.imshow(self.window_name, frame)
+        cv2.setMouseCallback(self.window_name, mouse_callback)
 
         width = frame.shape[1]
         height = frame.shape[0]
@@ -43,7 +44,7 @@ class UI_Handler():
                           self.zone['end'],
                           (255, 0, 0))
 
-        cv2.imshow(self.WINDOW_NAME, frame)
+        cv2.imshow(self.window_name, frame)
         key = cv2.waitKey(10)
 
         return key

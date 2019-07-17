@@ -51,7 +51,8 @@ if __name__ == '__main__':
     cam = Camera()
 
     frame = cam.get_frame()
-    ui = ui.UI_Handler(frame)
+    window_name = 'Detect, Track, and Zoom'
+    ui = ui.UI_Handler(frame, window_name)
 
     network = nn.NeuralNetworkHandler(model_config,
                                       model_weights,
