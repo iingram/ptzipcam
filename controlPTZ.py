@@ -1,4 +1,4 @@
-import asyncio
+# import asyncio
 import sys
 
 import cv2
@@ -253,7 +253,7 @@ if __name__ == '__main__':
     
     while True:
 
-        key = cv2.waitKey(30)
+        key = cv2.waitKey(1)
 
         if key == ord('w'):
             break
