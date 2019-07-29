@@ -215,7 +215,8 @@ def readin():
 
 
 def printUpdate():
-    print(f'Pan, Tilt is {x_command:.2f}, {y_command:.2f}')
+    print('Pan, Tilt is {pan:.2f}, {tilt:.2f}'.format(pan=x_command,
+                                                      tilt=y_command))
 
 
 if __name__ == '__main__':
@@ -248,9 +249,8 @@ if __name__ == '__main__':
           "j: left\n",
           "l: right\n",
           "z: zoom in (full)\n",
-          "a: zoom out (full)\n",
-    )
-    
+          "a: zoom out (full)\n")
+
     while True:
 
         key = cv2.waitKey(1)
@@ -261,7 +261,7 @@ if __name__ == '__main__':
             move_up(ptz, moverequest)
             printUpdate()
         elif key == ord('k'):
-            move_down(ptz, moverequest) 
+            move_down(ptz, moverequest)
             printUpdate()
         elif key == ord('j'):
             move_right(ptz, moverequest)
