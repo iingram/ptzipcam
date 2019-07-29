@@ -25,13 +25,13 @@ def mouse_callback(event, x, y, flags, param):
 
 class UI_Handler():
 
-    def __init__(self, frame, window_name, scale_down=1):
+    def __init__(self, frame, window_name, scale_display=1.0):
         self.window_name = window_name
 
         width = frame.shape[1]
         height = frame.shape[0]
-        display_width = int(width/scale_down)
-        display_height = int(height/scale_down)
+        display_width = int(width * scale_display)
+        display_height = int(height * scale_display)
 
         cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.window_name,
