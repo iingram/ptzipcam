@@ -12,7 +12,7 @@ def mouse_callback(event, x, y, flags, param):
     global zoom_command
 
     zoom_command = None
-    
+
     if event == cv2.EVENT_MOUSEMOVE:
         mouseX = x
         mouseY = y
@@ -22,16 +22,24 @@ def mouse_callback(event, x, y, flags, param):
     elif event == cv2.EVENT_LBUTTONUP or event == cv2.EVENT_RBUTTONDOWN:
         zoom_command = 'o'
 
+
 class UI_Handler():
 
-    def __init__(self, frame, window_name):
+    def __init__(self, frame, window_name, scale_down=1):
         self.window_name = window_name
-        
-        cv2.imshow(self.window_name, frame)
-        cv2.setMouseCallback(self.window_name, mouse_callback)
 
         width = frame.shape[1]
         height = frame.shape[0]
+        display_width = int(width/scale_down)
+        display_height = int(height/scale_down)
+
+        cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(self.window_name,
+                         display_width,
+                         display_height)
+
+        cv2.imshow(self.window_name, frame)
+        cv2.setMouseCallback(self.window_name, mouse_callback)
 
         self.zone = {'start': (int(.3*width), int(.3*height)),
                      'end': (int(.7*width), int(.7*height))}
@@ -42,7 +50,8 @@ class UI_Handler():
             cv2.rectangle(frame,
                           self.zone['start'],
                           self.zone['end'],
-                          (255, 0, 0))
+                          (255, 0, 0),
+                          thickness=2)
 
         cv2.imshow(self.window_name, frame)
         key = cv2.waitKey(10)
