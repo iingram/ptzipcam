@@ -31,6 +31,10 @@ TILT_STEPS = 10
 
 
 def mow_the_lawn():
+    """Thread function for moving the camera through a "mow the lawn"
+    pattern: panning across, then tilting up a step, panning back, tilting
+    up a step, etc.
+    """
     global camera_still
     ptzCam = PtzCam(IP, PORT, USER, PASS)
 
@@ -60,7 +64,7 @@ def mow_the_lawn():
                                             PAN_STEPS)
             for x_pos in pan_positions:
                 ptzCam.absmove(x_pos/180.0, y_pos/45.0)
-                print(f'Moving to pan {x_pos} and tilt {y_pos}.') 
+                print('Moving to pan {x_pos} and tilt {y_pos}.'.format(x_pos=x_pos, y_pos=y_pos)) 
                 time.sleep(2)
                 camera_still = True
                 time.sleep(2)
@@ -80,9 +84,7 @@ if __name__ == '__main__':
     movement_control_thread.start()
 
     cam = Camera()
-
     width, height = cam.get_resolution()
-
     vid_writer = cv2.VideoWriter('output.avi',
                                  cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
                                  30,
