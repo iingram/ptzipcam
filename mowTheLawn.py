@@ -66,7 +66,7 @@ def mow_the_lawn():
                                             PAN_STEPS)
             for x_pos in pan_positions:
                 ptzCam.absmove(x_pos/180.0, y_pos/45.0)
-                print('Moving to pan {x_pos} and tilt {y_pos}.'.format(x_pos=x_pos, y_pos=y_pos)) 
+                print('Moving to pan {x_pos:.2f} and tilt {y_pos:.2f}.'.format(x_pos=x_pos, y_pos=y_pos)) 
                 time.sleep(2)
                 camera_still = True
                 time.sleep(2)
