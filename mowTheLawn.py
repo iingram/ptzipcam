@@ -15,6 +15,8 @@ PASS = "NyalaChow22"        # Password
 
 camera_still = False
 
+HEADLESS = True
+
 # PAN_MIN = -0.94
 # PAN_MAX = -0.5
 PAN_MIN = 30 # in degrees
@@ -95,8 +97,13 @@ if __name__ == '__main__':
 
     while True:
         frame = cam.get_frame()
-        cv2.imshow('Mow The Lawn', frame)
-        key = cv2.waitKey(30)
+
+        if HEADLESS:
+            time.sleep(1)
+        else:
+            cv2.imshow('Mow The Lawn', frame)
+            key = cv2.waitKey(30)
+        
         if key == ord('q'):
             break
 
@@ -110,4 +117,6 @@ if __name__ == '__main__':
 
     vid_writer.release()
     cam.release()
-    cv2.destroyAllWindows()
+    
+    if not HEADLESS:
+        cv2.destroyAllWindows()
