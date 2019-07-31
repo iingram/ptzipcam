@@ -215,8 +215,8 @@ def readin():
 
 
 def printUpdate():
-    print('Pan, Tilt is {pan:.2f}, {tilt:.2f}'.format(pan=x_command,
-                                                      tilt=y_command))
+    print('Pan, Tilt is {pan:.2f}, {tilt:.2f}'.format(pan=x_command*180.0,
+                                                      tilt=y_command*45.0))
 
 
 if __name__ == '__main__':
