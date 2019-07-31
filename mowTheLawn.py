@@ -46,6 +46,10 @@ def mow_the_lawn():
     going_forward = True
     going_up = True
 
+    pan_pass_duration_estimate = int(((2 + 2 + STEP_DUR) * PAN_STEPS)/60)
+    
+    print('Will take about {} minutes to complete a pan pass'.format(pan_pass_duration_estimate))
+    
     while True:
         if going_up:
             tilt_positions = np.linspace(TILT_MIN,
