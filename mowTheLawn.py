@@ -103,9 +103,8 @@ if __name__ == '__main__':
         else:
             cv2.imshow('Mow The Lawn', frame)
             key = cv2.waitKey(30)
-        
-        if key == ord('q'):
-            break
+            if key == ord('q'):
+                break
 
         if camera_still:
             if latch:
