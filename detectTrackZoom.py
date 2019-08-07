@@ -94,7 +94,7 @@ if __name__ == '__main__':
         highest_confidence_tracked_class = 0
         target_lbox= None
         for lbox in lboxes:
-            if classes[lbox['classId']] == TRACKED_CLASS:
+            if classes[lbox['classId']] in TRACKED_CLASS:
                 if lbox['confidence'] > highest_confidence_tracked_class:
                     highest_confidence_tracked_class = lbox['confidence']
                     target_lbox = lbox
@@ -118,8 +118,8 @@ if __name__ == '__main__':
         else:
             frames_since_last_acq += 1
             if frames_since_last_acq > 5:
-                # x_err = 0
-                x_err = 400  # TEMPORARY: IS HACK TO GET A SCAN
+                x_err = 0
+                # x_err = -300  # TEMPORARY: IS HACK TO GET A SCAN
                 y_err = 0
             zoom_command -= .1
             if zoom_command <= -1.0:

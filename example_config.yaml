@@ -1,4 +1,4 @@
-TRACKED_CLASS: giraffe
+TRACKED_CLASS: [giraffe, person]
 
 INIT_POS: [-0.8, -0.9]
 
