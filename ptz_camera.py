@@ -1,6 +1,15 @@
 from onvif import ONVIFCamera
 
 
+def _checkZeroness(number):
+    e = .001
+
+    if number < e and number > -e:
+        return 0
+    else:
+        return number
+
+    
 class PtzCam():
     """Class for controlling the pan-tilt-zoom of an ONVIF-compliant IP
     camera that has PTZ capability.
@@ -34,6 +43,8 @@ class PtzCam():
         self.ptz.ContinuousMove(self.moverequest)
 
     def move_w_zoom(self, x_dir, y_dir, zoom_command):
+        zoom_command = _checkZeroness(zoom_command)
+
         self.moverequest = self.ptz.create_type('ContinuousMove')
         self.moverequest.ProfileToken = self.media_profile.token
         self.moverequest.Velocity = {'PanTilt': {'x': x_dir, 'y': y_dir},
