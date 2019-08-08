@@ -18,6 +18,16 @@ ap.add_argument('-n',
                 default='64',
                 help='last bit of IP of camera')
 
+ap.add_argument('-s',
+                '--sideways',
+                action='store_true',
+                help='set if camera is oriented sideways')
+
+ap.add_argument('-u',
+                '--upside_down',
+                action='store_true',
+                help='set if camera upside-down')
+
 args = ap.parse_args()
 
 IP = "192.168.1." + args.num  # Camera IP address
@@ -25,15 +35,24 @@ PORT = 80           # Port
 USER = "admin"         # Username
 PASS = "NyalaChow22"        # Password
 
-ROTATED = False
+SIDEWAYS = args.sideways
+UPSIDE_DOWN = args.upside_down
 
+def orient_frame(frame, is_sideways, is_upside_down):
+    if is_sideways:
+        frame = np.rot90(frame)
+    elif is_upside_down:
+        frame = np.rot90(frame,2)
+
+    return frame
+        
 if __name__ == '__main__':
     ptzCam = PtzCam(IP, PORT, USER, PASS)
     cam = Camera()
 
     frame = cam.get_frame()
-    if ROTATED:
-        frame = np.rot90(frame)
+    frame = orient_frame(frame, SIDEWAYS, UPSIDE_DOWN)
+    
     window_name = 'Control PTZ Camera with mouse'
     ui = ui.UI_Handler(frame, window_name)
 
@@ -44,8 +63,8 @@ if __name__ == '__main__':
     
     while True:
         frame = cam.get_frame()
-        if ROTATED:
-            frame = np.rot90(frame)
+        frame = orient_frame(frame, SIDEWAYS, UPSIDE_DOWN)
+
         key = ui.update(frame)
         if key == ord('q'):
             break
@@ -55,8 +74,10 @@ if __name__ == '__main__':
         elif zoom_command == 'o':
             ptzCam.zoom_out_full()
 
-        if ROTATED: 
+        if SIDEWAYS: 
             ptzCam.move(y_dir, -x_dir)
+        elif UPSIDE_DOWN:
+            ptzCam.move(-x_dir, -y_dir)
         else:
             ptzCam.move(x_dir, y_dir)
                         
