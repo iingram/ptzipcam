@@ -1,8 +1,19 @@
 import cv2
 
+import numpy as np
+
 mouseX = 250
 mouseY = 250
 zoom_command = None
+
+
+def orient_frame(frame, is_sideways, is_upside_down):
+    if is_sideways:
+        frame = np.rot90(frame)
+    elif is_upside_down:
+        frame = np.rot90(frame,2)
+
+    return frame
 
 
 # callback function for mouse ui

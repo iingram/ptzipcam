@@ -2,6 +2,7 @@
 
 import os
 import yaml
+import argparse
 
 from ptz_camera import PtzCam
 from camera import Camera
@@ -9,6 +10,24 @@ import ui
 
 from zooSpotter import neuralnetwork as nn
 from zooSpotter import draw
+
+
+ap = argparse.ArgumentParser()
+
+ap.add_argument('-s',
+                '--sideways',
+                action='store_true',
+                help='set if camera is oriented sideways')
+
+ap.add_argument('-u',
+                '--upside_down',
+                action='store_true',
+                help='set if camera upside-down')
+
+args = ap.parse_args()
+
+SIDEWAYS = args.sideways
+UPSIDE_DOWN = args.upside_down
 
 with open('configs.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
@@ -35,8 +54,10 @@ if __name__ == '__main__':
     cam = Camera()
 
     frame = cam.get_frame()
+    frame = ui.orient_frame(frame, SIDEWAYS, UPSIDE_DOWN)
+
     window_name = 'Control PTZ Camera with mouse'
-    ui = ui.UI_Handler(frame, window_name)
+    uih = ui.UI_Handler(frame, window_name)
 
     network = nn.NeuralNetworkHandler(model_config,
                                       model_weights,
@@ -49,7 +70,10 @@ if __name__ == '__main__':
     ptzCam.zoom_out_full()
     
     while True:
-        frame = cam.get_frame()
+        raw_frame = cam.get_frame()
+        raw_frame = ui.orient_frame(raw_frame, SIDEWAYS, UPSIDE_DOWN)
+        frame = raw_frame.copy()
+
         outs, inferenceTime = network.infer(frame)
         lboxes =  nn.NeuralNetworkHandler.filterBoxes(outs,
                                                       frame,
@@ -59,7 +83,7 @@ if __name__ == '__main__':
         for lbox in lboxes:
             draw.labeledBox(frame, classes, lbox)
 
-        key = ui.update(frame)
+        key = uih.update(frame)
      
         if key == ord('q'):
             break
@@ -69,13 +93,18 @@ if __name__ == '__main__':
         elif zoom_command == 'o':
             ptzCam.zoom_out_full()
         
-        ptzCam.move(x_dir, y_dir)
+        if SIDEWAYS:
+            ptzCam.move(y_dir, -x_dir)
+        elif UPSIDE_DOWN:
+            ptzCam.move(-x_dir, -y_dir)
+        else:
+            ptzCam.move(x_dir, y_dir)
 
-        x_dir, y_dir, zoom_command = ui.read_mouse()
+        x_dir, y_dir, zoom_command = uih.read_mouse()
 
         if x_dir == 0 and y_dir == 0:
             ptzCam.stop()
 
     cam.release()
     ptzCam.stop()
-    ui.clean_up()
+    uih.clean_up()

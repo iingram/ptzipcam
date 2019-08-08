@@ -3,8 +3,6 @@
 # Need to do something in the realm of this first:
 # ffmpeg -rtsp_transport tcp -i rtsp://admin:NyalaChow22@192.168.1.64:554/Streaming/Channels/103 -b 1900k -f mpegts udp://127.0.0.1:5000
 
-import numpy as np
-
 import ui
 import argparse
 
@@ -38,54 +36,46 @@ PASS = "NyalaChow22"        # Password
 SIDEWAYS = args.sideways
 UPSIDE_DOWN = args.upside_down
 
-def orient_frame(frame, is_sideways, is_upside_down):
-    if is_sideways:
-        frame = np.rot90(frame)
-    elif is_upside_down:
-        frame = np.rot90(frame,2)
-
-    return frame
-        
 if __name__ == '__main__':
     ptzCam = PtzCam(IP, PORT, USER, PASS)
     cam = Camera()
 
     frame = cam.get_frame()
-    frame = orient_frame(frame, SIDEWAYS, UPSIDE_DOWN)
-    
+    frame = ui.orient_frame(frame, SIDEWAYS, UPSIDE_DOWN)
+
     window_name = 'Control PTZ Camera with mouse'
-    ui = ui.UI_Handler(frame, window_name)
+    uih = ui.UI_Handler(frame, window_name)
 
     x_dir = 0
     y_dir = 0
     zoom_command = False
     ptzCam.zoom_out_full()
-    
+
     while True:
         frame = cam.get_frame()
-        frame = orient_frame(frame, SIDEWAYS, UPSIDE_DOWN)
+        frame = ui.orient_frame(frame, SIDEWAYS, UPSIDE_DOWN)
 
-        key = ui.update(frame)
+        key = uih.update(frame)
         if key == ord('q'):
             break
-        
+
         if zoom_command == 'i':
             ptzCam.zoom_in_full()
         elif zoom_command == 'o':
             ptzCam.zoom_out_full()
 
-        if SIDEWAYS: 
+        if SIDEWAYS:
             ptzCam.move(y_dir, -x_dir)
         elif UPSIDE_DOWN:
             ptzCam.move(-x_dir, -y_dir)
         else:
             ptzCam.move(x_dir, y_dir)
-                        
-        x_dir, y_dir, zoom_command = ui.read_mouse()
+
+        x_dir, y_dir, zoom_command = uih.read_mouse()
 
         if x_dir == 0 and y_dir == 0:
             ptzCam.stop()
 
     cam.release()
     ptzCam.stop()
-    ui.clean_up()
+    uih.clean_up()
