@@ -6,11 +6,21 @@
 import numpy as np
 
 import ui
+import argparse
 
 from ptz_camera import PtzCam
 from camera import Camera
 
-IP = "192.168.1.64"   # Camera IP address
+ap = argparse.ArgumentParser()
+
+ap.add_argument('-n',
+                '--num',
+                default='64',
+                help='last bit of IP of camera')
+
+args = ap.parse_args()
+
+IP = "192.168.1." + args.num  # Camera IP address
 PORT = 80           # Port
 USER = "admin"         # Username
 PASS = "NyalaChow22"        # Password
