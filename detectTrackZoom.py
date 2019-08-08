@@ -27,6 +27,8 @@ PASS = configs['PASS']
 
 # ptz camera setup constants
 INIT_POS = configs['INIT_POS']
+UPSIDE_DOWN = configs['UPSIDE_DOWN']
+SIDEWAYS = configs['SIDEWAYS']
 
 # CV constants
 TRACKED_CLASS = configs['TRACKED_CLASS']
@@ -47,8 +49,10 @@ if __name__ == '__main__':
     cam = Camera()
 
     frame = cam.get_frame()
+    frame = ui.orient_frame(frame, SIDEWAYS, UPSIDE_DOWN)
+
     window_name = 'Detect, Track, and Zoom'
-    ui = ui.UI_Handler(frame, window_name)
+    uih = ui.UI_Handler(frame, window_name)
 
     network = nn.NeuralNetworkHandler(MODEL_CONFIG,
                                       MODEL_WEIGHTS,
@@ -81,7 +85,10 @@ if __name__ == '__main__':
     frames_since_last_acq = 0
 
     while True:
-        frame = cam.get_frame()
+        raw_frame = cam.get_frame()
+        raw_frame = ui.orient_frame(raw_frame, SIDEWAYS, UPSIDE_DOWN)
+        frame = raw_frame.copy()
+
         outs, inferenceTime = network.infer(frame)
         lboxes = nn.NeuralNetworkHandler.filterBoxes(outs,
                                                      frame,
@@ -128,7 +135,7 @@ if __name__ == '__main__':
             # zoom_command = -1.0
 
         # update ui and handle user input
-        key = ui.update(frame, hud=False)
+        key = uih.update(frame, hud=False)
         if RECORD:
             vid_writer.write(frame.astype(np.uint8))
 
@@ -152,6 +159,11 @@ if __name__ == '__main__':
 
         # x_dir = calc_command(x_err, -.005)
         # y_dir = calc_command(y_err, .005)
+
+        if UPSIDE_DOWN:
+            x_err = -x_err
+            y_err = -y_err
+        
         x_dir = calc_command(x_err, -.0008)
         y_dir = calc_command(y_err, .002)
 
@@ -162,4 +174,4 @@ if __name__ == '__main__':
         vid_writer.release()
     cam.release()
     ptzCam.stop()
-    ui.clean_up()
+    uih.clean_up()

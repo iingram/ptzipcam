@@ -4,6 +4,7 @@
 # ffmpeg -rtsp_transport tcp -i rtsp://admin:NyalaChow22@192.168.1.64:554/Streaming/Channels/103 -b 1900k -f mpegts udp://127.0.0.1:5000
 
 import ui
+import yaml
 import argparse
 
 from ptz_camera import PtzCam
@@ -14,17 +15,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument('-n',
                 '--num',
                 default='64',
-                help='last bit of IP of camera')
-
-ap.add_argument('-s',
-                '--sideways',
-                action='store_true',
-                help='set if camera is oriented sideways')
-
-ap.add_argument('-u',
-                '--upside_down',
-                action='store_true',
-                help='set if camera upside-down')
+                help='last bit of camera IP (assumes rest')
 
 args = ap.parse_args()
 
@@ -33,8 +24,11 @@ PORT = 80           # Port
 USER = "admin"         # Username
 PASS = "NyalaChow22"        # Password
 
-SIDEWAYS = args.sideways
-UPSIDE_DOWN = args.upside_down
+with open('configs.yaml') as f:
+    configs = yaml.load(f, Loader=yaml.SafeLoader)
+
+UPSIDE_DOWN = configs['UPSIDE_DOWN']
+SIDEWAYS = configs['SIDEWAYS']
 
 if __name__ == '__main__':
     ptzCam = PtzCam(IP, PORT, USER, PASS)

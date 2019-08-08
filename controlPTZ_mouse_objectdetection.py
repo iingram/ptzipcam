@@ -2,7 +2,6 @@
 
 import os
 import yaml
-import argparse
 
 from ptz_camera import PtzCam
 from camera import Camera
@@ -11,27 +10,12 @@ import ui
 from zooSpotter import neuralnetwork as nn
 from zooSpotter import draw
 
-
-ap = argparse.ArgumentParser()
-
-ap.add_argument('-s',
-                '--sideways',
-                action='store_true',
-                help='set if camera is oriented sideways')
-
-ap.add_argument('-u',
-                '--upside_down',
-                action='store_true',
-                help='set if camera upside-down')
-
-args = ap.parse_args()
-
-SIDEWAYS = args.sideways
-UPSIDE_DOWN = args.upside_down
-
 with open('configs.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
+UPSIDE_DOWN = configs['UPSIDE_DOWN']
+SIDEWAYS = configs['SIDEWAYS']
+    
 IP = configs['IP']
 PORT = configs['PORT']
 USER = configs['USER']        
