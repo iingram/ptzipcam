@@ -7,12 +7,14 @@ mouseY = 250
 zoom_command = None
 
 
-def orient_frame(frame, is_sideways, is_upside_down):
-    if is_sideways:
+def orient_frame(frame, ORIENTATION):
+    if ORIENTATION == 'left':
         frame = np.rot90(frame)
-    elif is_upside_down:
-        frame = np.rot90(frame,2)
-
+    elif ORIENTATION == 'down':
+        frame = np.rot90(frame, 2)
+    elif ORIENTATION == 'right':
+        frame = np.rot90(frame, 3)
+        
     return frame
 
 

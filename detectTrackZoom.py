@@ -27,8 +27,7 @@ PASS = configs['PASS']
 
 # ptz camera setup constants
 INIT_POS = configs['INIT_POS']
-UPSIDE_DOWN = configs['UPSIDE_DOWN']
-SIDEWAYS = configs['SIDEWAYS']
+ORIENTATION = configs['ORIENTATION']
 
 # CV constants
 TRACKED_CLASS = configs['TRACKED_CLASS']
@@ -49,7 +48,7 @@ if __name__ == '__main__':
     cam = Camera()
 
     frame = cam.get_frame()
-    frame = ui.orient_frame(frame, SIDEWAYS, UPSIDE_DOWN)
+    frame = ui.orient_frame(frame, ORIENTATION)
 
     window_name = 'Detect, Track, and Zoom'
     uih = ui.UI_Handler(frame, window_name)
@@ -86,7 +85,7 @@ if __name__ == '__main__':
 
     while True:
         raw_frame = cam.get_frame()
-        raw_frame = ui.orient_frame(raw_frame, SIDEWAYS, UPSIDE_DOWN)
+        raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
         frame = raw_frame.copy()
 
         outs, inferenceTime = network.infer(frame)
@@ -160,7 +159,7 @@ if __name__ == '__main__':
         # x_dir = calc_command(x_err, -.005)
         # y_dir = calc_command(y_err, .005)
 
-        if UPSIDE_DOWN:
+        if ORIENTATION=='down':
             x_err = -x_err
             y_err = -y_err
         

@@ -27,15 +27,14 @@ PASS = "NyalaChow22"        # Password
 with open('configs.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
-UPSIDE_DOWN = configs['UPSIDE_DOWN']
-SIDEWAYS = configs['SIDEWAYS']
+ORIENTATION = configs['ORIENTATION']
 
 if __name__ == '__main__':
     ptzCam = PtzCam(IP, PORT, USER, PASS)
     cam = Camera()
 
     frame = cam.get_frame()
-    frame = ui.orient_frame(frame, SIDEWAYS, UPSIDE_DOWN)
+    frame = ui.orient_frame(frame, ORIENTATION)
 
     window_name = 'Control PTZ Camera with mouse'
     uih = ui.UI_Handler(frame, window_name)
@@ -47,7 +46,7 @@ if __name__ == '__main__':
 
     while True:
         frame = cam.get_frame()
-        frame = ui.orient_frame(frame, SIDEWAYS, UPSIDE_DOWN)
+        frame = ui.orient_frame(frame, ORIENTATION)
 
         key = uih.update(frame)
         if key == ord('q'):
@@ -58,10 +57,12 @@ if __name__ == '__main__':
         elif zoom_command == 'o':
             ptzCam.zoom_out_full()
 
-        if SIDEWAYS:
+        if ORIENTATION == 'left':
             ptzCam.move(y_dir, -x_dir)
-        elif UPSIDE_DOWN:
+        elif ORIENTATION == 'down':
             ptzCam.move(-x_dir, -y_dir)
+        elif ORIENTATION == 'right':
+            ptzCam.move(-y_dir, x_dir)
         else:
             ptzCam.move(x_dir, y_dir)
 
