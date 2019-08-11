@@ -74,6 +74,12 @@ class PtzCam():
         self.moverequest.Position.Zoom.x = 1.0
         self.ptz.AbsoluteMove(self.moverequest)
 
+    def zoom(self, zoom_command):
+        zoom_command = _checkZeroness(zoom_command)
+        self._prep_abs_move()
+        self.moverequest.Position.Zoom.x = zoom_command
+        self.ptz.AbsoluteMove(self.moverequest)
+
     def stop(self):
         self._prep_abs_move()
         self.ptz.Stop({'ProfileToken': self.moverequest.ProfileToken})
