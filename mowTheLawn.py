@@ -48,7 +48,7 @@ def mow_the_lawn():
 
     pan_pass_duration_estimate = int(((2 + 2 + STEP_DUR) * PAN_STEPS)/60)
     
-    print('Will take about {} minutes to complete a pan pass'.format(pan_pass_duration_estimate))
+    print('Will take about {} minutes to complete a pan pass.'.format(pan_pass_duration_estimate))
     
     while True:
         if going_up:
@@ -70,7 +70,7 @@ def mow_the_lawn():
                                             PAN_STEPS)
             for x_pos in pan_positions:
                 ptzCam.absmove(x_pos/180.0, y_pos/45.0)
-                print('Moving to pan {x_pos:.2f} and tilt {y_pos:.2f}.'.format(x_pos=x_pos, y_pos=y_pos)) 
+                print('Moving to {x_pos:.2f} degrees pan and {y_pos:.2f} degrees tilt.'.format(x_pos=x_pos, y_pos=y_pos)) 
                 time.sleep(2)
                 camera_still = True
                 time.sleep(2)
