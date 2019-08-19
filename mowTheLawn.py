@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
     cam = Camera()
     width, height = cam.get_resolution()
-    vid_writer = cv2.VideoWriter('output.avi',
+    vid_writer = cv2.VideoWriter('timelapse_mow_the_lawn.avi',
                                  cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
                                  30,
                                  (width, height))
