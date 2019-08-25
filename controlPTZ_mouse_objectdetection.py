@@ -13,8 +13,7 @@ from zooSpotter import draw
 with open('configs.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
-UPSIDE_DOWN = configs['UPSIDE_DOWN']
-SIDEWAYS = configs['SIDEWAYS']
+ORIENTATION = configs['ORIENTATION']
     
 IP = configs['IP']
 PORT = configs['PORT']
@@ -26,7 +25,7 @@ NMS_THRESHOLD = configs['NMS_THRESHOLD']
 INPUT_WIDTH = configs['INPUT_WIDTH']
 INPUT_HEIGHT = configs['INPUT_HEIGHT']
 
-path = '/home/ian/zooSpotter/models/'
+path = '/home/ian/zoo_spotter/models/'
 
 model_config =  os.path.join(path, 'yolov3-tiny.cfg')
 model_weights =  os.path.join(path, 'yolov3-tiny.weights')
@@ -38,15 +37,15 @@ if __name__ == '__main__':
     cam = Camera()
 
     frame = cam.get_frame()
-    frame = ui.orient_frame(frame, SIDEWAYS, UPSIDE_DOWN)
+    frame = ui.orient_frame(frame, ORIENTATION)
 
     window_name = 'Control PTZ Camera with mouse'
     uih = ui.UI_Handler(frame, window_name)
 
-    network = nn.NeuralNetworkHandler(model_config,
-                                      model_weights,
-                                      INPUT_WIDTH,
-                                      INPUT_HEIGHT)
+    network = nn.ObjectDetectorHandler(model_config,
+                                       model_weights,
+                                       INPUT_WIDTH,
+                                       INPUT_HEIGHT)
 
     x_dir = 0
     y_dir = 0
@@ -55,14 +54,14 @@ if __name__ == '__main__':
     
     while True:
         raw_frame = cam.get_frame()
-        raw_frame = ui.orient_frame(raw_frame, SIDEWAYS, UPSIDE_DOWN)
+        raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
         frame = raw_frame.copy()
 
         outs, inferenceTime = network.infer(frame)
-        lboxes =  nn.NeuralNetworkHandler.filterBoxes(outs,
-                                                      frame,
-                                                      CONF_THRESHOLD,
-                                                      NMS_THRESHOLD)
+        lboxes =  nn.ObjectDetectorHandler.filter_boxes(outs,
+                                                        frame,
+                                                        CONF_THRESHOLD,
+                                                        NMS_THRESHOLD)
 
         for lbox in lboxes:
             draw.labeledBox(frame, classes, lbox)
@@ -77,9 +76,9 @@ if __name__ == '__main__':
         elif zoom_command == 'o':
             ptzCam.zoom_out_full()
         
-        if SIDEWAYS:
+        if ORIENTATION=='left':
             ptzCam.move(y_dir, -x_dir)
-        elif UPSIDE_DOWN:
+        elif ORIENTATION=='down':
             ptzCam.move(-x_dir, -y_dir)
         else:
             ptzCam.move(x_dir, y_dir)
