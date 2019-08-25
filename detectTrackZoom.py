@@ -128,6 +128,8 @@ if __name__ == '__main__':
                 x_err = 0
                 # x_err = -300  # TEMPORARY: IS HACK TO GET A SCAN
                 y_err = 0
+            if frames_since_last_acq > 30:
+                ptzCam.absmove(INIT_POS[0], INIT_POS[1])
             zoom_command -= .1
             if zoom_command <= -1.0:
                 zoom_command = -1.0
