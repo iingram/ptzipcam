@@ -6,6 +6,7 @@
 import ui
 import yaml
 import argparse
+# import time
 
 from ptz_camera import PtzCam
 from camera import Camera
@@ -45,6 +46,7 @@ if __name__ == '__main__':
     ptzCam.zoom_out_full()
 
     while True:
+        # time.sleep(1)
         frame = cam.get_frame()
         frame = ui.orient_frame(frame, ORIENTATION)
 
