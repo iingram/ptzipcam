@@ -2,6 +2,7 @@
 
 import os
 import yaml
+# import time
 
 from ptz_camera import PtzCam
 from camera import Camera
@@ -33,7 +34,7 @@ classes_file = os.path.join(path, 'coco.labels')
 classes = nn.read_classes_from_file(classes_file)
 
 if __name__ == '__main__':
-    ptzCam = PtzCam(IP, PORT, USER, PASS)
+    ptz_cam = PtzCam(IP, PORT, USER, PASS)
     cam = Camera()
 
     frame = cam.get_frame()
@@ -50,14 +51,15 @@ if __name__ == '__main__':
     x_dir = 0
     y_dir = 0
     zoom_command = False
-    ptzCam.zoom_out_full()
+    ptz_cam.zoom_out_full()
     
     while True:
+        # time.sleep(1)
         raw_frame = cam.get_frame()
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
         frame = raw_frame.copy()
 
-        outs, inferenceTime = network.infer(frame)
+        outs, inference_time = network.infer(frame)
         lboxes =  nn.ObjectDetectorHandler.filter_boxes(outs,
                                                         frame,
                                                         CONF_THRESHOLD,
@@ -72,22 +74,22 @@ if __name__ == '__main__':
             break
         
         if zoom_command == 'i':
-            ptzCam.zoom_in_full()
+            ptz_cam.zoom_in_full()
         elif zoom_command == 'o':
-            ptzCam.zoom_out_full()
+            ptz_cam.zoom_out_full()
         
         if ORIENTATION=='left':
-            ptzCam.move(y_dir, -x_dir)
+            ptz_cam.move(y_dir, -x_dir)
         elif ORIENTATION=='down':
-            ptzCam.move(-x_dir, -y_dir)
+            ptz_cam.move(-x_dir, -y_dir)
         else:
-            ptzCam.move(x_dir, y_dir)
+            ptz_cam.move(x_dir, y_dir)
 
         x_dir, y_dir, zoom_command = uih.read_mouse()
 
         if x_dir == 0 and y_dir == 0:
-            ptzCam.stop()
+            ptz_cam.stop()
 
     cam.release()
-    ptzCam.stop()
+    ptz_cam.stop()
     uih.clean_up()
