@@ -44,7 +44,7 @@ CLASSES = nn.read_classes_from_file(CLASSES_FILE)
 
 if __name__ == '__main__':
     # construct core objects
-    ptzCam = PtzCam(IP, PORT, USER, PASS)
+    ptz_cam = PtzCam(IP, PORT, USER, PASS)
     cam = Camera()
 
     frame = cam.get_frame()
@@ -72,10 +72,10 @@ if __name__ == '__main__':
     x_dir = 0
     y_dir = 0
     zoom_command = 0
-    ptzCam.zoom_out_full()
+    ptz_cam.zoom_out_full()
     time.sleep(1)
-    ptzCam.absmove(INIT_POS[0], INIT_POS[1])
-    # ptzCam.absmove(0, -0.5)
+    ptz_cam.absmove(INIT_POS[0], INIT_POS[1])
+    # ptz_cam.absmove(0, -0.5)
     time.sleep(2)
 
     x_err = 0
@@ -88,7 +88,7 @@ if __name__ == '__main__':
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
         frame = raw_frame.copy()
 
-        outs, inferenceTime = network.infer(frame)
+        outs, inference_time = network.infer(frame)
         lboxes = nn.ObjectDetectorHandler.filter_boxes(outs,
                                                        frame,
                                                        CONF_THRESHOLD,
@@ -129,7 +129,7 @@ if __name__ == '__main__':
                 # x_err = -300  # TEMPORARY: IS HACK TO GET A SCAN
                 y_err = 0
             if frames_since_last_acq > 30:
-                ptzCam.absmove(INIT_POS[0], INIT_POS[1])
+                ptz_cam.absmove(INIT_POS[0], INIT_POS[1])
             zoom_command -= .1
             if zoom_command <= -1.0:
                 zoom_command = -1.0
@@ -144,7 +144,7 @@ if __name__ == '__main__':
             break
 
         # run position controller on ptz system
-        ptzCam.move_w_zoom(x_dir, y_dir, zoom_command)
+        ptz_cam.move_w_zoom(x_dir, y_dir, zoom_command)
 
         def calc_command(err, k):
             command = k * err
@@ -169,10 +169,10 @@ if __name__ == '__main__':
         y_dir = calc_command(y_err, .002)
 
         if x_dir == 0 and y_dir == 0:
-            ptzCam.stop()
+            ptz_cam.stop()
 
     if RECORD:
         vid_writer.release()
     cam.release()
-    ptzCam.stop()
+    ptz_cam.stop()
     uih.clean_up()
