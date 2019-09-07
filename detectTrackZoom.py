@@ -11,8 +11,8 @@ from ptz_camera import PtzCam
 from camera import Camera
 import ui
 
-from zooSpotter import neuralnetwork as nn
-from zooSpotter import draw
+from dnntools import neuralnetwork as nn
+from dnntools import draw
 
 with open('configs.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
@@ -53,10 +53,10 @@ if __name__ == '__main__':
     window_name = 'Detect, Track, and Zoom'
     uih = ui.UI_Handler(frame, window_name)
 
-    network = nn.NeuralNetworkHandler(MODEL_CONFIG,
-                                      MODEL_WEIGHTS,
-                                      INPUT_WIDTH,
-                                      INPUT_HEIGHT)
+    network = nn.ObjectDetectorHandler(MODEL_CONFIG,
+                                       MODEL_WEIGHTS,
+                                       INPUT_WIDTH,
+                                       INPUT_HEIGHT)
 
     frame = cam.get_frame()
     frame_width = frame.shape[1]
@@ -89,16 +89,16 @@ if __name__ == '__main__':
         frame = raw_frame.copy()
 
         outs, inferenceTime = network.infer(frame)
-        lboxes = nn.NeuralNetworkHandler.filterBoxes(outs,
-                                                     frame,
-                                                     CONF_THRESHOLD,
-                                                     NMS_THRESHOLD)
+        lboxes = nn.ObjectDetectorHandler.filter_boxes(outs,
+                                                       frame,
+                                                       CONF_THRESHOLD,
+                                                       NMS_THRESHOLD)
 
         # extract the lbox with the highest confidence (that is a target type)
         highest_confidence_tracked_class = 0
         target_lbox = None
         for lbox in lboxes:
-            if CLASSES[lbox['classId']] in TRACKED_CLASS:
+            if CLASSES[lbox['class_id']] in TRACKED_CLASS:
                 if lbox['confidence'] > highest_confidence_tracked_class:
                     highest_confidence_tracked_class = lbox['confidence']
                     target_lbox = lbox
@@ -106,7 +106,7 @@ if __name__ == '__main__':
         # if there is an appropriate lbox attempt to adjust ptz cam 
         if target_lbox:
             frames_since_last_acq = 0
-            draw.labeledBox(frame, CLASSES, target_lbox)
+            draw.labeled_box(frame, CLASSES, target_lbox)
             xc, yc = draw.box_to_coords(target_lbox['box'],
                                         return_kind='center')
             ret = draw.box_to_coords(target_lbox['box'])
