@@ -71,13 +71,17 @@ if __name__ == '__main__':
     ptz_cam = PtzCam(IP, PORT, USER, PASS)
     ptz_cam_2 = PtzCam('192.168.1.63', PORT, USER, PASS)
     cam = Camera()
-    # cam_2 = Camera(address='udp://127.0.0.1:5001')
+    cam_r = Camera(address='udp://127.0.0.1:5001')
 
     frame = cam.get_frame()
+    frame_r = cam_r.get_frame()
     frame = ui.orient_frame(frame, ORIENTATION)
+    frame_r = ui.orient_frame(frame_r, ORIENTATION)
 
     window_name = 'Detect, Track, and Zoom'
-    uih = ui.UI_Handler(frame, window_name)
+
+    frame_toshow = np.hstack((frame, frame_r))
+    uih = ui.UI_Handler(frame_toshow, window_name)
 
     network = nn.ObjectDetectorHandler(MODEL_CONFIG,
                                        MODEL_WEIGHTS,
@@ -89,7 +93,7 @@ if __name__ == '__main__':
     frame_height = frame.shape[1]
 
     if RECORD:
-        vid_writer = cv2.VideoWriter('detectTrackZoom.avi',
+        vid_writer = cv2.VideoWriter('boggle.avi',
                                      cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
                                      15,
                                      (frame_width, frame_height))
@@ -119,7 +123,10 @@ if __name__ == '__main__':
     last_time = 0
     while True:
         raw_frame = cam.get_frame()
+        frame_r = cam_r.get_frame()
+
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
+        frame_r = ui.orient_frame(frame_r, ORIENTATION)
         frame = raw_frame.copy()
 
         outs, inference_time = network.infer(frame)
@@ -188,7 +195,8 @@ if __name__ == '__main__':
 
 
         # update ui and handle user input
-        key = uih.update(frame, hud=False)
+        frame_toshow = np.hstack((frame, frame_r))
+        key = uih.update(frame_toshow, hud=False)
         if RECORD:
             vid_writer.write(frame.astype(np.uint8))
 
@@ -243,7 +251,7 @@ if __name__ == '__main__':
     if RECORD:
         vid_writer.release()
     cam.release()
-    # cam_2.release()
+    cam_r.release()
     ptz_cam.stop()
     ptz_cam_2.stop()
     uih.clean_up()
