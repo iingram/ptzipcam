@@ -66,6 +66,31 @@ def bittle():
         yield (-.99, .99)
         yield (-.99, -.99)
 
+        
+def paste_rotate(canvas, img, angle):
+
+    c_center = [int(canvas.shape[1]/2),
+                int(canvas.shape[0]/2)]
+
+    img_width_half = int(img.shape[1]/2)
+    img_height_half = int(img.shape[0]/2)
+
+
+    left_start = c_center[0] - img_width_half
+    top_start = c_center[1] - img_height_half
+
+    canvas[top_start:top_start+img_height_half*2, left_start:left_start+img_width_half*2] = img
+
+    image_center = tuple(np.array(canvas.shape[1::-1]) / 2)
+    rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)   
+    result = cv2.warpAffine(canvas,
+                            rot_mat,
+                            canvas.shape[1::-1],
+                            flags=cv2.INTER_LINEAR)
+
+    return result
+
+        
 if __name__ == '__main__':
     # construct core objects
     ptz_cam = PtzCam(IP, PORT, USER, PASS)
@@ -77,6 +102,11 @@ if __name__ == '__main__':
     frame_r = cam_r.get_frame()
     frame = ui.orient_frame(frame, ORIENTATION)
     frame_r = ui.orient_frame(frame_r, ORIENTATION)
+
+    canvas_length = int(1.01 * np.sqrt(frame.shape[0]**2 + frame.shape[1]**2))
+    canvas = np.zeros((canvas_length, canvas_length, 3), dtype=np.uint8)
+    angle = 90
+    angle_2 = 35
 
     window_name = 'Detect, Track, and Zoom'
 
@@ -125,8 +155,12 @@ if __name__ == '__main__':
         raw_frame = cam.get_frame()
         frame_r = cam_r.get_frame()
 
+        result = paste_rotate(canvas, raw_frame, angle)
+        result_2 = paste_rotate(canvas, frame_r, -angle_2)
+        whole = np.hstack((result, result_2))
+
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
-        frame_r = ui.orient_frame(frame_r, ORIENTATION)
+        # frame_r = ui.orient_frame(frame_r, ORIENTATION)
         frame = raw_frame.copy()
 
         outs, inference_time = network.infer(frame)
@@ -195,14 +229,23 @@ if __name__ == '__main__':
 
 
         # update ui and handle user input
-        frame_toshow = np.hstack((frame, frame_r))
-        key = uih.update(frame_toshow, hud=False)
+        # frame_toshow = np.hstack((frame, frame_r))
+        key = uih.update(whole, hud=False)
         if RECORD:
             vid_writer.write(frame.astype(np.uint8))
 
         if key == ord('q'):
             break
+        elif key == ord('l'):
+            angle += 1
+        elif key == ord('j'):
+            angle -= 1
+        elif key == ord('a'):
+            angle_2 += 1
+        elif key == ord('d'):
+            angle_2 -= 1
 
+        
         # run position controller on ptz system
         if ORIENTATION == 'left':
             y_dir = -x_dir
