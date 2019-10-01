@@ -74,12 +74,12 @@ if __name__ == '__main__':
     zoom_command = 0
     ptz_cam.zoom_out_full()
     time.sleep(1)
-    pan, _ = ptz_cam.get_position()
+    pan, tilt = ptz_cam.get_position()
     ptz_cam.absmove(INIT_POS[0], INIT_POS[1])
-    while pan >= INIT_POS[0] + .01 or pan <= INIT_POS[0] - .01:
+    epsilon = .01
+    while pan >= INIT_POS[0] + epsilon or pan <= INIT_POS[0] - epsilon:
          time.sleep(.1)
          pan, tilt = ptz_cam.get_position()
-         print(pan)
 
     x_err = 0
     y_err = 0
