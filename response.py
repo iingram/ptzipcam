@@ -126,7 +126,8 @@ if __name__ == '__main__':
         vid_writer = cv2.VideoWriter('boggle.avi',
                                      cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
                                      15,
-                                     (frame_width, frame_height))
+                                     # (frame_width, frame_height))
+                                     (2*canvas.shape[1], canvas.shape[0]))
 
     # initialize position of camera
     x_dir = 0
@@ -232,17 +233,18 @@ if __name__ == '__main__':
         # frame_toshow = np.hstack((frame, frame_r))
         key = uih.update(whole, hud=False)
         if RECORD:
-            vid_writer.write(frame.astype(np.uint8))
+            vid_writer.write(whole.astype(np.uint8))
+            # vid_writer.write(frame.astype(np.uint8))
 
         if key == ord('q'):
             break
-        elif key == ord('l'):
-            angle += 1
-        elif key == ord('j'):
-            angle -= 1
         elif key == ord('a'):
-            angle_2 += 1
+            angle += 1
         elif key == ord('d'):
+            angle -= 1
+        elif key == ord('l'):
+            angle_2 += 1
+        elif key == ord('j'):
             angle_2 -= 1
 
         
