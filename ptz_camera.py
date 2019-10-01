@@ -35,19 +35,19 @@ class PtzCam():
         # self.moverequest.Velocity = {'PanTilt': {'x': -1, 'y': 1},
         #                              'Zoom': {'x': 0.0}}
 
-    def move(self, x_dir, y_dir):
+    def move(self, x_velocity, y_velocity):
         self.moverequest = self.ptz.create_type('ContinuousMove')
         self.moverequest.ProfileToken = self.media_profile.token
-        self.moverequest.Velocity = {'PanTilt': {'x': x_dir, 'y': y_dir},
+        self.moverequest.Velocity = {'PanTilt': {'x': x_velocity, 'y': y_velocity},
                                      'Zoom': {'x': 0.0}}
         self.ptz.ContinuousMove(self.moverequest)
 
-    def move_w_zoom(self, x_dir, y_dir, zoom_command):
+    def move_w_zoom(self, x_velocity, y_velocity, zoom_command):
         zoom_command = _checkZeroness(zoom_command)
 
         self.moverequest = self.ptz.create_type('ContinuousMove')
         self.moverequest.ProfileToken = self.media_profile.token
-        self.moverequest.Velocity = {'PanTilt': {'x': x_dir, 'y': y_dir},
+        self.moverequest.Velocity = {'PanTilt': {'x': x_velocity, 'y': y_velocity},
                                      'Zoom': {'x': zoom_command}}
         self.ptz.ContinuousMove(self.moverequest)
 
@@ -58,6 +58,14 @@ class PtzCam():
             self.moverequest.Position = self.ptz.GetStatus({'ProfileToken': self.media_profile.token}).Position
             self.moverequest.Speed = self.media_profile.PTZConfiguration.DefaultPTZSpeed
 
+    def get_position(self):
+        self.moverequest = self.ptz.create_type('AbsoluteMove')
+        self.moverequest.ProfileToken = self.media_profile.token
+        position = self.ptz.GetStatus({'ProfileToken': self.media_profile.token}).Position
+
+        # x = pan, y = tilt
+        return position['PanTilt']['x'], position['PanTilt']['y']
+        
     def absmove(self, x_pos, y_pos):
         self._prep_abs_move()
         self.moverequest.Position.PanTilt.x = x_pos

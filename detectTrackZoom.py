@@ -69,14 +69,17 @@ if __name__ == '__main__':
                                      (frame_width, frame_height))
 
     # initialize position of camera
-    x_dir = 0
-    y_dir = 0
+    x_velocity = 0
+    y_velocity = 0
     zoom_command = 0
     ptz_cam.zoom_out_full()
     time.sleep(1)
+    pan, _ = ptz_cam.get_position()
     ptz_cam.absmove(INIT_POS[0], INIT_POS[1])
-    # ptz_cam.absmove(0, -0.5)
-    time.sleep(2)
+    while pan >= INIT_POS[0] + .01 or pan <= INIT_POS[0] - .01:
+         time.sleep(.1)
+         pan, tilt = ptz_cam.get_position()
+         print(pan)
 
     x_err = 0
     y_err = 0
@@ -144,7 +147,7 @@ if __name__ == '__main__':
             break
 
         # run position controller on ptz system
-        ptz_cam.move_w_zoom(x_dir, y_dir, zoom_command)
+        ptz_cam.move_w_zoom(x_velocity, y_velocity, zoom_command)
 
         def calc_command(err, k):
             command = k * err
@@ -158,17 +161,17 @@ if __name__ == '__main__':
 
             return command
 
-        # x_dir = calc_command(x_err, -.005)
-        # y_dir = calc_command(y_err, .005)
+        # x_velocity = calc_command(x_err, -.005)
+        # y_velocity = calc_command(y_err, .005)
 
         if ORIENTATION=='down':
             x_err = -x_err
             y_err = -y_err
         
-        x_dir = calc_command(x_err, -.0008)
-        y_dir = calc_command(y_err, .002)
+        x_velocity = calc_command(x_err, -.0016)
+        y_velocity = calc_command(y_err, .002)
 
-        if x_dir == 0 and y_dir == 0:
+        if x_velocity == 0 and y_velocity == 0:
             ptz_cam.stop()
 
     if RECORD:
