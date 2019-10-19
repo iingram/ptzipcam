@@ -8,8 +8,8 @@ from ptz_camera import PtzCam
 from camera import Camera
 import ui
 
-from zooSpotter import neuralnetwork as nn
-from zooSpotter import draw
+from dnntools import neuralnetwork as nn
+from dnntools import draw
 
 with open('configs.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
@@ -26,8 +26,8 @@ NMS_THRESHOLD = configs['NMS_THRESHOLD']
 INPUT_WIDTH = configs['INPUT_WIDTH']
 INPUT_HEIGHT = configs['INPUT_HEIGHT']
 
-path = '/home/ian/zoo_spotter/models/'
-
+# path = '/home/ian/zoo_spotter/models/'
+path = configs['MODEL_PATH']
 model_config =  os.path.join(path, 'yolov3-tiny.cfg')
 model_weights =  os.path.join(path, 'yolov3-tiny.weights')
 classes_file = os.path.join(path, 'coco.labels')
