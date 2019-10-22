@@ -63,7 +63,7 @@ if __name__ == '__main__':
     frame_height = frame.shape[0]
 
     if RECORD:
-        vid_writer = cv2.VideoWriter('detectTrackZoom.avi',
+        vid_writer = cv2.VideoWriter('video_detectTrackZoom.avi',
                                      cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
                                      15,
                                      (frame_width, frame_height))
@@ -118,7 +118,7 @@ if __name__ == '__main__':
             y_err = frame_height/2 - yc
 
             if x_err < 50 and y_err < 50:
-                zoom_command += .1
+                zoom_command += .9
                 if zoom_command >= 1.0:
                     zoom_command = 1.0
                 # zoom_command = 1.0
