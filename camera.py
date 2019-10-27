@@ -16,10 +16,12 @@ def camera_thread_function(cap, frame):
 
 class Camera():
 
-    def __init__(self, address='udp://127.0.0.1:5000'):
+    # def __init__(self, address='udp://127.0.0.1:5000'):
+    def __init__(self, ip='192.168.1.64', user='admin', passwd='NyalaChow22'):
+        address='rtsp://' + user + ':' + passwd + '@' + ip + ':554/Streaming/Channels/103'
         self.frame = [None]
         # self.cap = cv2.VideoCapture(address, cv2.CAP_FFMPEG)
-        self.cap = cv2.VideoCapture("rtsp://admin:NyalaChow22@192.168.1.64:554/Streaming/Channels/103")
+        self.cap = cv2.VideoCapture(address)
         ok, self.frame[0] = self.cap.read()
 
         self.cam_thread = threading.Thread(target=camera_thread_function,

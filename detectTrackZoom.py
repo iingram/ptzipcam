@@ -45,7 +45,8 @@ CLASSES = nn.read_classes_from_file(CLASSES_FILE)
 if __name__ == '__main__':
     # construct core objects
     ptz_cam = PtzCam(IP, PORT, USER, PASS)
-    cam = Camera()
+    # cam = Camera()
+    cam = Camera(ip=IP, user=USER, passwd=PASS)
 
     frame = cam.get_frame()
     frame = ui.orient_frame(frame, ORIENTATION)

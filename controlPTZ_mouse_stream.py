@@ -32,8 +32,8 @@ ORIENTATION = configs['ORIENTATION']
 
 if __name__ == '__main__':
     ptzCam = PtzCam(IP, PORT, USER, PASS)
-    cam = Camera()
-
+    cam = Camera(ip=IP, user=USER, passwd=PASS)
+    
     frame = cam.get_frame()
     frame = ui.orient_frame(frame, ORIENTATION)
 
