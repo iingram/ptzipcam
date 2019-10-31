@@ -15,18 +15,18 @@ PASS = "NyalaChow22"        # Password
 
 camera_still = False
 
-HEADLESS = True
+HEADLESS = False
 
 # PAN_MIN = -0.94
 # PAN_MAX = -0.5
-PAN_MIN = 30 # in degrees
-PAN_MAX = 179 # in degrees
-PAN_STEPS = 10 #400
+PAN_MIN = 30  # in degrees
+PAN_MAX = 179  # in degrees
+PAN_STEPS = 10  # 400
 
 STEP_DUR = 10
 
-TILT_MIN = -44 # in degrees
-TILT_MAX = 44 # in degrees
+TILT_MIN = -44  # in degrees
+TILT_MAX = 44  # in degrees
 # TILT_MIN = .7
 # TILT_MAX = .9
 TILT_STEPS = 10
@@ -47,9 +47,9 @@ def mow_the_lawn():
     going_up = True
 
     pan_pass_duration_estimate = int(((2 + 2 + STEP_DUR) * PAN_STEPS)/60)
-    
+
     print('Will take about {} minutes to complete a pan pass.'.format(pan_pass_duration_estimate))
-    
+
     while True:
         if going_up:
             tilt_positions = np.linspace(TILT_MIN,
@@ -70,7 +70,7 @@ def mow_the_lawn():
                                             PAN_STEPS)
             for x_pos in pan_positions:
                 ptz_cam.absmove(x_pos/180.0, y_pos/45.0)
-                print('Moving to {x_pos:.2f} degrees pan and {y_pos:.2f} degrees tilt.'.format(x_pos=x_pos, y_pos=y_pos)) 
+                print('Moving to {x_pos:.2f} degrees pan and {y_pos:.2f} degrees tilt.'.format(x_pos=x_pos, y_pos=y_pos))
                 time.sleep(2)
                 camera_still = True
                 time.sleep(2)
@@ -120,9 +120,9 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
         pass
-                
+
     vid_writer.release()
     cam.release()
-    
+
     if not HEADLESS:
         cv2.destroyAllWindows()
