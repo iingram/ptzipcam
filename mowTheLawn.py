@@ -38,9 +38,9 @@ def mow_the_lawn():
     up a step, etc.
     """
     global camera_still
-    ptzCam = PtzCam(IP, PORT, USER, PASS)
+    ptz_cam = PtzCam(IP, PORT, USER, PASS)
 
-    ptzCam.absmove(PAN_MIN/180.0, TILT_MIN/45.0)
+    ptz_cam.absmove(PAN_MIN/180.0, TILT_MIN/45.0)
     time.sleep(3)
 
     going_forward = True
@@ -69,7 +69,7 @@ def mow_the_lawn():
                                             PAN_MIN,
                                             PAN_STEPS)
             for x_pos in pan_positions:
-                ptzCam.absmove(x_pos/180.0, y_pos/45.0)
+                ptz_cam.absmove(x_pos/180.0, y_pos/45.0)
                 print('Moving to {x_pos:.2f} degrees pan and {y_pos:.2f} degrees tilt.'.format(x_pos=x_pos, y_pos=y_pos)) 
                 time.sleep(2)
                 camera_still = True
@@ -81,7 +81,7 @@ def mow_the_lawn():
 
         going_up = not going_up
 
-    ptzCam.stop()
+    ptz_cam.stop()
 
 
 if __name__ == '__main__':
