@@ -89,7 +89,8 @@ if __name__ == '__main__':
                                                daemon=True)
     movement_control_thread.start()
 
-    cam = Camera()
+    cam = Camera(ip=IP, user=USER, passwd=PASS)
+
     width, height = cam.get_resolution()
     vid_writer = cv2.VideoWriter('video_mow_the_lawn.avi',
                                  cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
@@ -99,25 +100,27 @@ if __name__ == '__main__':
 
     latch = True
 
-    while True:
-        frame = cam.get_frame()
+    try:
+        while True:
+            frame = cam.get_frame()
 
-        if HEADLESS:
-            time.sleep(1)
-        else:
-            cv2.imshow('Mow The Lawn', frame)
-            key = cv2.waitKey(30)
-            if key == ord('q'):
-                break
+            if not HEADLESS:
+                cv2.imshow('Mow The Lawn', frame)
+                key = cv2.waitKey(30)
+                if key == ord('q'):
+                    break
 
-        if camera_still:
-            if latch:
-                vid_writer.write(frame.astype(np.uint8))
-                print('Taking a shot.')
-                latch = False
-        elif not latch:
-            latch = True
+            if camera_still:
+                if latch:
+                    vid_writer.write(frame.astype(np.uint8))
+                    print('Taking a shot.')
+                    latch = False
+            elif not latch:
+                latch = True
 
+    except KeyboardInterrupt:
+        pass
+                
     vid_writer.release()
     cam.release()
     
