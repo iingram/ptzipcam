@@ -45,7 +45,7 @@ CLASSES = nn.read_classes_from_file(CLASSES_FILE)
 
 if __name__ == '__main__':
     # construct core objects
-    ptz_cam = PtzCam(IP, PORT, USER, PASS)
+    ptz = PtzCam(IP, PORT, USER, PASS)
     # cam = Camera()
     cam = Camera(ip=IP, user=USER, passwd=PASS)
 
@@ -74,14 +74,14 @@ if __name__ == '__main__':
     x_velocity = 0
     y_velocity = 0
     zoom_command = 0
-    ptz_cam.zoom_out_full()
+    ptz.zoom_out_full()
     time.sleep(1)
-    pan, tilt = ptz_cam.get_position()
-    ptz_cam.absmove(INIT_POS[0], INIT_POS[1])
+    pan, tilt = ptz.get_position()
+    ptz.absmove(INIT_POS[0], INIT_POS[1])
     epsilon = .01
     while pan >= INIT_POS[0] + epsilon or pan <= INIT_POS[0] - epsilon:
          time.sleep(.1)
-         pan, tilt = ptz_cam.get_position()
+         pan, tilt = ptz.get_position()
 
     x_err = 0
     y_err = 0
@@ -134,7 +134,7 @@ if __name__ == '__main__':
                 # x_err = -300  # TEMPORARY: IS HACK TO GET A SCAN
                 y_err = 0
             if frames_since_last_acq > 30:
-                ptz_cam.absmove(INIT_POS[0], INIT_POS[1])
+                ptz.absmove(INIT_POS[0], INIT_POS[1])
             zoom_command -= .1
             if zoom_command <= -1.0:
                 zoom_command = -1.0
@@ -149,7 +149,7 @@ if __name__ == '__main__':
             break
 
         # run position controller on ptz system
-        ptz_cam.move_w_zoom(x_velocity, y_velocity, zoom_command)
+        ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
 
         def calc_command(err, k):
             command = k * err
@@ -174,10 +174,10 @@ if __name__ == '__main__':
         y_velocity = calc_command(y_err, PID_GAINS[1])
 
         if x_velocity == 0 and y_velocity == 0:
-            ptz_cam.stop()
+            ptz.stop()
 
     if RECORD:
         vid_writer.release()
     cam.release()
-    ptz_cam.stop()
+    ptz.stop()
     uih.clean_up()
