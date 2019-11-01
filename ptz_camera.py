@@ -9,7 +9,7 @@ def _checkZeroness(number):
     else:
         return number
 
-    
+
 class PtzCam():
     """Class for controlling the pan-tilt-zoom of an ONVIF-compliant IP
     camera that has PTZ capability.
@@ -64,8 +64,8 @@ class PtzCam():
         position = self.ptz.GetStatus({'ProfileToken': self.media_profile.token}).Position
 
         # x = pan, y = tilt
-        return position['PanTilt']['x'], position['PanTilt']['y']
-        
+        return position['PanTilt']['x'], position['PanTilt']['y'], position['Zoom']['x']
+
     def absmove(self, x_pos, y_pos):
         self._prep_abs_move()
         self.moverequest.Position.PanTilt.x = x_pos
