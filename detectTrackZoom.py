@@ -18,7 +18,7 @@ with open('configs.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
 RECORD = configs['RECORD']
-    
+
 # ptz camera networking constants
 IP = configs['IP']
 PORT = configs['PORT']
@@ -64,6 +64,8 @@ if __name__ == '__main__':
     frame_width = frame.shape[1]
     frame_height = frame.shape[0]
 
+    total_pixels = frame_width * frame_height
+
     if RECORD:
         vid_writer = cv2.VideoWriter('video_detectTrackZoom.avi',
                                      cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
@@ -80,8 +82,8 @@ if __name__ == '__main__':
     ptz.absmove(INIT_POS[0], INIT_POS[1])
     epsilon = .01
     while pan >= INIT_POS[0] + epsilon or pan <= INIT_POS[0] - epsilon:
-         time.sleep(.1)
-         pan, tilt, zoom = ptz.get_position()
+        time.sleep(.1)
+        pan, tilt, zoom = ptz.get_position()
 
     x_err = 0
     y_err = 0
@@ -91,7 +93,7 @@ if __name__ == '__main__':
     while True:
         pan, tilt, zoom = ptz.get_position()
         print(zoom)
-        
+
         raw_frame = cam.get_frame()
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
         frame = raw_frame.copy()
@@ -111,7 +113,7 @@ if __name__ == '__main__':
                     highest_confidence_tracked_class = lbox['confidence']
                     target_lbox = lbox
 
-        # if there is an appropriate lbox attempt to adjust ptz cam 
+        # if there is an appropriate lbox attempt to adjust ptz cam
         if target_lbox:
             frames_since_last_acq = 0
             draw.labeled_box(frame, CLASSES, target_lbox)
@@ -122,8 +124,11 @@ if __name__ == '__main__':
             x_err = frame_width/2 - xc
             y_err = frame_height/2 - yc
 
-            #if x_err < 50 and y_err < 50:
-            if x_err != 0 and x_err < 50 and y_err < 50:
+            target_bb_pixels = box_width * box_height
+
+            # if x_err < 50 and y_err < 50:
+            # if x_err != 0 and x_err < 50 and y_err < 50:
+            if (target_bb_pixels / total_pixels) < .5:
                 zoom_command += .1
                 if zoom_command >= 1.0:
                     zoom_command = 1.0
@@ -142,7 +147,7 @@ if __name__ == '__main__':
             # # and may be source of wandering bug
             # if frames_since_last_acq > 30:
             #     ptz.absmove(INIT_POS[0], INIT_POS[1])
-            zoom_command -= .1
+            zoom_command -= .01
             if zoom_command <= -1.0:
                 zoom_command = -1.0
             # zoom_command = -1.0
@@ -173,11 +178,12 @@ if __name__ == '__main__':
         # x_velocity = calc_command(x_err, -.005)
         # y_velocity = calc_command(y_err, .005)
 
-        if ORIENTATION=='down':
+        if ORIENTATION == 'down':
             x_err = -x_err
             y_err = -y_err
-        
+
         x_velocity = calc_command(x_err, PID_GAINS[0])
+
         y_velocity = calc_command(y_err, PID_GAINS[1])
 
         if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
