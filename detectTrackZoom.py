@@ -76,12 +76,12 @@ if __name__ == '__main__':
     zoom_command = 0
     ptz.zoom_out_full()
     time.sleep(1)
-    pan, tilt = ptz.get_position()
+    pan, tilt, zoom = ptz.get_position()
     ptz.absmove(INIT_POS[0], INIT_POS[1])
     epsilon = .01
     while pan >= INIT_POS[0] + epsilon or pan <= INIT_POS[0] - epsilon:
          time.sleep(.1)
-         pan, tilt = ptz.get_position()
+         pan, tilt, zoom = ptz.get_position()
 
     x_err = 0
     y_err = 0
@@ -89,6 +89,9 @@ if __name__ == '__main__':
     frames_since_last_acq = 0
 
     while True:
+        pan, tilt, zoom = ptz.get_position()
+        print(zoom)
+        
         raw_frame = cam.get_frame()
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
         frame = raw_frame.copy()
@@ -119,8 +122,9 @@ if __name__ == '__main__':
             x_err = frame_width/2 - xc
             y_err = frame_height/2 - yc
 
-            if x_err < 50 and y_err < 50:
-                zoom_command += .9
+            #if x_err < 50 and y_err < 50:
+            if x_err != 0 and x_err < 50 and y_err < 50:
+                zoom_command += .1
                 if zoom_command >= 1.0:
                     zoom_command = 1.0
                 # zoom_command = 1.0
@@ -128,13 +132,16 @@ if __name__ == '__main__':
             if box_width >= .7 * frame_width or box_height >= .7 * frame_height:
                 zoom_command = 0.0
         else:
+            # print(str(time.time()) + ': no target')
             frames_since_last_acq += 1
             if frames_since_last_acq > 5:
                 x_err = 0
                 # x_err = -300  # TEMPORARY: IS HACK TO GET A SCAN
                 y_err = 0
-            if frames_since_last_acq > 30:
-                ptz.absmove(INIT_POS[0], INIT_POS[1])
+            # # commenting this bit out because it doesn't always work
+            # # and may be source of wandering bug
+            # if frames_since_last_acq > 30:
+            #     ptz.absmove(INIT_POS[0], INIT_POS[1])
             zoom_command -= .1
             if zoom_command <= -1.0:
                 zoom_command = -1.0
@@ -173,7 +180,8 @@ if __name__ == '__main__':
         x_velocity = calc_command(x_err, PID_GAINS[0])
         y_velocity = calc_command(y_err, PID_GAINS[1])
 
-        if x_velocity == 0 and y_velocity == 0:
+        if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
+            # print('stop action')
             ptz.stop()
 
     if RECORD:
