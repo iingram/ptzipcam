@@ -28,6 +28,7 @@ PASS = configs['PASS']
 # ptz camera setup constants
 INIT_POS = configs['INIT_POS']
 ORIENTATION = configs['ORIENTATION']
+PID_GAINS = configs['PID_GAINS']
 
 # CV constants
 TRACKED_CLASS = configs['TRACKED_CLASS']
@@ -169,8 +170,8 @@ if __name__ == '__main__':
             x_err = -x_err
             y_err = -y_err
         
-        x_velocity = calc_command(x_err, -.0016)
-        y_velocity = calc_command(y_err, .002)
+        x_velocity = calc_command(x_err, PID_GAINS[0])
+        y_velocity = calc_command(y_err, PID_GAINS[1])
 
         if x_velocity == 0 and y_velocity == 0:
             ptz_cam.stop()

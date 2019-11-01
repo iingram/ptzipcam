@@ -2,8 +2,10 @@ TRACKED_CLASS: [giraffe, person]
 
 RECORD: False
 
+PID_GAINS: [-0.0016, 0.002]
+
 INIT_POS: [-0.8, -0.9]
-ORIENTATION: up
+ORIENTATION: up  # left up down right
 
 IP: 192.168.1.64
 PORT: 80
