@@ -128,18 +128,21 @@ if __name__ == '__main__':
 
             # if x_err < 50 and y_err < 50:
             # if x_err != 0 and x_err < 50 and y_err < 50:
-            if (target_bb_pixels / total_pixels) < .5:
+            if (target_bb_pixels / total_pixels) < .3:
                 zoom_command += .1
                 if zoom_command >= 1.0:
                     zoom_command = 1.0
                 # zoom_command = 1.0
+            else:
+                zoom_command = 0.0    
 
             if box_width >= .7 * frame_width or box_height >= .7 * frame_height:
                 zoom_command = 0.0
         else:
+            zoom_command = 0
             # print(str(time.time()) + ': no target')
             frames_since_last_acq += 1
-            if frames_since_last_acq > 5:
+            if frames_since_last_acq > 30:
                 x_err = 0
                 # x_err = -300  # TEMPORARY: IS HACK TO GET A SCAN
                 y_err = 0
@@ -147,10 +150,10 @@ if __name__ == '__main__':
             # # and may be source of wandering bug
             # if frames_since_last_acq > 30:
             #     ptz.absmove(INIT_POS[0], INIT_POS[1])
-            zoom_command -= .01
-            if zoom_command <= -1.0:
-                zoom_command = -1.0
-            # zoom_command = -1.0
+                zoom_command -= .05
+                if zoom_command <= -1.0:
+                    zoom_command = -1.0
+                # zoom_command = -1.0
 
         # update ui and handle user input
         key = uih.update(frame, hud=False)
