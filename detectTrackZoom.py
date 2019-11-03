@@ -142,7 +142,7 @@ if __name__ == '__main__':
             zoom_command = 0
             # print(str(time.time()) + ': no target')
             frames_since_last_acq += 1
-            if frames_since_last_acq > 30:
+            if frames_since_last_acq > 10:
                 x_err = 0
                 # x_err = -300  # TEMPORARY: IS HACK TO GET A SCAN
                 y_err = 0
@@ -150,6 +150,7 @@ if __name__ == '__main__':
             # # and may be source of wandering bug
             # if frames_since_last_acq > 30:
             #     ptz.absmove(INIT_POS[0], INIT_POS[1])
+            if frames_since_last_acq > 30:
                 zoom_command -= .05
                 if zoom_command <= -1.0:
                     zoom_command = -1.0
