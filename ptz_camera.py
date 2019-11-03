@@ -72,6 +72,13 @@ class PtzCam():
         self.moverequest.Position.PanTilt.y = y_pos
         self.ptz.AbsoluteMove(self.moverequest)
 
+    def absmove_w_zoom(self, pan_pos, tilt_pos, zoom_pos):
+        self._prep_abs_move()
+        self.moverequest.Position.PanTilt.x = pan_pos
+        self.moverequest.Position.PanTilt.y = tilt_pos
+        self.moverequest.Position.Zoom.x = zoom_pos
+        self.ptz.AbsoluteMove(self.moverequest)
+
     def zoom_out_full(self):
         self._prep_abs_move()
         self.moverequest.Position.Zoom.x = 0.0
