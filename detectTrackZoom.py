@@ -79,7 +79,8 @@ if __name__ == '__main__':
     ptz.zoom_out_full()
     time.sleep(1)
     pan, tilt, zoom = ptz.get_position()
-    ptz.absmove(INIT_POS[0], INIT_POS[1])
+    # ptz.absmove(INIT_POS[0], INIT_POS[1])
+    ptz.absmove_w_zoom(INIT_POS[0], INIT_POS[1], INIT_POS[2])
     epsilon = .01
     while pan >= INIT_POS[0] + epsilon or pan <= INIT_POS[0] - epsilon:
         time.sleep(.1)
@@ -134,7 +135,7 @@ if __name__ == '__main__':
                     zoom_command = 1.0
                 # zoom_command = 1.0
             else:
-                zoom_command = 0.0    
+                zoom_command = 0.0
 
             if box_width >= .7 * frame_width or box_height >= .7 * frame_height:
                 zoom_command = 0.0
