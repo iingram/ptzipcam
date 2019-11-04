@@ -66,7 +66,7 @@ if __name__ == '__main__':
                                                         NMS_THRESHOLD)
 
         for lbox in lboxes:
-            draw.labeledBox(frame, classes, lbox)
+            draw.labeled_box(frame, classes, lbox)
 
         key = uih.update(frame)
      
