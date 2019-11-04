@@ -4,7 +4,9 @@ RECORD: False
 
 PID_GAINS: [-0.0016, 0.002]
 
-INIT_POS: [-0.5, 0.9, 0.1]  # pan (-1:1), tilt (-1:1), zoom (0:1); 
+# INIT_POS: [-0.5, 0.9, 0.1]  # pan (-1:1), tilt (-1:1), zoom (0:1); 
+INIT_POS: [-110.0, 44.9, 4.0]  # pan (-180.0:180.0), tilt (-45.0:45.0), zoom (0.0:25.0)
+
 ORIENTATION: up  # left up down right
 
 IP: 192.168.1.64

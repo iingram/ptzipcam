@@ -80,9 +80,13 @@ if __name__ == '__main__':
     time.sleep(1)
     pan, tilt, zoom = ptz.get_position()
     # ptz.absmove(INIT_POS[0], INIT_POS[1])
-    ptz.absmove_w_zoom(INIT_POS[0], INIT_POS[1], INIT_POS[2])
+    pan_init = INIT_POS[0]/180.0
+    tilt_init = INIT_POS[1]/45.0
+    zoom_init = INIT_POS[2]/25.0
+    
+    ptz.absmove_w_zoom(pan_init, tilt_init, zoom_init)
     epsilon = .01
-    while pan >= INIT_POS[0] + epsilon or pan <= INIT_POS[0] - epsilon:
+    while pan >= pan_init + epsilon or pan <= pan_init - epsilon:
         time.sleep(.1)
         pan, tilt, zoom = ptz.get_position()
 
