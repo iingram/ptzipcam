@@ -1,6 +1,7 @@
 import time
 import threading
 import socket
+import logging
 
 import cv2
 
@@ -20,8 +21,8 @@ HEADLESS = False
 
 # PAN_MIN = -0.94
 # PAN_MAX = -0.5
-PAN_MIN = 30  # in degrees
-PAN_MAX = 179  # in degrees
+PAN_MIN = 0  # in degrees
+PAN_MAX = 350  # in degrees (small hikvision goes to 350)
 PAN_STEPS = 10  # 400
 
 STEP_DUR = 10
@@ -32,6 +33,20 @@ TILT_MAX = 44  # in degrees
 # TILT_MAX = .9
 TILT_STEPS = 10
 
+def convert_degrees_to_pan_command(degrees, full_range):
+    if degrees > full_range:
+        logging.error('Angle higher than full range')        
+        degrees = full_range
+    elif degrees < 0.0:
+        logging.error('Angle lower than zero')        
+        degrees = 0.0
+    
+    half_range = full_range/2.0
+    return (degrees - half_range)/half_range
+
+def convert_pan_command_to_degrees(command, full_range):
+    half_range = full_range/2.0
+    return command * half_range + half_range
 
 def mow_the_lawn():
     """Thread function for moving the camera through a "mow the lawn"
@@ -41,7 +56,9 @@ def mow_the_lawn():
     global camera_still
     ptz_cam = PtzCam(IP, PORT, USER, PASS)
 
-    ptz_cam.absmove(PAN_MIN/180.0, TILT_MIN/45.0)
+    pan_min = convert_degrees_to_pan_command(PAN_MIN, 350.0)
+    pan_max = convert_degrees_to_pan_command(PAN_MAX, 350.0)
+    ptz_cam.absmove(pan_min, TILT_MIN/45.0)
     time.sleep(3)
 
     going_forward = True
@@ -62,16 +79,17 @@ def mow_the_lawn():
                                          TILT_STEPS)
         for y_pos in tilt_positions:
             if going_forward:
-                pan_positions = np.linspace(PAN_MIN,
-                                            PAN_MAX,
+                pan_positions = np.linspace(pan_min,
+                                            pan_max,
                                             PAN_STEPS)
             else:
-                pan_positions = np.linspace(PAN_MAX,
-                                            PAN_MIN,
+                pan_positions = np.linspace(pan_max,
+                                            pan_min,
                                             PAN_STEPS)
             for x_pos in pan_positions:
-                ptz_cam.absmove(x_pos/180.0, y_pos/45.0)
-                print('Moving to {x_pos:.2f} degrees pan and {y_pos:.2f} degrees tilt.'.format(x_pos=x_pos, y_pos=y_pos))
+                ptz_cam.absmove(x_pos, y_pos/45.0)
+                x_pos_degrees = convert_pan_command_to_degrees(x_pos, 350.0)
+                print('Moving to {x_pos:.2f} degrees pan and {y_pos:.2f} degrees tilt.'.format(x_pos=x_pos_degrees, y_pos=y_pos))
                 time.sleep(2)
                 camera_still = True
                 time.sleep(2)
@@ -86,6 +104,8 @@ def mow_the_lawn():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG, filename='log.log')
+    
     movement_control_thread = threading.Thread(target=mow_the_lawn,
                                                daemon=True)
     movement_control_thread.start()
