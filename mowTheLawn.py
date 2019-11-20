@@ -1,5 +1,6 @@
 import time
 import threading
+import socket
 
 import cv2
 
@@ -92,7 +93,10 @@ if __name__ == '__main__':
     cam = Camera(ip=IP, user=USER, passwd=PASS)
 
     width, height = cam.get_resolution()
-    vid_writer = cv2.VideoWriter('video_mow_the_lawn.avi',
+
+    hostname = socket.gethostname()
+    video_filename = 'video_mow_the_lawn_' + hostname + '.avi'
+    vid_writer = cv2.VideoWriter(video_filename,
                                  cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
                                  30,
                                  (width, height))
