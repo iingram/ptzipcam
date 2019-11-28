@@ -14,19 +14,6 @@ import numpy as np
 from ptz_camera import PtzCam
 from camera import Camera
 
-with open('configs.yaml') as f:
-    configs = yaml.load(f, Loader=yaml.SafeLoader)
-
-# ptz camera networking constants
-IP = configs['IP']
-ONVIF_PORT = configs['PORT']
-USER = configs['USER']
-PASS = configs['PASS']
-
-camera_still = False
-
-HEADLESS = False
-
 if len(sys.argv) > 1:
     CLIENT_MODE = True
     HOST = sys.argv[1]
@@ -34,19 +21,27 @@ if len(sys.argv) > 1:
 else:
     CLIENT_MODE = False
 
-# PAN_MIN = -0.94
-# PAN_MAX = -0.5
-PAN_MIN = 0  # in degrees
-PAN_MAX = 350  # in degrees (small hikvision goes to 350)
-PAN_STEPS = 10  # 400
+with open('configs.yaml') as f:
+    configs = yaml.load(f, Loader=yaml.SafeLoader)
+# ptz camera networking constants
+IP = configs['IP']
+ONVIF_PORT = configs['PORT']
+USER = configs['USER']
+PASS = configs['PASS']
 
-STEP_DUR = 10
+with open('config_mow.yaml') as f:
+    configs = yaml.load(f, Loader=yaml.SafeLoader)
+HEADLESS = False
+PAN_MIN = configs['PAN_MIN']
+PAN_MAX = configs['PAN_MAX']
+PAN_STEPS = configs['PAN_STEPS']
+STEP_DUR = configs['STEP_DUR']
+TILT_MIN = configs['TILT_MIN']
+TILT_MAX = configs['TILT_MAX']
+TILT_STEPS = configs['TILT_STEPS']
 
-TILT_MIN = -44  # in degrees
-TILT_MAX = 44  # in degrees
-# TILT_MIN = .7
-# TILT_MAX = .9
-TILT_STEPS = 10
+# global variables
+camera_still = False
 
 
 def convert_degrees_to_pan_command(degrees, full_range):
