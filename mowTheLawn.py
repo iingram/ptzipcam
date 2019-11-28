@@ -7,16 +7,21 @@ import pickle
 import struct
 
 import cv2
+import yaml
 
 import numpy as np
 
 from ptz_camera import PtzCam
 from camera import Camera
 
-IP = "192.168.1.64"   # Camera IP address
-ONVIF_PORT = 80           # Port
-USER = "admin"         # Username
-PASS = "NyalaChow22"        # Password
+with open('configs.yaml') as f:
+    configs = yaml.load(f, Loader=yaml.SafeLoader)
+
+# ptz camera networking constants
+IP = configs['IP']
+ONVIF_PORT = configs['PORT']
+USER = configs['USER']
+PASS = configs['PASS']
 
 camera_still = False
 
