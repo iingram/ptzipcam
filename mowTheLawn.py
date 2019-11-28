@@ -122,6 +122,16 @@ if __name__ == '__main__':
         sock.connect((HOST, PORT))
         encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 
+    if not HEADLESS:
+        window_name = 'Mow The Lawn'    
+        cv2.namedWindow(window_name,
+                        cv2.WINDOW_NORMAL)
+
+        # cv2.setWindowProperty(window_name,
+        #                       cv2.WND_PROP_FULLSCREEN,
+        #                       cv2.WINDOW_FULLSCREEN)
+
+        
     logging.basicConfig(level=logging.DEBUG, filename='log.log')
 
     movement_control_thread = threading.Thread(target=mow_the_lawn,
@@ -145,14 +155,14 @@ if __name__ == '__main__':
         while True:
             frame = cam.get_frame()
 
-            if not HEADLESS:
-                cv2.imshow('Mow The Lawn', frame)
-                key = cv2.waitKey(30)
-                if key == ord('q'):
-                    break
-
             if camera_still:
                 if latch:
+                    if not HEADLESS:
+                        cv2.imshow(window_name, frame)
+                        key = cv2.waitKey(30)
+                        if key == ord('q'):
+                            break
+
                     vid_writer.write(frame.astype(np.uint8))
                     print('Taking a shot.')
                     latch = False
