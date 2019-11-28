@@ -31,7 +31,7 @@ PASS = configs['PASS']
 
 with open('config_mow.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
-HEADLESS = False
+HEADLESS = configs['HEADLESS']
 PAN_MIN = configs['PAN_MIN']
 PAN_MAX = configs['PAN_MAX']
 PAN_STEPS = configs['PAN_STEPS']
