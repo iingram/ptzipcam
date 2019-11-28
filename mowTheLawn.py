@@ -14,6 +14,8 @@ import numpy as np
 from ptz_camera import PtzCam
 from camera import Camera
 
+import convert
+
 if len(sys.argv) > 1:
     CLIENT_MODE = True
     HOST = sys.argv[1]
@@ -44,23 +46,6 @@ TILT_STEPS = configs['TILT_STEPS']
 camera_still = False
 
 
-def convert_degrees_to_pan_command(degrees, full_range):
-    if degrees > full_range:
-        logging.error('Angle higher than full range')
-        degrees = full_range
-    elif degrees < 0.0:
-        logging.error('Angle lower than zero')
-        degrees = 0.0
-
-    half_range = full_range/2.0
-    return (degrees - half_range)/half_range
-
-
-def convert_pan_command_to_degrees(command, full_range):
-    half_range = full_range/2.0
-    return command * half_range + half_range
-
-
 def mow_the_lawn():
     """Thread function for moving the camera through a "mow the lawn"
     pattern: panning across, then tilting up a step, panning back, tilting
@@ -69,8 +54,8 @@ def mow_the_lawn():
     global camera_still
     ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
 
-    pan_min = convert_degrees_to_pan_command(PAN_MIN, 350.0)
-    pan_max = convert_degrees_to_pan_command(PAN_MAX, 350.0)
+    pan_min = convert.degrees_to_pan_command(PAN_MIN, 350.0)
+    pan_max = convert.degrees_to_pan_command(PAN_MAX, 350.0)
     ptz.absmove(pan_min, TILT_MIN/45.0)
     time.sleep(3)
 
@@ -101,7 +86,7 @@ def mow_the_lawn():
                                             PAN_STEPS)
             for x_pos in pan_positions:
                 ptz.absmove(x_pos, y_pos/45.0)
-                x_pos_degrees = convert_pan_command_to_degrees(x_pos, 350.0)
+                x_pos_degrees = convert.pan_command_to_degrees(x_pos, 350.0)
                 print('Moving to {x_pos:.2f} degrees pan and {y_pos:.2f} degrees tilt.'.format(x_pos=x_pos_degrees, y_pos=y_pos))
                 time.sleep(2)
                 camera_still = True
