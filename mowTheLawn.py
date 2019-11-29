@@ -54,8 +54,8 @@ def mow_the_lawn():
     global camera_still
     ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
 
-    pan_min = convert.degrees_to_pan_command(PAN_MIN, 350.0)
-    pan_max = convert.degrees_to_pan_command(PAN_MAX, 350.0)
+    pan_min = convert.degrees_to_command(PAN_MIN, 350.0)
+    pan_max = convert.degrees_to_command(PAN_MAX, 350.0)
     ptz.absmove(pan_min, TILT_MIN/45.0)
     time.sleep(3)
 
@@ -101,16 +101,45 @@ def mow_the_lawn():
     ptz.stop()
 
 
+def visit_spots():
+    """Thread function for moving the camera through a series of spots of interest
+    """
+
+    spots = [[210.0, 80.0, 3.0],
+             [200.0, 75.0, 1.0],
+             [275.0, 60.0, 2.0],
+             [300.0, 85.0, 0.0]]
+    
+    global camera_still
+    ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
+
+    while True:
+        for pan_degrees, tilt_degrees, zoom_factor in spots:
+            print('Moving to {pan_degrees:.2f} degrees pan, {tilt_degrees:.2f} degrees tilt, {zoom_factor:.1f}x zoom'.format(pan_degrees=pan_degrees, tilt_degrees=tilt_degrees, zoom_factor=zoom_factor))
+            pan_command = convert.degrees_to_command(pan_degrees, 350.0)
+            tilt_command = convert.degrees_to_command(tilt_degrees, 90.0)
+            zoom_command = zoom_factor/25.0
+
+            ptz.absmove_w_zoom(pan_command, tilt_command, zoom_command)
+            time.sleep(15)
+            camera_still = True
+            time.sleep(2)
+            camera_still = False
+            time.sleep(STEP_DUR)
+
+    ptz.stop()
+
+
 if __name__ == '__main__':
     if CLIENT_MODE:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((HOST, PORT))
         encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 
-    if not HEADLESS:
-        window_name = 'Mow The Lawn'    
-        cv2.namedWindow(window_name,
-                        cv2.WINDOW_NORMAL)
+    window_name = 'Mow The Lawn'    
+    # if not HEADLESS:
+    #     cv2.namedWindow(window_name,
+    #                     cv2.WINDOW_NORMAL)
 
         # cv2.setWindowProperty(window_name,
         #                       cv2.WND_PROP_FULLSCREEN,
@@ -119,7 +148,8 @@ if __name__ == '__main__':
         
     logging.basicConfig(level=logging.DEBUG, filename='log.log')
 
-    movement_control_thread = threading.Thread(target=mow_the_lawn,
+    #movement_control_thread = threading.Thread(target=mow_the_lawn,
+    movement_control_thread = threading.Thread(target=visit_spots,
                                                daemon=True)
     movement_control_thread.start()
 

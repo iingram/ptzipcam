@@ -1,4 +1,4 @@
-def degrees_to_pan_command(degrees, full_range):
+def degrees_to_command(degrees, full_range):
     if degrees > full_range:
         logging.error('Angle higher than full range')
         degrees = full_range
