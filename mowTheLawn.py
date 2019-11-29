@@ -13,7 +13,6 @@ import numpy as np
 
 from camera import Camera
 
-import convert
 import movement_functions
 import globals
 
