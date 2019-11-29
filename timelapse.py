@@ -13,6 +13,7 @@ import numpy as np
 
 from camera import Camera
 
+import ui
 import movement_functions
 import globals
 
@@ -31,6 +32,9 @@ with open('configs.yaml') as f:
 IP = configs['IP']
 USER = configs['USER']
 PASS = configs['PASS']
+
+# ptz camera setup constants
+ORIENTATION = configs['ORIENTATION']
 
 with open('config_timelapse.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
@@ -92,7 +96,8 @@ if __name__ == '__main__':
     try:
         while True:
             frame = cam.get_frame()
-
+            frame = ui.orient_frame(frame, ORIENTATION)
+            
             if globals.camera_still:
                 if latch:
                     if not HEADLESS:
@@ -119,14 +124,16 @@ if __name__ == '__main__':
                 latch = True
 
     except KeyboardInterrupt:
-        pass
 
-    for i in range(NUM_OUTPUT_VIDEOS):
-        vid_writers[i].release()
-    cam.release()
+        for i in range(NUM_OUTPUT_VIDEOS):
+            vid_writers[i].release()
+        
+        cam.release()
 
-    if CLIENT_MODE:
-        sock.close()
+        if CLIENT_MODE:
+            sock.close()
 
-    if not HEADLESS:
-        cv2.destroyAllWindows()
+        if not HEADLESS:
+            cv2.destroyAllWindows()
+
+        sys.exit()
