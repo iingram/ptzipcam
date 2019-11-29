@@ -1,5 +1,7 @@
 HEADLESS: True
 
+MODE: spots # spots
+
 PAN_MIN: 0 # in degrees
 PAN_MAX: 350 # in degrees; small hikvision goes to 350 
 PAN_STEPS: 10

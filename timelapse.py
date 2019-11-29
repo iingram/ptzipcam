@@ -33,6 +33,7 @@ PASS = configs['PASS']
 with open('config_mow.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 HEADLESS = configs['HEADLESS']
+MODE = configs['MODE']
 
 # init global variables
 globals.init()
@@ -55,7 +56,17 @@ if __name__ == '__main__':
         
     logging.basicConfig(level=logging.DEBUG, filename='log.log')
 
-    movement_control_thread = threading.Thread(target=movement_functions.mow_the_lawn,
+    if MODE == 'mow':
+        print('Mow the lawn')
+        movement_function = movement_functions.mow_the_lawn
+    elif MODE == 'spots':
+        print('Visit spots')
+        movement_function = movement_functions.visit_spots
+    else:
+        print('Invalid movement function specified in config file.  Quitting.')
+        sys.exit()
+        
+    movement_control_thread = threading.Thread(target=movement_function,
                                                daemon=True)
     movement_control_thread.start()
 
