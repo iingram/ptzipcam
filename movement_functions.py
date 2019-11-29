@@ -17,7 +17,7 @@ ONVIF_PORT = configs['PORT']
 USER = configs['USER']
 PASS = configs['PASS']
 
-with open('config_mow.yaml') as f:
+with open('config_timelapse.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 PAN_MIN = configs['PAN_MIN']
 PAN_MAX = configs['PAN_MAX']

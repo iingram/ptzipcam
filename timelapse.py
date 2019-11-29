@@ -30,7 +30,7 @@ IP = configs['IP']
 USER = configs['USER']
 PASS = configs['PASS']
 
-with open('config_mow.yaml') as f:
+with open('config_timelapse.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 HEADLESS = configs['HEADLESS']
 MODE = configs['MODE']
