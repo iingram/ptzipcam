@@ -16,6 +16,8 @@ from camera import Camera
 import movement_functions
 import globals
 
+NUM_OUTPUT_VIDEOS = 3
+
 if len(sys.argv) > 1:
     CLIENT_MODE = True
     HOST = sys.argv[1]
@@ -74,15 +76,19 @@ if __name__ == '__main__':
     width, height = cam.get_resolution()
 
     hostname = socket.gethostname()
-    video_filename = 'video_mow_the_lawn_' + hostname + '.avi'
-    vid_writer = cv2.VideoWriter(video_filename,
-                                 cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
-                                 30,
-                                 (width, height))
+
+    vid_writers = []
+    for i in range(NUM_OUTPUT_VIDEOS):
+        video_filename = 'video_timelapse_' + MODE + '_' + hostname + '_' + str(i) + '.avi'
+        vid_writers.append(cv2.VideoWriter(video_filename,
+                                          cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
+                                          30,
+                                          (width, height)))
     time.sleep(1)
 
     latch = True
 
+    j = 0
     try:
         while True:
             frame = cam.get_frame()
@@ -95,7 +101,11 @@ if __name__ == '__main__':
                         if key == ord('q'):
                             break
 
-                    vid_writer.write(frame.astype(np.uint8))
+                    vid_writers[j].write(frame.astype(np.uint8))
+                    j += 1
+                    if j == NUM_OUTPUT_VIDEOS:
+                        j = 0
+                    
                     print('Taking a shot.')
                     latch = False
                     if CLIENT_MODE:
@@ -111,7 +121,8 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         pass
 
-    vid_writer.release()
+    for i in range(NUM_OUTPUT_VIDEOS):
+        vid_writers[i].release()
     cam.release()
 
     if CLIENT_MODE:
