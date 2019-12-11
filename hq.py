@@ -1,3 +1,4 @@
+import sys
 import threading
 import socket
 import struct
@@ -12,7 +13,7 @@ from dnntools import draw
 from viztools import visualization as viz
 
 HOST = ''
-PORT = 8485
+PORT = int(sys.argv[1])
 
 window_name = "HQ"
 
@@ -33,10 +34,16 @@ canvas = np.zeros((screen_height, screen_width, 3), np.uint8)
 
 frame = canvas
 
+flypics = []
+
 pics = []
 
+num_spots = 7
+for i in range(num_spots):
+    pics.append(list())
+
 def socket_function():
-    global pics
+    global flypics, pics
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         print('Socket created')
 
@@ -52,6 +59,7 @@ def socket_function():
         header_size = struct.calcsize(">L")
         print("header_size: {}".format(header_size))
 
+        spot = 0
         while True:
             data += conn.recv(header_size)
 
@@ -72,12 +80,18 @@ def socket_function():
             frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
             frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
 
-            pics.append(viz.FlyingGrowingPicBox(frame,
+            flypics.append(viz.FlyingGrowingPicBox(frame,
+                                                # np.array((0,0)),
+                                                # np.array((1500, 1500)),
                                                 np.array((0,0)),
-                                                np.array((1500, 1500)),
-                                                200,
-                                                75))
-
+                                                np.array((10 + 200*i, 260)),
+                                                400,
+                                                200))
+            
+            pics[spot].append(frame)
+            spot += 1
+            if spot >= num_spots:
+                spot = 0
             
             
 socket_thread = threading.Thread(target=socket_function,
@@ -87,14 +101,26 @@ socket_thread.start()
 x = 0
 y = 0
 
+counts = []
+for i in range(num_spots):
+    counts.append(0)
+
 while True:
     canvas = np.zeros((screen_height, screen_width, 3), np.uint8)
 
-    for pic in pics:
+    for pic in flypics:
         pic.update()
         pic.display(canvas)
-    
-    # draw.image_onto_image(canvas, frame, (340*x, 260*y))
+
+    for i in range(num_spots):
+        counts[i] += 1
+        if counts[i] > len(pics[i]) - 1:
+            counts[i] = 0
+
+        if len(pics[i]):
+            print(frame.shape[1])
+            draw.image_onto_image(canvas, pics[i][counts[i]], ((10 + pics[i][0].shape[1])*i, 260))
+
     # x += 1
     # if x >= 11:
     #     x = 0
@@ -104,6 +130,6 @@ while True:
     #     y = 0
 
     cv2.imshow(window_name, canvas)
-    key = cv2.waitKey(1)
+    key = cv2.waitKey(30)
     if key == ord('q'):
         break
