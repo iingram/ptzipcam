@@ -97,10 +97,15 @@ if __name__ == '__main__':
     try:
         while True:
             frame = cam.get_frame()
-            frame = ui.orient_frame(frame, ORIENTATION)
+            if frame is None:
+                print('Frame is None.')
             
-            if globals.camera_still:
+            if globals.camera_still and frame is not None:
                 if latch:
+                    print('Taking a shot.')
+
+                    frame = ui.orient_frame(frame, ORIENTATION)
+
                     if not HEADLESS:
                         cv2.imshow(window_name, frame)
                         key = cv2.waitKey(30)
@@ -112,7 +117,6 @@ if __name__ == '__main__':
                     if j == NUM_OUTPUT_VIDEOS:
                         j = 0
                     
-                    print('Taking a shot.')
                     latch = False
                     if CLIENT_MODE:
                         result, frame_to_send = cv2.imencode('.jpg',
