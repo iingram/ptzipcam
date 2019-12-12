@@ -149,8 +149,11 @@ if __name__ == '__main__':
             frames_since_last_acq += 1
             if frames_since_last_acq > 10:
                 x_err = 0
-                # x_err = -300  # TEMPORARY: IS HACK TO GET A SCAN
                 y_err = 0
+
+            if frames_since_last_acq > 30:
+                x_err = -300
+
             # # commenting this bit out because it doesn't always work
             # # and may be source of wandering bug
             # if frames_since_last_acq > 30:

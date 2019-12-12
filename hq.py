@@ -1,16 +1,20 @@
+import sys
+import threading
 import socket
 import struct
 import pickle
 import cv2
 
 import screeninfo
+import imutils
 
 import numpy as np
 
 from dnntools import draw
+from viztools import visualization as viz
 
 HOST = ''
-PORT = 8485
+PORT = int(sys.argv[1])
 
 window_name = "HQ"
 
@@ -29,66 +33,104 @@ canvas = np.zeros((screen_height, screen_width, 3), np.uint8)
 # cv2.imshow(window_name, canvas)
 # cv2.waitKey(1)
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    print('Socket created')
+frame = canvas
 
-    s.bind((HOST, PORT))
-    print('Socket bind complete')
-    s.listen(10)
-    print('Socket now listening')
+flypics = []
 
-    conn, addr = s.accept()
-    print('Socket connection made')
+pics = []
 
-    data = b""
-    header_size = struct.calcsize(">L")
-    print("header_size: {}".format(header_size))
+num_spots = 6
+for i in range(num_spots):
+    pics.append(list())
 
-    x = 0
-    y = 0
+def socket_function():
+    global flypics, pics
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        print('Socket created')
 
-    while True:
-        # while len(data) < header_size:
-        #     print("Recv: {}".format(len(data)))
-        #     data += conn.recv(4096)
+        s.bind((HOST, PORT))
+        print('Socket bound')
+        s.listen(10)
+        print('Socket now listening on port', PORT)
 
-        # i commented out the above in favor of just the one line below
-        # but i see now that the code below allows for the idea that some
-        # of the payload data gets received in that first call to recv so
-        # maybe there is some argument for doing it the way they had done
-        # it?  One hiccup (but I haven't thought through this carefully)
-        # could be that if a payload was smaller than the remainder of the
-        # 4096 bytes that could cause a problem with their implementation?
+        conn, addr = s.accept()
+        print('Socket connection made')
 
-        data += conn.recv(header_size)
+        data = b""
+        header_size = struct.calcsize(">L")
+        print("header_size: {}".format(header_size))
 
-        # if no data, quit.  is there a gotcha here?
-        if len(data) == 0:
-            break
+        spot = 0
+        while True:
+            data += conn.recv(header_size)
 
-        print("Done Recv: {}".format(len(data)))
-        header = data[:header_size]
-        data = data[header_size:]
-        msg_size = struct.unpack(">L", header)[0]
-        print("msg_size: {}".format(msg_size))
-        while len(data) < msg_size:
-            data += conn.recv(4096)
-        frame_data = data[:msg_size]
-        data = data[msg_size:]
+            # if no data, quit.  is there a gotcha here?
+            if len(data) == 0:
+                break
 
-        frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
-        frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
+            print("Done Recv: {}".format(len(data)))
+            header = data[:header_size]
+            data = data[header_size:]
+            msg_size = struct.unpack(">L", header)[0]
+            print("msg_size: {}".format(msg_size))
+            while len(data) < msg_size:
+                data += conn.recv(4096)
+            frame_data = data[:msg_size]
+            data = data[msg_size:]
 
-        draw.image_onto_image(canvas, frame, (340*x, 260*y))
-        x += 1
-        if x >= 11:
-            x = 0
-            y += 1
+            frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
+            frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
 
-        if y >= 8:
-            y = 0
+            # flypics.append(viz.FlyingGrowingPicBox(frame,
+            #                                     # np.array((0,0)),
+            #                                     # np.array((1500, 1500)),
+            #                                     np.array((0,0)),
+            #                                     np.array((10 + 200*i, 260)),
+            #                                     400,
+            #                                     200))
 
-        cv2.imshow(window_name, canvas)
-        key = cv2.waitKey(1)
-        if key == ord('q'):
-            break
+            frame = imutils.resize(frame, width=200)
+            pics[spot].append(frame)
+            spot += 1
+            if spot >= num_spots:
+                spot = 0
+            
+            
+socket_thread = threading.Thread(target=socket_function,
+                                 daemon=True)
+socket_thread.start()
+
+x = 0
+y = 0
+
+counts = []
+for i in range(num_spots):
+    counts.append(0)
+
+while True:
+    canvas = np.zeros((screen_height, screen_width, 3), np.uint8)
+
+    # for pic in flypics:
+    #     pic.update()
+    #     pic.display(canvas)
+
+    for i in range(num_spots):
+        counts[i] += 1
+        if counts[i] > len(pics[i]) - 1:
+            counts[i] = 0
+
+        if len(pics[i]):
+            draw.image_onto_image(canvas, pics[i][counts[i]], ((10 + pics[i][0].shape[1])*i, 260))
+
+    # x += 1
+    # if x >= 11:
+    #     x = 0
+    #     y += 1
+
+    # if y >= 8:
+    #     y = 0
+
+    cv2.imshow(window_name, canvas)
+    key = cv2.waitKey(30)
+    if key == ord('q'):
+        break
