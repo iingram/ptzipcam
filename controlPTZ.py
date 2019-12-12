@@ -1,15 +1,28 @@
 # import asyncio
 import sys
 
+import yaml
+
 import cv2
 import numpy as np
 
 from onvif import ONVIFCamera
 
-IP = "192.168.1.64"   # Camera IP address
-PORT = 80           # Port
-USER = "admin"         # Username
-PASS = "NyalaChow22"        # Password
+from camera import Camera
+
+with open('configs.yaml') as f:
+    configs = yaml.load(f, Loader=yaml.SafeLoader)
+# ptz camera networking constants
+IP = configs['IP']
+USER = configs['USER']
+PASS = configs['PASS']
+
+cam = Camera(ip=IP, user=USER, passwd=PASS)
+
+# IP = "192.168.1.64"   # Camera IP address
+PORT = 80           # Onvif Port
+# USER = "admin"         # Username
+# PASS = "NyalaChow22"        # Password
 
 XMAX = 1
 XMIN = -1
@@ -27,7 +40,7 @@ active = False
 
 Y_DELTA = .1
 X_DELTA = .05
-
+X_DELTA_FINE = .005
 
 def do_move(ptz, request):
     # Start continuous move
@@ -74,10 +87,13 @@ def move_down(ptz, request):
     do_move(ptz, request)
 
 
-def move_right(ptz, request):
+def move_right(ptz, request, fine=False):
     global x_command
     # print ('move right...')
-    x_command += X_DELTA
+    if fine:
+        x_command += X_DELTA_FINE
+    else:
+        x_command += X_DELTA
     x_command = checkZeroness(x_command)
     if x_command >= XMAX:
         x_command = XMAX
@@ -86,10 +102,13 @@ def move_right(ptz, request):
     do_move(ptz, request)
 
 
-def move_left(ptz, request):
+def move_left(ptz, request, fine=False):
     global x_command
     # print ('move left...')
-    x_command -= X_DELTA
+    if fine:
+        x_command -= X_DELTA_FINE
+    else:
+        x_command -= X_DELTA
     x_command = checkZeroness(x_command)
     if x_command <= XMIN:
         x_command = XMIN
@@ -215,7 +234,8 @@ def readin():
 
 
 def printUpdate():
-    print('Pan, Tilt is {pan:.2f}, {tilt:.2f}'.format(pan=x_command*180.0,
+    # currently specific to small hikvisions
+    print('Pan, Tilt is {pan:.2f}, {tilt:.2f}'.format(pan=x_command*175.0,
                                                       tilt=y_command*45.0))
 
 
@@ -239,8 +259,6 @@ if __name__ == '__main__':
     zoom_out(ptz, moverequest)
 
     key = 'd'
-    canvas = np.zeros((500, 500), np.uint8)
-    cv2.imshow('Control PTZ Camera', canvas)
 
     print("Keys:\n",
           "w: quit\n",
@@ -253,8 +271,6 @@ if __name__ == '__main__':
 
     while True:
 
-        key = cv2.waitKey(1)
-
         if key == ord('w'):
             break
         elif key == ord('i'):
@@ -266,8 +282,14 @@ if __name__ == '__main__':
         elif key == ord('j'):
             move_right(ptz, moverequest)
             printUpdate()
+        elif key == ord('h'):
+            move_right(ptz, moverequest, fine=True)
+            printUpdate()
         elif key == ord('l'):
             move_left(ptz, moverequest)
+            printUpdate()
+        elif key == ord('p'):
+            move_left(ptz, moverequest, fine=True)
             printUpdate()
         elif key == ord('z'):
             zoom_in(ptz, moverequest)
@@ -275,5 +297,12 @@ if __name__ == '__main__':
         elif key == ord('a'):
             zoom_out(ptz, moverequest)
             printUpdate()
+        elif key == ord('u'):
+            pass
 
+        # canvas = np.zeros((500, 500), np.uint8)
+        frame = cam.get_frame()
+        cv2.imshow('Control PTZ Camera', frame)
+        key = cv2.waitKey(0)
+            
     cv2.destroyAllWindows()
