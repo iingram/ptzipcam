@@ -17,12 +17,12 @@ import ui
 import movement_functions
 import globals
 
-NUM_OUTPUT_VIDEOS = 3
+NUM_OUTPUT_VIDEOS = 6
 
 if len(sys.argv) > 1:
     CLIENT_MODE = True
     HOST = sys.argv[1]
-    PORT = 8485
+    PORT = int(sys.argv[2])
 else:
     CLIENT_MODE = False
 
@@ -62,11 +62,12 @@ if __name__ == '__main__':
         
     logging.basicConfig(level=logging.DEBUG, filename='log.log')
 
+    preamble = 'Movement function:'
     if MODE == 'mow':
-        print('Mow the lawn')
+        print(preamble, 'Mow the lawn')
         movement_function = movement_functions.mow_the_lawn
     elif MODE == 'spots':
-        print('Visit spots')
+        print(preamble, 'Visit spots')
         movement_function = movement_functions.visit_spots
     else:
         print('Invalid movement function specified in config file.  Quitting.')
