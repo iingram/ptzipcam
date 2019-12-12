@@ -81,15 +81,11 @@ def socket_function():
             frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
             frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
 
-            # flypics.append(viz.FlyingGrowingPicBox(frame,
-            #                                     # np.array((0,0)),
-            #                                     # np.array((1500, 1500)),
-            #                                     np.array((0,0)),
-            #                                     np.array((10 + 200*i, 260)),
-            #                                     400,
-            #                                     200))
-
             frame = imutils.resize(frame, width=200)
+            flypics.append(viz.FlyingPicBox(frame,
+                                            np.array(((10 + 200)*spot, 0)),
+                                            np.array(((10 + 200)*spot, 260))))
+
             pics[spot].append(frame)
             spot += 1
             if spot >= num_spots:
@@ -110,9 +106,9 @@ for i in range(num_spots):
 while True:
     canvas = np.zeros((screen_height, screen_width, 3), np.uint8)
 
-    # for pic in flypics:
-    #     pic.update()
-    #     pic.display(canvas)
+    for pic in flypics:
+        pic.update()
+        pic.display(canvas)
 
     for i in range(num_spots):
         counts[i] += 1
@@ -120,7 +116,9 @@ while True:
             counts[i] = 0
 
         if len(pics[i]):
-            draw.image_onto_image(canvas, pics[i][counts[i]], ((10 + pics[i][0].shape[1])*i, 260))
+            draw.image_onto_image(canvas,
+                                  pics[i][counts[i]],
+                                  ((10 + pics[i][0].shape[1])*i, 260))
 
     # x += 1
     # if x >= 11:
