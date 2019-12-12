@@ -86,23 +86,30 @@ def visit_spots():
     """Thread function for moving the camera through a series of spots of interest
     """
 
-    spots = [[210.0, 80.0, 3.0],
-             [200.0, 75.0, 1.0],
-             [275.0, 60.0, 2.0],
-             [300.0, 85.0, 0.0]]
+    spots = [[35.0, 80.0, 4.0],
+             [260.0, 75.0, 1.0],
+             [100.0, 1.0, 0.0],
+             [10.0, 65.0, 3.0],
+             [230.0, 85.0, 2.0],
+             [78.0, 35.0, 4.0]]
+             # [345.0, 85.0, 3.5]]
     
     # global globals.camera_still
     ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
 
     while True:
-        for pan_degrees, tilt_degrees, zoom_factor in spots:
-            print('Moving to {pan_degrees:.2f} degrees pan, {tilt_degrees:.2f} degrees tilt, {zoom_factor:.1f}x zoom'.format(pan_degrees=pan_degrees, tilt_degrees=tilt_degrees, zoom_factor=zoom_factor))
+        for num, spot in enumerate(spots):
+            pan_degrees, tilt_degrees, zoom_factor = spot
+            print('Moving to spot {num} at {pan_degrees:.2f} degrees pan, {tilt_degrees:.2f} degrees tilt, {zoom_factor:.1f}x zoom'.format(num=num,
+                                                                                                                                           pan_degrees=pan_degrees,
+                                                                                                                                           tilt_degrees=tilt_degrees,
+                                                                                                                                           zoom_factor=zoom_factor))
             pan_command = convert.degrees_to_command(pan_degrees, 350.0)
             tilt_command = convert.degrees_to_command(tilt_degrees, 90.0)
             zoom_command = zoom_factor/25.0
 
             ptz.absmove_w_zoom(pan_command, tilt_command, zoom_command)
-            time.sleep(15)
+            time.sleep(10)
             globals.camera_still = True
             time.sleep(2)
             globals.camera_still = False
