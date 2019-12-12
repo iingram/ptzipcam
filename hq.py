@@ -110,6 +110,9 @@ while True:
         pic.update()
         pic.display(canvas)
 
+    if len(flypics) > 10:
+        flypics = flypics[1:]
+        
     for i in range(num_spots):
         counts[i] += 1
         if counts[i] > len(pics[i]) - 1:
@@ -118,7 +121,8 @@ while True:
         if len(pics[i]):
             draw.image_onto_image(canvas,
                                   pics[i][counts[i]],
-                                  ((10 + pics[i][0].shape[1])*i, 260))
+                                  (i * (10 + pics[i][0].shape[1]),
+                                   260))
 
     # x += 1
     # if x >= 11:
