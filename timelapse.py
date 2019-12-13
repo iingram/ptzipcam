@@ -18,6 +18,8 @@ import movement_functions
 import globals
 
 NUM_OUTPUT_VIDEOS = 6
+ZOOM_POWER = 4.0
+
 
 if len(sys.argv) > 1:
     CLIENT_MODE = True
@@ -74,6 +76,7 @@ if __name__ == '__main__':
         sys.exit()
         
     movement_control_thread = threading.Thread(target=movement_function,
+                                               args=(ZOOM_POWER,),
                                                daemon=True)
     movement_control_thread.start()
 

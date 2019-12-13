@@ -82,13 +82,13 @@ def mow_the_lawn():
     ptz.stop()
 
 
-def visit_spots():
+def visit_spots(zoom_power):
     """Thread function for moving the camera through a series of spots of interest
     """
 
-    spots = [[35.0, 80.0, 4.0],
-             [260.0, 75.0, 1.0],
-             [100.0, 1.0, 0.0],
+    spots = [[210.0, 90.0, 4.0],
+             [288.75, 27.0, 4.0],
+             [91.88, 81.0, 4.0],
              [10.0, 65.0, 3.0],
              [230.0, 85.0, 2.0],
              [78.0, 35.0, 4.0]]
@@ -106,7 +106,7 @@ def visit_spots():
                                                                                                                                            zoom_factor=zoom_factor))
             pan_command = convert.degrees_to_command(pan_degrees, 350.0)
             tilt_command = convert.degrees_to_command(tilt_degrees, 90.0)
-            zoom_command = zoom_factor/25.0
+            zoom_command = zoom_factor/zoom_power
 
             ptz.absmove_w_zoom(pan_command, tilt_command, zoom_command)
             time.sleep(10)
