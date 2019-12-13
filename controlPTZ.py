@@ -235,8 +235,8 @@ def readin():
 
 def printUpdate():
     # currently specific to small hikvisions
-    print('Pan, Tilt is {pan:.2f}, {tilt:.2f}'.format(pan=x_command*175.0,
-                                                      tilt=y_command*45.0))
+    print('Pan, Tilt is {pan:.2f}, {tilt:.2f}'.format(pan=175.0 + x_command*175.0,
+                                                      tilt=45.0 + y_command*45.0))
 
 
 if __name__ == '__main__':
