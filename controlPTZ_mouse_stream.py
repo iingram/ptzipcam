@@ -31,7 +31,7 @@ with open('configs.yaml') as f:
 ORIENTATION = configs['ORIENTATION']
 
 if __name__ == '__main__':
-    ptzCam = PtzCam(IP, PORT, USER, PASS)
+    ptz = PtzCam(IP, PORT, USER, PASS)
     cam = Camera(ip=IP, user=USER, passwd=PASS)
     
     frame = cam.get_frame()
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     x_dir = 0
     y_dir = 0
     zoom_command = False
-    ptzCam.zoom_out_full()
+    ptz.zoom_out_full()
 
     while True:
         # time.sleep(1)
@@ -55,24 +55,24 @@ if __name__ == '__main__':
             break
 
         if zoom_command == 'i':
-            ptzCam.zoom_in_full()
+            ptz.zoom_in_full()
         elif zoom_command == 'o':
-            ptzCam.zoom_out_full()
+            ptz.zoom_out_full()
 
         if ORIENTATION == 'left':
-            ptzCam.move(y_dir, -x_dir)
+            ptz.move(y_dir, -x_dir)
         elif ORIENTATION == 'down':
-            ptzCam.move(-x_dir, -y_dir)
+            ptz.move(-x_dir, -y_dir)
         elif ORIENTATION == 'right':
-            ptzCam.move(-y_dir, x_dir)
+            ptz.move(-y_dir, x_dir)
         else:
-            ptzCam.move(x_dir, y_dir)
+            ptz.move(x_dir, y_dir)
 
         x_dir, y_dir, zoom_command = uih.read_mouse()
 
         if x_dir == 0 and y_dir == 0:
-            ptzCam.stop()
+            ptz.stop()
 
     cam.release()
-    ptzCam.stop()
+    ptz.stop()
     uih.clean_up()
