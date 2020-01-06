@@ -95,8 +95,8 @@ if __name__ == '__main__':
     # construct core objects
     ptz_cam = PtzCam(IP, PORT, USER, PASS)
     ptz_cam_2 = PtzCam('192.168.1.63', PORT, USER, PASS)
-    cam = Camera()
-    cam_r = Camera(address='udp://127.0.0.1:5001')
+    cam = Camera(ip=IP, user=USER, passwd=PASS)
+    cam_r = Camera(ip='192.168.1.63', user=USER, passwd=PASS)
 
     frame = cam.get_frame()
     frame_r = cam_r.get_frame()
@@ -136,10 +136,15 @@ if __name__ == '__main__':
     y_dir_2 = 0
     zoom_command = 0
     ptz_cam.zoom_out_full()
+    ptz_cam_2.zoom_out_full()
     time.sleep(1)
-    ptz_cam.absmove(INIT_POS[0], INIT_POS[1])
-    ptz_cam_2.absmove(INIT_POS[0], INIT_POS[1])
-    # ptz_cam.absmove(0, -0.5)
+    
+    pan_init = INIT_POS[0]/180.0
+    tilt_init = INIT_POS[1]/45.0
+    zoom_init = INIT_POS[2]/25.0
+
+    ptz_cam.absmove_w_zoom(pan_init, tilt_init, zoom_init)
+    ptz_cam_2.absmove_w_zoom(pan_init, tilt_init, zoom_init)
     time.sleep(2)
 
     x_err = 0
