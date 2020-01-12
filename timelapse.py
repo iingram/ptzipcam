@@ -46,12 +46,29 @@ MODE = configs['MODE']
 # init global variables
 globals.init()
 
+class Sender():
+
+    def __init__(self, host, port):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect((host, port))
+        self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+
+    def send(self, frame):
+        result, frame_to_send = cv2.imencode('.jpg',
+                                             frame,
+                                             self.encode_param)
+        data = pickle.dumps(frame_to_send, 0)
+        size = len(data)
+        self.sock.sendall(struct.pack(">L", size) + data)
+
+    def close(self): 
+        self.sock.close()       
+
+
 if __name__ == '__main__':
     if CLIENT_MODE:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((HOST, PORT))
-        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
-
+        sender = Sender(HOST, PORT)
+        
     window_name = 'Mow The Lawn'    
     # if not HEADLESS:
     #     cv2.namedWindow(window_name,
@@ -122,12 +139,7 @@ if __name__ == '__main__':
                     
                     latch = False
                     if CLIENT_MODE:
-                        result, frame_to_send = cv2.imencode('.jpg',
-                                                             frame,
-                                                             encode_param)
-                        data = pickle.dumps(frame_to_send, 0)
-                        size = len(data)
-                        sock.sendall(struct.pack(">L", size) + data)
+                        sender.send(frame)
             elif not latch:
                 latch = True
 
@@ -139,7 +151,7 @@ if __name__ == '__main__':
         cam.release()
 
         if CLIENT_MODE:
-            sock.close()
+            sender.close()
 
         if not HEADLESS:
             cv2.destroyAllWindows()
