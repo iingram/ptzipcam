@@ -8,7 +8,6 @@ import cv2
 import numpy as np
 
 from ptz_camera import PtzCam
-from ptz_camera import _checkZeroness as checkZeroness
 from camera import Camera
 import ui
 
@@ -264,8 +263,6 @@ if __name__ == '__main__':
 
         # print(x_dir_2)
         # print(type(x_dir_2))
-        x_dir_2 = checkZeroness(x_dir_2)
-        x_dir_2 = float(x_dir_2)
         ptz_cam_2.move_w_zoom(x_dir_2, y_dir_2, zoom_command)
 
         
