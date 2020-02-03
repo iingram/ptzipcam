@@ -44,7 +44,7 @@ class PtzCam():
 
     def move_w_zoom(self, x_velocity, y_velocity, zoom_command):
         x_velocity = float(_checkZeroness(x_velocity))
-        y_velocity = float(_checkZeroness(y_velocity)
+        y_velocity = float(_checkZeroness(y_velocity))
         zoom_command = _checkZeroness(zoom_command)
 
         self.moverequest = self.ptz.create_type('ContinuousMove')
