@@ -54,6 +54,9 @@ if __name__ == '__main__':
         if key == ord('q'):
             break
 
+        pan, tilt, zoom = ptz.get_position()
+        print(pan, tilt, zoom)
+        
         if zoom_command == 'i':
             ptz.zoom_in_full()
         elif zoom_command == 'o':
@@ -69,7 +72,7 @@ if __name__ == '__main__':
             ptz.move(x_dir, y_dir)
 
         x_dir, y_dir, zoom_command = uih.read_mouse()
-
+        
         if x_dir == 0 and y_dir == 0:
             ptz.stop()
 
