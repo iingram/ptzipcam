@@ -1,15 +1,15 @@
 #!/home/ian/.virtualenvs/ptzSpotter/bin/python
 
 import os
-import yaml
 import time
 
+import yaml
 import cv2
 import numpy as np
 
-from ptz_camera import PtzCam
-from camera import Camera
-import ui
+from ptzipcam.ptz_camera import PtzCam
+from ptzipcam.camera import Camera
+from ptzipcam import ui
 
 from dnntools import neuralnetwork as nn
 from dnntools import draw
@@ -24,6 +24,7 @@ IP = configs['IP']
 PORT = configs['PORT']
 USER = configs['USER']
 PASS = configs['PASS']
+STREAM = 2
 
 # ptz camera setup constants
 INIT_POS = configs['INIT_POS']
@@ -47,7 +48,7 @@ if __name__ == '__main__':
     # construct core objects
     ptz = PtzCam(IP, PORT, USER, PASS)
     # cam = Camera()
-    cam = Camera(ip=IP, user=USER, passwd=PASS)
+    cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
 
     frame = cam.get_frame()
     frame = ui.orient_frame(frame, ORIENTATION)
@@ -86,7 +87,10 @@ if __name__ == '__main__':
     
     ptz.absmove_w_zoom(pan_init, tilt_init, zoom_init)
     epsilon = .01
-    while pan >= pan_init + epsilon or pan <= pan_init - epsilon:
+    while (pan >= pan_init + epsilon
+           or pan <= pan_init - epsilon
+           or tilt >= tilt_init + epsilon
+           or tilt <= tilt_init - epsilon):
         time.sleep(.1)
         pan, tilt, zoom = ptz.get_position()
 
