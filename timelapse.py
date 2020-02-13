@@ -11,9 +11,9 @@ import yaml
 
 import numpy as np
 
-from camera import Camera
+from ptzipcam.camera import Camera
+from ptzipcam import ui
 
-import ui
 import movement_functions
 import globals
 

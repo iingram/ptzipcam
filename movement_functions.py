@@ -4,7 +4,7 @@ import yaml
 
 import numpy as np
 
-from ptz_camera import PtzCam
+from ptzipcam.ptz_camera import PtzCam
 
 import convert
 import globals
