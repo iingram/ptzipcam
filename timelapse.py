@@ -17,6 +17,8 @@ from ptzipcam import ui
 import movement_functions
 import globals
 
+CONFIG_FILE = 'config.yaml'
+
 NUM_OUTPUT_VIDEOS = 6
 ZOOM_POWER = 4.0
 
@@ -28,7 +30,7 @@ if len(sys.argv) > 1:
 else:
     CLIENT_MODE = False
 
-with open('configs.yaml') as f:
+with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 # ptz camera networking constants
 IP = configs['IP']
