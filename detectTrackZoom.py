@@ -14,7 +14,9 @@ from ptzipcam import ui
 from dnntools import neuralnetwork as nn
 from dnntools import draw
 
-with open('configs.yaml') as f:
+CONFIG_FILE = 'config.yaml'
+
+with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
 RECORD = configs['RECORD']
