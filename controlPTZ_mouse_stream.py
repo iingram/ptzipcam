@@ -26,7 +26,9 @@ USER = "admin"         # Username
 PASS = "NyalaChow22"        # Password
 STREAM = 3  # Main = 1, Sub = 2, Third = 3 
 
-with open('configs.yaml') as f:
+CONFIG_FILE = 'config.yaml'
+
+with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
 ORIENTATION = configs['ORIENTATION']
