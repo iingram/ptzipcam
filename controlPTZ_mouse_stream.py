@@ -3,13 +3,13 @@
 # Need to do something in the realm of this first:
 # ffmpeg -rtsp_transport tcp -i rtsp://admin:NyalaChow22@192.168.1.64:554/Streaming/Channels/103 -b 1900k -f mpegts udp://127.0.0.1:5000
 
-import ui
 import yaml
 import argparse
 # import time
 
-from ptz_camera import PtzCam
-from camera import Camera
+from ptzipcam.ptz_camera import PtzCam
+from ptzipcam.camera import Camera
+from ptzipcam import ui
 
 ap = argparse.ArgumentParser()
 
@@ -24,15 +24,18 @@ IP = "192.168.1." + args.num  # Camera IP address
 PORT = 80           # Port
 USER = "admin"         # Username
 PASS = "NyalaChow22"        # Password
+STREAM = 3  # Main = 1, Sub = 2, Third = 3 
 
-with open('configs.yaml') as f:
+CONFIG_FILE = 'config.yaml'
+
+with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
 ORIENTATION = configs['ORIENTATION']
 
 if __name__ == '__main__':
     ptz = PtzCam(IP, PORT, USER, PASS)
-    cam = Camera(ip=IP, user=USER, passwd=PASS)
+    cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
     
     frame = cam.get_frame()
     frame = ui.orient_frame(frame, ORIENTATION)
@@ -54,6 +57,9 @@ if __name__ == '__main__':
         if key == ord('q'):
             break
 
+        pan, tilt, zoom = ptz.get_position()
+        print(pan, tilt, zoom)
+        
         if zoom_command == 'i':
             ptz.zoom_in_full()
         elif zoom_command == 'o':
@@ -69,7 +75,7 @@ if __name__ == '__main__':
             ptz.move(x_dir, y_dir)
 
         x_dir, y_dir, zoom_command = uih.read_mouse()
-
+        
         if x_dir == 0 and y_dir == 0:
             ptz.stop()
 

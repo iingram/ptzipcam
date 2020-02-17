@@ -4,12 +4,14 @@ import yaml
 
 import numpy as np
 
-from ptz_camera import PtzCam
+from ptzipcam.ptz_camera import PtzCam
 
 import convert
 import globals
 
-with open('configs.yaml') as f:
+CONFIG_FILE = 'config.yaml'
+
+with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 # ptz camera networking constants
 IP = configs['IP']
@@ -109,7 +111,7 @@ def visit_spots(zoom_power):
             zoom_command = zoom_factor/zoom_power
 
             ptz.absmove_w_zoom(pan_command, tilt_command, zoom_command)
-            time.sleep(10)
+            time.sleep(2)
             globals.camera_still = True
             time.sleep(2)
             globals.camera_still = False

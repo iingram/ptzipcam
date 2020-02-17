@@ -43,6 +43,8 @@ class PtzCam():
         self.ptz.ContinuousMove(self.moverequest)
 
     def move_w_zoom(self, x_velocity, y_velocity, zoom_command):
+        x_velocity = float(_checkZeroness(x_velocity))
+        y_velocity = float(_checkZeroness(y_velocity))
         zoom_command = _checkZeroness(zoom_command)
 
         self.moverequest = self.ptz.create_type('ContinuousMove')
@@ -73,6 +75,9 @@ class PtzCam():
         self.ptz.AbsoluteMove(self.moverequest)
 
     def absmove_w_zoom(self, pan_pos, tilt_pos, zoom_pos):
+        zoom_pos = _checkZeroness(zoom_pos)
+        pan_pos = _checkZeroness(pan_pos)
+        tilt_pos = _checkZeroness(tilt_pos)
         self._prep_abs_move()
         self.moverequest.Position.PanTilt.x = pan_pos
         self.moverequest.Position.PanTilt.y = tilt_pos
