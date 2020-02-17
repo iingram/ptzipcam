@@ -118,3 +118,44 @@ def visit_spots(zoom_power):
             time.sleep(STEP_DUR)
 
     ptz.stop()
+
+    
+def visit_spots_two_cameras(zoom_power):
+    """Thread function for moving two cameras through a series of spots of
+    interest
+
+    """
+
+    spots = [[210.0, 90.0, 4.0],
+             [288.75, 90.0, 4.0],
+             [91.88, 85.0, 4.0],
+             [10.0, 85.0, 3.0],
+             [230.0, 80.0, 2.0],
+             [78.0, 80.0, 4.0]]
+             # [345.0, 85.0, 3.5]]
+    
+    # global globals.camera_still
+    ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
+    ptz_2 = PtzCam('192.168.1.63', ONVIF_PORT, USER, PASS)
+
+    while True:
+        for num, spot in enumerate(spots):
+            pan_degrees, tilt_degrees, zoom_factor = spot
+            print('Moving to spot {num} at {pan_degrees:.2f} degrees pan, {tilt_degrees:.2f} degrees tilt, {zoom_factor:.1f}x zoom'.format(num=num,
+                                                                                                                                           pan_degrees=pan_degrees,
+                                                                                                                                           tilt_degrees=tilt_degrees,
+                                                                                                                                           zoom_factor=zoom_factor))
+            pan_command = convert.degrees_to_command(pan_degrees, 350.0)
+            tilt_command = convert.degrees_to_command(tilt_degrees, 90.0)
+            zoom_command = zoom_factor/zoom_power
+
+            ptz.absmove_w_zoom(pan_command, tilt_command, zoom_command)
+            ptz_2.absmove_w_zoom(pan_command, tilt_command, zoom_command)
+            time.sleep(2)
+            globals.camera_still = True
+            time.sleep(1)
+            globals.camera_still = False
+            time.sleep(STEP_DUR)
+
+    ptz.stop()
+    ptz_2.stop()
