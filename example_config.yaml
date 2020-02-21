@@ -1,5 +1,8 @@
 TRACKED_CLASS: [giraffe, person]
 
+# Stream: Main = 1, Sub = 2, Third = 3 
+STREAM: 3
+
 RECORD: False
 
 PID_GAINS: [-0.0016, 0.002]

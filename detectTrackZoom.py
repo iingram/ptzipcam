@@ -26,7 +26,7 @@ IP = configs['IP']
 PORT = configs['PORT']
 USER = configs['USER']
 PASS = configs['PASS']
-STREAM = 2
+STREAM = configs['STREAM']
 
 # ptz camera setup constants
 INIT_POS = configs['INIT_POS']

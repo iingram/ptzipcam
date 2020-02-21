@@ -24,13 +24,13 @@ IP = "192.168.1." + args.num  # Camera IP address
 PORT = 80           # Port
 USER = "admin"         # Username
 PASS = "NyalaChow22"        # Password
-STREAM = 3  # Main = 1, Sub = 2, Third = 3 
 
 CONFIG_FILE = 'config.yaml'
 
 with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
+STREAM = configs['STREAM']  
 ORIENTATION = configs['ORIENTATION']
 
 if __name__ == '__main__':
