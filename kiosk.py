@@ -1,3 +1,5 @@
+import os
+import argparse
 import sys
 import threading
 import socket
@@ -5,18 +7,50 @@ import struct
 import pickle
 import cv2
 
+import yaml
 import screeninfo
-import imutils
 
 import numpy as np
 
 from dnntools import draw
+from dnntools import neuralnetwork as nn
 from viztools import visualization as viz
 
 JUMP_SCREENS = True
 
+parser = argparse.ArgumentParser(
+    description="Spotter")
+
+parser.add_argument('-c',
+                    '--config',
+                    default='config.yaml',
+                    help='Path to config file.')
+
+parser.add_argument('-p',
+                    '--port',
+                    default='6543',
+                    help='Port number to use.')
+
+args= parser.parse_args()
+
+with open(args.config) as f:
+    configs = yaml.load(f, Loader=yaml.SafeLoader)
+
+TRACKED_CLASS = configs['TRACKED_CLASS']
+    
+confThreshold = configs['CONF_THRESHOLD']
+nmsThreshold = configs['NMS_THRESHOLD']
+input_width = configs['INPUT_WIDTH']
+input_height = configs['INPUT_HEIGHT']
+
+model_path = configs['MODEL_PATH']
+CLASSES_FILE = configs['CLASS_NAMES_FILE']
+model_config = configs['MODEL_CONFIG_FILE']
+model_weights = configs['MODEL_WEIGHTS_FILE']
+
+
 HOST = ''
-PORT = int(sys.argv[1])
+PORT = int(args.port)
 
 window_name = "HQ"
 
@@ -50,10 +84,16 @@ flypics = []
 
 pics = []
 
-num_spots = 6
+num_spots = 3
 for i in range(num_spots):
     pics.append(list())
 
+CLASSES = nn.read_classes_from_file(os.path.join(model_path, CLASSES_FILE))
+network = nn.ObjectDetectorHandler(os.path.join(model_path, model_config),
+                                   os.path.join(model_path, model_weights),
+                                   input_width,
+                                   input_height)
+    
 def socket_function():
     global flypics, pics
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -92,10 +132,21 @@ def socket_function():
             frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
             frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
 
-            frame = imutils.resize(frame, width=200)
+            print(frame.shape)
+
+            outs, inferenceTime = network.infer(frame)
+            lboxes = nn.ObjectDetectorHandler.filter_boxes(outs,
+                                                           frame,
+                                                           confThreshold,
+                                                           nmsThreshold)
+
+            for lbox in lboxes:
+                if CLASSES[lbox['class_id']] in TRACKED_CLASS:
+                    draw.labeled_box(frame, CLASSES, lbox, thickness=2)
+            
             flypics.append(viz.FlyingPicBox(frame,
-                                            np.array(((10 + 200)*spot, 0)),
-                                            np.array(((10 + 200)*spot, 260))))
+                                            np.array(((10 + 640)*spot, 0)),
+                                            np.array(((10 + 640)*spot, 100))))
 
             pics[spot].append(frame)
             spot += 1
@@ -129,19 +180,6 @@ while True:
         if counts[i] > len(pics[i]) - 1:
             counts[i] = 0
 
-        if len(pics[i]):
-            draw.image_onto_image(canvas,
-                                  pics[i][counts[i]],
-                                  (i * (10 + pics[i][0].shape[1]),
-                                   260))
-
-    # x += 1
-    # if x >= 11:
-    #     x = 0
-    #     y += 1
-
-    # if y >= 8:
-    #     y = 0
 
     cv2.imshow(window_name, canvas)
     key = cv2.waitKey(30)
