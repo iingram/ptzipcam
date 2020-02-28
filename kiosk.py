@@ -9,6 +9,7 @@ import cv2
 
 import yaml
 import screeninfo
+import imutils
 
 import numpy as np
 
@@ -17,6 +18,13 @@ from dnntools import neuralnetwork as nn
 from viztools import visualization as viz
 
 JUMP_SCREENS = True
+
+IMAGE_PATH = '/home/ian/Desktop/outreach_day/raw'
+
+if os.path.exists(IMAGE_PATH):
+    print('Path exists.')
+else:
+    print('Image path does not exist')
 
 parser = argparse.ArgumentParser(
     description="Spotter")
@@ -93,9 +101,23 @@ network = nn.ObjectDetectorHandler(os.path.join(model_path, model_config),
                                    os.path.join(model_path, model_weights),
                                    input_width,
                                    input_height)
-    
+
+# animal images from disk
+images = []
+for root, dirs, files in os.walk(IMAGE_PATH):
+    for filename in files:
+        endings = (".jpg",'.JPG', '.jpeg', '.png', '.JPEG')
+        if filename.endswith(endings):
+            img = cv2.imread(os.path.join(root, filename))
+            # img = imutils.resize(img, width=640)
+            img = cv2.resize(img, (640, 480))
+            images.append(img)
+
+print("Number of images from disk is: " + str(len(images)))
+count = 0
+
 def socket_function():
-    global flypics, pics
+    global flypics, pics, images, count
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         print('Socket created')
 
@@ -134,20 +156,35 @@ def socket_function():
 
             print(frame.shape)
 
-            outs, inferenceTime = network.infer(frame)
-            lboxes = nn.ObjectDetectorHandler.filter_boxes(outs,
-                                                           frame,
-                                                           confThreshold,
-                                                           nmsThreshold)
+            def boxify(the_image):
+                outs, inferenceTime = network.infer(the_image)
+                lboxes = nn.ObjectDetectorHandler.filter_boxes(outs,
+                                                               the_image,
+                                                               confThreshold,
+                                                               nmsThreshold)
 
-            for lbox in lboxes:
-                if CLASSES[lbox['class_id']] in TRACKED_CLASS:
-                    draw.labeled_box(frame, CLASSES, lbox, thickness=2)
-            
+                for lbox in lboxes:
+                    if CLASSES[lbox['class_id']] in TRACKED_CLASS:
+                        draw.labeled_box(the_image, CLASSES, lbox, thickness=2)
+                        
+            boxify(frame)
+                        
             flypics.append(viz.FlyingPicBox(frame,
                                             np.array(((10 + 640)*spot, 0)),
-                                            np.array(((10 + 640)*spot, 100))))
+                                            np.array(((10 + 640)*spot, 70))))
 
+            img = images[count].copy()
+            count += 1
+            if count >= len(images):
+                count = 0
+
+            boxify(img)
+                
+            flypics.append(viz.FlyingPicBox(img,
+                                            np.array(((10 + 640)*spot, 1000)),
+                                            np.array(((10 + 640)*spot, 650))))
+
+            
             pics[spot].append(frame)
             spot += 1
             if spot >= num_spots:
@@ -165,12 +202,17 @@ counts = []
 for i in range(num_spots):
     counts.append(0)
 
+
+
 while True:
     canvas = np.zeros((screen_height, screen_width, 3), np.uint8)
 
+
+    
     for pic in flypics:
         pic.update()
         pic.display(canvas)
+
 
     if len(flypics) > 10:
         flypics = flypics[1:]
