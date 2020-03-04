@@ -46,6 +46,43 @@ MODEL_WEIGHTS = os.path.join(MODEL_PATH, configs['MODEL_WEIGHTS_FILE'])
 CLASSES_FILE = os.path.join(MODEL_PATH, configs['CLASS_NAMES_FILE'])
 CLASSES = nn.read_classes_from_file(CLASSES_FILE)
 
+FRAME_WINDOW = 30
+
+class DilationRecorder():
+
+    def __init__(self, frame_width, frame_height, frame_window):
+        self.frame_window = frame_window
+        
+        self.interval = 10
+        self.latch_count = 0
+
+        self.out = cv2.VideoWriter('video_dtz_tdilation.avi',
+                                   cv2.VideoWriter_fourcc('M','J','P','G'),
+                                   25,
+                                   (frame_width,frame_height))
+        self.count = 0
+
+        
+    def update(self, frame, target_detected):
+        if target_detected:
+            self.interval = 1
+            # any time detected restart latch_count
+            self.latch_count = 0
+
+        self.latch_count += 1    
+        if self.latch_count > self.frame_window:
+            self.interval = 10
+            self.latch_count = 0
+
+        self.count += 1
+        if self.count >= self.interval:
+            self.out.write(frame)
+            self.count = 0
+            
+    def cleanup(self):
+        self.out.release()
+
+
 if __name__ == '__main__':
     # construct core objects
     ptz = PtzCam(IP, PORT, USER, PASS)
@@ -70,11 +107,8 @@ if __name__ == '__main__':
     total_pixels = frame_width * frame_height
 
     if RECORD:
-        vid_writer = cv2.VideoWriter('video_detectTrackZoom.avi',
-                                     cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
-                                     15,
-                                     (frame_width, frame_height))
-
+        dilation_recorder = DilationRecorder(frame_width, frame_height, FRAME_WINDOW)
+    
     # initialize position of camera
     x_velocity = 0
     y_velocity = 0
@@ -172,8 +206,10 @@ if __name__ == '__main__':
 
         # update ui and handle user input
         key = uih.update(frame, hud=False)
+
+    
         if RECORD:
-            vid_writer.write(frame.astype(np.uint8))
+            dilation_recorder.update(frame, target_lbox is not None)
 
         if key == ord('q'):
             break
@@ -209,7 +245,7 @@ if __name__ == '__main__':
             ptz.stop()
 
     if RECORD:
-        vid_writer.release()
+        dilation_recorder.cleanup()
     cam.release()
     ptz.stop()
     uih.clean_up()
