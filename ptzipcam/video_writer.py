@@ -37,5 +37,5 @@ class DilationVideoWriter():
             self.out.write(frame)
             self.count = 0
             
-    def cleanup(self):
+    def release(self):
         self.out.release()

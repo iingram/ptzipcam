@@ -10,9 +10,14 @@ import numpy as np
 from ptzipcam.ptz_camera import PtzCam
 from ptzipcam.camera import Camera
 from ptzipcam import ui
+from ptzipcam.video_writer import DilationVideoWriter
 
 from dnntools import neuralnetwork as nn
 from dnntools import draw
+
+DILATION = True
+FRAME_RATE = 15
+FRAME_WINDOW = 30
 
 CONFIG_FILE = 'config.yaml'
 
@@ -70,11 +75,22 @@ if __name__ == '__main__':
     total_pixels = frame_width * frame_height
 
     if RECORD:
-        vid_writer = cv2.VideoWriter('video_detectTrackZoom.avi',
-                                     cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
-                                     15,
-                                     (frame_width, frame_height))
+        codec = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
+        
+        if not DILATION:
+            vid_writer = cv2.VideoWriter('video_detectTrackZoom.avi',
+                                         codec,
+                                         FRAME_RATE,
+                                         (frame_width, frame_height))
+        else:
+            dilation_vid_writer = DilationVideoWriter('video_dilation_dtz.avi',
+                                                      codec,
+                                                      FRAME_RATE,
+                                                      (frame_width, frame_height),
+                                                      FRAME_WINDOW)
 
+
+        
     # initialize position of camera
     x_velocity = 0
     y_velocity = 0
@@ -173,8 +189,11 @@ if __name__ == '__main__':
         # update ui and handle user input
         key = uih.update(frame, hud=False)
         if RECORD:
-            vid_writer.write(frame.astype(np.uint8))
-
+            if not DILATION:
+                vid_writer.write(frame.astype(np.uint8))
+            else:
+                dilation_vid_writer.update(frame, target_lbox is not None)
+            
         if key == ord('q'):
             break
 
@@ -209,7 +228,10 @@ if __name__ == '__main__':
             ptz.stop()
 
     if RECORD:
-        vid_writer.release()
+        if not DILATION:
+            vid_writer.release()
+        else:
+            dilation_vid_writer.release()
     cam.release()
     ptz.stop()
     uih.clean_up()
