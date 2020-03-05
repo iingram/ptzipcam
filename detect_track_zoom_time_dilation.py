@@ -10,6 +10,7 @@ import numpy as np
 from ptzipcam.ptz_camera import PtzCam
 from ptzipcam.camera import Camera
 from ptzipcam import ui
+from ptzipcam.video_writer import DilationVideoWriter
 
 from dnntools import neuralnetwork as nn
 from dnntools import draw
@@ -48,41 +49,6 @@ CLASSES = nn.read_classes_from_file(CLASSES_FILE)
 
 FRAME_WINDOW = 30
 
-class DilationRecorder():
-
-    def __init__(self, frame_width, frame_height, frame_window):
-        self.frame_window = frame_window
-        
-        self.interval = 10
-        self.latch_count = 0
-
-        self.out = cv2.VideoWriter('video_dtz_tdilation.avi',
-                                   cv2.VideoWriter_fourcc('M','J','P','G'),
-                                   25,
-                                   (frame_width,frame_height))
-        self.count = 0
-
-        
-    def update(self, frame, target_detected):
-        if target_detected:
-            self.interval = 1
-            # any time detected restart latch_count
-            self.latch_count = 0
-
-        self.latch_count += 1    
-        if self.latch_count > self.frame_window:
-            self.interval = 10
-            self.latch_count = 0
-
-        self.count += 1
-        if self.count >= self.interval:
-            self.out.write(frame)
-            self.count = 0
-            
-    def cleanup(self):
-        self.out.release()
-
-
 if __name__ == '__main__':
     # construct core objects
     ptz = PtzCam(IP, PORT, USER, PASS)
@@ -107,7 +73,11 @@ if __name__ == '__main__':
     total_pixels = frame_width * frame_height
 
     if RECORD:
-        dilation_recorder = DilationRecorder(frame_width, frame_height, FRAME_WINDOW)
+        dilation_vid_writer = DilationVideoWriter('video_dilation_dtz.avi',
+                                                  cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
+                                                  15,
+                                                  (frame_width, frame_height),
+                                                  FRAME_WINDOW)
     
     # initialize position of camera
     x_velocity = 0
@@ -209,7 +179,7 @@ if __name__ == '__main__':
 
     
         if RECORD:
-            dilation_recorder.update(frame, target_lbox is not None)
+            dilation_vid_writer.update(frame, target_lbox is not None)
 
         if key == ord('q'):
             break
@@ -245,7 +215,7 @@ if __name__ == '__main__':
             ptz.stop()
 
     if RECORD:
-        dilation_recorder.cleanup()
+        dilation_vid_writer.cleanup()
     cam.release()
     ptz.stop()
     uih.clean_up()
