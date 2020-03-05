@@ -13,7 +13,8 @@ import numpy as np
 from dnntools import draw
 from viztools import visualization as viz
 
-JUMP_SCREENS = True
+JUMP_SCREENS = False
+NUM_SPOTS = 3
 
 HOST = ''
 PORT = int(sys.argv[1])
@@ -50,8 +51,7 @@ flypics = []
 
 pics = []
 
-num_spots = 6
-for i in range(num_spots):
+for i in range(NUM_SPOTS):
     pics.append(list())
 
 def socket_function():
@@ -99,7 +99,7 @@ def socket_function():
 
             pics[spot].append(frame)
             spot += 1
-            if spot >= num_spots:
+            if spot >= NUM_SPOTS:
                 spot = 0
             
             
@@ -111,7 +111,7 @@ x = 0
 y = 0
 
 counts = []
-for i in range(num_spots):
+for i in range(NUM_SPOTS):
     counts.append(0)
 
 while True:
@@ -124,7 +124,7 @@ while True:
     if len(flypics) > 10:
         flypics = flypics[1:]
         
-    for i in range(num_spots):
+    for i in range(NUM_SPOTS):
         counts[i] += 1
         if counts[i] > len(pics[i]) - 1:
             counts[i] = 0
