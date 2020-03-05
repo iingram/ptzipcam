@@ -88,13 +88,9 @@ def visit_spots(zoom_power):
     """Thread function for moving the camera through a series of spots of interest
     """
 
-    spots = [[210.0, 90.0, 4.0],
-             [288.75, 27.0, 4.0],
-             [91.88, 81.0, 4.0],
-             [10.0, 65.0, 3.0],
-             [230.0, 85.0, 2.0],
-             [78.0, 35.0, 4.0]]
-             # [345.0, 85.0, 3.5]]
+    with open('spots_to_visit.yaml', 'r') as f:
+        spots = yaml.load(f, Loader=yaml.SafeLoader)
+        spots = np.array(spots)
     
     # global globals.camera_still
     ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
