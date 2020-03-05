@@ -13,16 +13,27 @@ import numpy as np
 from dnntools import draw
 from viztools import visualization as viz
 
+JUMP_SCREENS = True
+
 HOST = ''
 PORT = int(sys.argv[1])
 
 window_name = "HQ"
 
-screen_width = screeninfo.get_monitors()[0].width
-screen_height = screeninfo.get_monitors()[0].height
-
 cv2.namedWindow(window_name,
                 cv2.WINDOW_NORMAL)
+
+screen_resolutions = screeninfo.get_monitors()
+screen_width = screen_resolutions[0].width
+screen_height = screen_resolutions[0].height
+
+if JUMP_SCREENS:
+    print("[NOTICE] Expecting that a second screen is attached.")
+    main_screen_width = screen_resolutions[1].width
+
+    cv2.moveWindow(window_name,
+                   main_screen_width,
+                   0)
 
 cv2.setWindowProperty(window_name,
                       cv2.WND_PROP_FULLSCREEN,
