@@ -19,27 +19,34 @@ ONVIF_PORT = configs['PORT']
 USER = configs['USER']
 PASS = configs['PASS']
 
-with open('config_timelapse.yaml') as f:
-    configs = yaml.load(f, Loader=yaml.SafeLoader)
-PAN_MIN = configs['PAN_MIN']
-PAN_MAX = configs['PAN_MAX']
-PAN_STEPS = configs['PAN_STEPS']
-STEP_DUR = configs['STEP_DUR']
-TILT_MIN = configs['TILT_MIN']
-TILT_MAX = configs['TILT_MAX']
-TILT_STEPS = configs['TILT_STEPS']
 
-def mow_the_lawn():
+def mow_the_lawn(zoom_power):
     """Thread function for moving the camera through a "mow the lawn"
     pattern: panning across, then tilting up a step, panning back, tilting
     up a step, etc.
     """
+    ZOOM_FACTOR = 1.0
+
+    with open('config_timelapse.yaml') as f:
+        configs = yaml.load(f, Loader=yaml.SafeLoader)
+    PAN_MIN = configs['PAN_MIN']
+    PAN_MAX = configs['PAN_MAX']
+    PAN_STEPS = configs['PAN_STEPS']
+    STEP_DUR = configs['STEP_DUR']
+    TILT_MIN = configs['TILT_MIN']
+    TILT_MAX = configs['TILT_MAX']
+    TILT_STEPS = configs['TILT_STEPS']
+    
     # global globals.camera_still
     ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
 
     pan_min = convert.degrees_to_command(PAN_MIN, 350.0)
     pan_max = convert.degrees_to_command(PAN_MAX, 350.0)
-    ptz.absmove(pan_min, TILT_MIN/45.0)
+    tilt_min = convert.degrees_to_command(TILT_MIN, 90.0)
+    tilt_max = convert.degrees_to_command(TILT_MAX, 90.0)
+    zoom_command = ZOOM_FACTOR/zoom_power
+
+    ptz.absmove_w_zoom(pan_min, tilt_min, zoom_command)
     time.sleep(3)
 
     going_forward = True
@@ -47,16 +54,17 @@ def mow_the_lawn():
 
     pan_pass_duration_estimate = int(((2 + 2 + STEP_DUR) * PAN_STEPS)/60)
 
+    print('Grid: {} {}'.format(PAN_STEPS, TILT_STEPS))
     print('Will take about {} minutes to complete a pan pass.'.format(pan_pass_duration_estimate))
 
     while True:
         if going_up:
-            tilt_positions = np.linspace(TILT_MIN,
-                                         TILT_MAX,
+            tilt_positions = np.linspace(tilt_min,
+                                         tilt_max,
                                          TILT_STEPS)
         else:
-            tilt_positions = np.linspace(TILT_MAX,
-                                         TILT_MIN,
+            tilt_positions = np.linspace(tilt_max,
+                                         tilt_min,
                                          TILT_STEPS)
         for y_pos in tilt_positions:
             if going_forward:
@@ -68,9 +76,13 @@ def mow_the_lawn():
                                             pan_min,
                                             PAN_STEPS)
             for x_pos in pan_positions:
-                ptz.absmove(x_pos, y_pos/45.0)
-                x_pos_degrees = convert.pan_command_to_degrees(x_pos, 350.0)
-                print('Moving to {x_pos:.2f} degrees pan and {y_pos:.2f} degrees tilt.'.format(x_pos=x_pos_degrees, y_pos=y_pos))
+                ptz.absmove_w_zoom(x_pos, y_pos, zoom_command)
+
+                # just for printing for user
+                x_pos_degrees = convert.pan_command_to_degrees(x_pos, 350.0) 
+                y_pos_degrees = convert.pan_command_to_degrees(y_pos, 90.0)
+                print('Moving to {x_pos:.2f} degrees pan and {y_pos:.2f} degrees tilt.'.format(x_pos=x_pos_degrees, y_pos=y_pos_degrees))
+                
                 time.sleep(2)
                 globals.camera_still = True
                 time.sleep(2)
