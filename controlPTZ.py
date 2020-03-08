@@ -8,9 +8,9 @@ import numpy as np
 
 from onvif import ONVIFCamera
 
-from camera import Camera
+from ptzipcam.camera import Camera
 
-with open('configs.yaml') as f:
+with open('config.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 # ptz camera networking constants
 IP = configs['IP']
@@ -19,10 +19,7 @@ PASS = configs['PASS']
 
 cam = Camera(ip=IP, user=USER, passwd=PASS)
 
-# IP = "192.168.1.64"   # Camera IP address
 PORT = 80           # Onvif Port
-# USER = "admin"         # Username
-# PASS = "NyalaChow22"        # Password
 
 XMAX = 1
 XMIN = -1
