@@ -1,3 +1,12 @@
+""" Allows mouse control of a PTZ-capable IP camera.
+
+Doesn't display stream (which often is a good thing)
+
+NOTE: if you want to display stream, can run separately something like:
+
+ffplay -i rtsp://admin:NyalaChow22@192.168.0.64:554/Streaming/Channels/103
+"""
+
 import argparse
 
 import yaml
@@ -26,7 +35,9 @@ mouseX = 250
 mouseY = 250
 
 
-def getMouseCoords(event, x, y, flags, param):
+def get_mouse_coords(event, x, y, flags, param):
+    """Callback For reading the mouse pointer coordinates
+    """
     global mouseX
     global mouseY
 
@@ -36,12 +47,12 @@ def getMouseCoords(event, x, y, flags, param):
 
 
 if __name__ == '__main__':
-    ptzCam = PtzCam(IP, PORT, USER, PASS)
+    ptz = PtzCam(IP, PORT, USER, PASS)
 
     key = 'd'
     canvas = np.zeros((500, 500), np.uint8)
     cv2.imshow('Control PTZ Camera', canvas)
-    cv2.setMouseCallback('Control PTZ Camera', getMouseCoords)
+    cv2.setMouseCallback('Control PTZ Camera', get_mouse_coords)
 
     x_dir = 0
     y_dir = 0
@@ -53,7 +64,7 @@ if __name__ == '__main__':
         if key == ord('w'):
             break
 
-        ptzCam.move(x_dir, y_dir)
+        ptz.move(x_dir, y_dir)
 
         if(mouseX < 200):
             x_dir = -1
@@ -70,7 +81,7 @@ if __name__ == '__main__':
             y_dir = 0
 
         if x_dir == 0 and y_dir == 0:
-            ptzCam.stop()
+            ptz.stop()
 
     cv2.destroyAllWindows()
-    ptzCam.stop()
+    ptz.stop()
