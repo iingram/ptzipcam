@@ -25,7 +25,8 @@ def mow_the_lawn(zoom_power):
     pattern: panning across, then tilting up a step, panning back, tilting
     up a step, etc.
     """
-    ZOOM_FACTOR = 1.0
+    ZOOM_FACTOR = 4.0
+    RASTER_PATTERN = True
 
     with open('config_timelapse.yaml') as f:
         configs = yaml.load(f, Loader=yaml.SafeLoader)
@@ -49,7 +50,6 @@ def mow_the_lawn(zoom_power):
     ptz.absmove_w_zoom(pan_min, tilt_min, zoom_command)
     time.sleep(3)
 
-    going_forward = True
     going_up = True
 
     pan_pass_duration_estimate = int(((2 + 2 + STEP_DUR) * PAN_STEPS)/60)
@@ -58,6 +58,8 @@ def mow_the_lawn(zoom_power):
     print('Will take about {} minutes to complete a pan pass.'.format(pan_pass_duration_estimate))
 
     while True:
+        going_forward = True
+
         if going_up:
             tilt_positions = np.linspace(tilt_min,
                                          tilt_max,
@@ -83,7 +85,7 @@ def mow_the_lawn(zoom_power):
                 y_pos_degrees = convert.pan_command_to_degrees(y_pos, 90.0)
                 print('Moving to {x_pos:.2f} degrees pan and {y_pos:.2f} degrees tilt.'.format(x_pos=x_pos_degrees, y_pos=y_pos_degrees))
                 
-                time.sleep(2)
+                time.sleep(5)
                 globals.camera_still = True
                 time.sleep(2)
                 globals.camera_still = False
@@ -91,7 +93,10 @@ def mow_the_lawn(zoom_power):
 
             going_forward = not going_forward
 
-        going_up = not going_up
+        if RASTER_PATTERN:
+            going_up = going_up
+        else:
+            going_up = not going_up
 
     ptz.stop()
 
