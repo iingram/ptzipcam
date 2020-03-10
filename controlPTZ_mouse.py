@@ -1,18 +1,43 @@
+""" Allows mouse control of a PTZ-capable IP camera.
+
+Doesn't display stream (which often is a good thing)
+
+NOTE: if you want to display stream, can run separately something like:
+
+ffplay -i rtsp://admin:NyalaChow22@192.168.0.64:554/Streaming/Channels/103
+"""
+
+import argparse
+
+import yaml
 import cv2
 import numpy as np
 
-from ptz_camera import PtzCam
+from ptzipcam.ptz_camera import PtzCam
 
-IP = "192.168.1.64"   # Camera IP address
-PORT = 80           # Port
-USER = "admin"         # Username
-PASS = "NyalaChow22"        # Password
+ap = argparse.ArgumentParser()
+ap.add_argument('-c',
+                '--config',
+                default='config.yaml',
+                help='Configuration file.')
+args = ap.parse_args()
+config_file = args.config
+
+with open(config_file) as f:
+    configs = yaml.load(f, Loader=yaml.SafeLoader)
+# ptz camera networking constants
+IP = configs['IP']
+USER = configs['USER']
+PASS = configs['PASS']
+PORT = configs['PORT']
 
 mouseX = 250
 mouseY = 250
 
-    
-def getMouseCoords(event,x,y,flags,param):
+
+def get_mouse_coords(event, x, y, flags, param):
+    """Callback For reading the mouse pointer coordinates
+    """
     global mouseX
     global mouseY
 
@@ -20,27 +45,27 @@ def getMouseCoords(event,x,y,flags,param):
         mouseX = x
         mouseY = y
 
-        
+
 if __name__ == '__main__':
-    ptzCam = PtzCam(IP, PORT, USER, PASS)
+    ptz = PtzCam(IP, PORT, USER, PASS)
 
     key = 'd'
-    canvas = np.zeros((500,500), np.uint8)
+    canvas = np.zeros((500, 500), np.uint8)
     cv2.imshow('Control PTZ Camera', canvas)
-    cv2.setMouseCallback('Control PTZ Camera', getMouseCoords)
+    cv2.setMouseCallback('Control PTZ Camera', get_mouse_coords)
 
     x_dir = 0
     y_dir = 0
-    
+
     while True:
         # print(f'mouseX: {mouseX}, mouseY: {mouseY}')
         key = cv2.waitKey(10)
-                
+
         if key == ord('w'):
             break
 
-        ptzCam.move(x_dir, y_dir)
-        
+        ptz.move(x_dir, y_dir)
+
         if(mouseX < 200):
             x_dir = -1
         elif(mouseX > 300):
@@ -56,10 +81,7 @@ if __name__ == '__main__':
             y_dir = 0
 
         if x_dir == 0 and y_dir == 0:
-            ptzCam.stop()
-           
+            ptz.stop()
+
     cv2.destroyAllWindows()
-    ptzCam.stop()
-
-
-    
+    ptz.stop()
