@@ -105,6 +105,10 @@ def visit_spots(zoom_power):
     """Thread function for moving the camera through a series of spots of interest
     """
 
+    with open('config_timelapse.yaml') as f:
+        configs = yaml.load(f, Loader=yaml.SafeLoader)
+    STEP_DUR = configs['STEP_DUR']
+    
     with open('spots_to_visit.yaml', 'r') as f:
         spots = yaml.load(f, Loader=yaml.SafeLoader)
         spots = np.array(spots)
