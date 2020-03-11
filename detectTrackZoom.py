@@ -51,6 +51,9 @@ MODEL_WEIGHTS = os.path.join(MODEL_PATH, configs['MODEL_WEIGHTS_FILE'])
 CLASSES_FILE = os.path.join(MODEL_PATH, configs['CLASS_NAMES_FILE'])
 CLASSES = nn.read_classes_from_file(CLASSES_FILE)
 
+# GUI constants
+HEADLESS = configs['HEADLESS']
+
 if __name__ == '__main__':
     # construct core objects
     ptz = PtzCam(IP, PORT, USER, PASS)
@@ -61,7 +64,9 @@ if __name__ == '__main__':
     frame = ui.orient_frame(frame, ORIENTATION)
 
     window_name = 'Detect, Track, and Zoom'
-    uih = ui.UI_Handler(frame, window_name)
+
+    if not HEADLESS:
+        uih = ui.UI_Handler(frame, window_name)
 
     network = nn.ObjectDetectorHandler(MODEL_CONFIG,
                                        MODEL_WEIGHTS,
@@ -142,6 +147,8 @@ if __name__ == '__main__':
 
         # if there is an appropriate lbox attempt to adjust ptz cam
         if target_lbox:
+            print(CLASSES[target_lbox['class_id']])
+            
             frames_since_last_acq = 0
             draw.labeled_box(frame, CLASSES, target_lbox)
             xc, yc = draw.box_to_coords(target_lbox['box'],
@@ -187,15 +194,18 @@ if __name__ == '__main__':
                 # zoom_command = -1.0
 
         # update ui and handle user input
-        key = uih.update(frame, hud=False)
+
+        if not HEADLESS:
+            key = uih.update(frame, hud=False)
+            if key == ord('q'):
+                break
+
         if RECORD:
             if not DILATION:
                 vid_writer.write(frame.astype(np.uint8))
             else:
                 dilation_vid_writer.update(frame, target_lbox is not None)
             
-        if key == ord('q'):
-            break
 
         # run position controller on ptz system
         ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
@@ -234,4 +244,5 @@ if __name__ == '__main__':
             dilation_vid_writer.release()
     cam.release()
     ptz.stop()
-    uih.clean_up()
+    if not HEADLESS:
+        uih.clean_up()
