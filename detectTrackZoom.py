@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
     while True:
         pan, tilt, zoom = ptz.get_position()
-        print(zoom)
+        print("Zoom is at: " + str(zoom))
 
         raw_frame = cam.get_frame()
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
