@@ -14,7 +14,14 @@ from dnntools import draw
 from viztools import visualization as viz
 
 JUMP_SCREENS = False
-NUM_SPOTS = 3
+
+NUM_COLS = 10
+NUM_ROWS = 7
+
+COL_WIDTH = 330
+ROW_HEIGHT = 250
+
+NUM_SPOTS = NUM_ROWS * NUM_COLS
 
 HOST = ''
 PORT = int(sys.argv[1])
@@ -54,6 +61,23 @@ pics = []
 for i in range(NUM_SPOTS):
     pics.append(list())
 
+
+def create_layout(num_rows, num_columns):
+    layout = []
+
+    for row in range(num_rows)[::-1]:
+        if row%2 == 0:
+            for column in range(num_columns)[::-1]:
+                layout.append([COL_WIDTH * column + COL_WIDTH, ROW_HEIGHT * row + ROW_HEIGHT])
+        else:
+            for column in range(num_columns):
+                layout.append([COL_WIDTH * column + COL_WIDTH, ROW_HEIGHT * row + ROW_HEIGHT])
+                
+    return layout
+
+layout = create_layout(NUM_ROWS, NUM_COLS)
+
+
 def socket_function():
     global flypics, pics
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -72,6 +96,10 @@ def socket_function():
         print("header_size: {}".format(header_size))
 
         spot = 0
+
+        # total_spots = NUM_ROWS * NUM_COLS
+
+        spot_count = 0
         while True:
             data += conn.recv(header_size)
 
@@ -92,10 +120,14 @@ def socket_function():
             frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
             frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
 
-            frame = imutils.resize(frame, width=200)
+            frame = imutils.resize(frame, width=320)
+
             flypics.append(viz.FlyingPicBox(frame,
-                                            np.array(((10 + 200)*spot, 0)),
-                                            np.array(((10 + 200)*spot, 260))))
+                                            np.array([layout[spot_count][0], 0]),
+                                            np.array(layout[spot_count])))
+            spot_count += 1
+            if spot_count >= NUM_SPOTS:
+                spot_count = 0
 
             pics[spot].append(frame)
             spot += 1
@@ -132,8 +164,9 @@ while True:
         if len(pics[i]):
             draw.image_onto_image(canvas,
                                   pics[i][counts[i]],
-                                  (i * (10 + pics[i][0].shape[1]),
-                                   260))
+                                  layout[i])
+                                  # (i * (10 + pics[i][0].shape[1]),
+                                  #  260))
 
     # x += 1
     # if x >= 11:
