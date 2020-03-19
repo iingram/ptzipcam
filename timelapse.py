@@ -61,7 +61,8 @@ class Sender():
                                              self.encode_param)
         data = pickle.dumps(frame_to_send, 0)
         size = len(data)
-        self.sock.sendall(struct.pack(">L", size) + data)
+        pan_angle = 33
+        self.sock.sendall(struct.pack(">LH", size, pan_angle) + data)
 
     def close(self): 
         self.sock.close()       

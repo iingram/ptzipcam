@@ -95,7 +95,7 @@ def socket_function():
         print('Socket connection made')
 
         data = b""
-        header_size = struct.calcsize(">L")
+        header_size = struct.calcsize(">LH")
         print("header_size: {}".format(header_size))
 
         spot = 0
@@ -113,8 +113,9 @@ def socket_function():
             print("Done Recv: {}".format(len(data)))
             header = data[:header_size]
             data = data[header_size:]
-            msg_size = struct.unpack(">L", header)[0]
+            msg_size, pan_angle = struct.unpack(">LH", header)
             print("msg_size: {}".format(msg_size))
+            print("pan_angle: {}".format(pan_angle))
             while len(data) < msg_size:
                 data += conn.recv(4096)
             frame_data = data[:msg_size]
@@ -144,9 +145,6 @@ socket_thread = threading.Thread(target=socket_function,
                                  daemon=True)
 socket_thread.start()
 
-x = 0
-y = 0
-
 counts = []
 for i in range(NUM_SPOTS):
     counts.append(0)
@@ -172,14 +170,6 @@ while True:
                                   layout[i])
                                   # (i * (10 + pics[i][0].shape[1]),
                                   #  260))
-
-    # x += 1
-    # if x >= 11:
-    #     x = 0
-    #     y += 1
-
-    # if y >= 8:
-    #     y = 0
 
     cv2.imshow(window_name, canvas)
     key = cv2.waitKey(30)
