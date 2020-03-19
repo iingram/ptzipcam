@@ -83,6 +83,11 @@ print('Grid: ' + str(NUM_COLS) + 'x' + str(NUM_ROWS))
 
 def socket_function():
     global flypics, pics
+
+    header_format = '>LHH'
+    header_size = struct.calcsize(header_format)
+    print("header_size: {}".format(header_size))
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         print('Socket created')
 
@@ -95,8 +100,6 @@ def socket_function():
         print('Socket connection made')
 
         data = b""
-        header_size = struct.calcsize(">LH")
-        print("header_size: {}".format(header_size))
 
         spot = 0
 
@@ -113,9 +116,10 @@ def socket_function():
             print("Done Recv: {}".format(len(data)))
             header = data[:header_size]
             data = data[header_size:]
-            msg_size, pan_angle = struct.unpack(">LH", header)
+            msg_size, pan_angle, tilt_angle = struct.unpack(header_format, header)
             print("msg_size: {}".format(msg_size))
             print("pan_angle: {}".format(pan_angle))
+            print("tilt_angle: {}".format(tilt_angle))
             while len(data) < msg_size:
                 data += conn.recv(4096)
             frame_data = data[:msg_size]

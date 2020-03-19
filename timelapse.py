@@ -55,14 +55,13 @@ class Sender():
         self.sock.connect((host, port))
         self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 
-    def send(self, frame):
+    def send(self, frame, pan_angle, tilt_angle):
         result, frame_to_send = cv2.imencode('.jpg',
                                              frame,
                                              self.encode_param)
         data = pickle.dumps(frame_to_send, 0)
         size = len(data)
-        pan_angle = 33
-        self.sock.sendall(struct.pack(">LH", size, pan_angle) + data)
+        self.sock.sendall(struct.pack(">LHH", size, pan_angle, tilt_angle) + data)
 
     def close(self): 
         self.sock.close()       
@@ -142,7 +141,7 @@ if __name__ == '__main__':
                     
                     latch = False
                     if CLIENT_MODE:
-                        sender.send(frame)
+                        sender.send(frame, 31, 88)
             elif not latch:
                 latch = True
 
