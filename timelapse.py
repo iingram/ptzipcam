@@ -141,7 +141,9 @@ if __name__ == '__main__':
                     
                     latch = False
                     if CLIENT_MODE:
-                        sender.send(frame, 31, 88)
+                        sender.send(frame,
+                                    globals.pan_angle,
+                                    globals.tilt_angle)
             elif not latch:
                 latch = True
 
