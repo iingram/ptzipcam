@@ -85,8 +85,8 @@ def mow_the_lawn(zoom_power):
 
                 ptz.absmove_w_zoom(x_pos, y_pos, zoom_command)
                 time.sleep(10)
-                globals.pan_angle = int(x_pos_degrees)
-                globals.tilt_angle = int(y_pos_degrees)
+                globals.pan_angle = x_pos_degrees
+                globals.tilt_angle = y_pos_degrees
                 globals.camera_still = True
                 time.sleep(2)
                 globals.camera_still = False

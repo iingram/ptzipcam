@@ -84,7 +84,7 @@ print('Grid: ' + str(NUM_COLS) + 'x' + str(NUM_ROWS))
 def socket_function():
     global flypics, pics
 
-    header_format = '>LHH'
+    header_format = '>Lff'
     header_size = struct.calcsize(header_format)
     print("header_size: {}".format(header_size))
 
