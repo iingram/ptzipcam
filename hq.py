@@ -66,16 +66,19 @@ def create_layout(num_rows, num_columns):
     layout = []
 
     for row in range(num_rows)[::-1]:
-        if row%2 == 0:
+        if row % 2 == 0:
             for column in range(num_columns)[::-1]:
-                layout.append([COL_WIDTH * column + COL_WIDTH, ROW_HEIGHT * row + ROW_HEIGHT])
+                layout.append([COL_WIDTH * column + COL_WIDTH,
+                               ROW_HEIGHT * row + ROW_HEIGHT])
         else:
             for column in range(num_columns):
-                layout.append([COL_WIDTH * column + COL_WIDTH, ROW_HEIGHT * row + ROW_HEIGHT])
-                
+                layout.append([COL_WIDTH * column + COL_WIDTH,
+                               ROW_HEIGHT * row + ROW_HEIGHT])
     return layout
 
+
 layout = create_layout(NUM_ROWS, NUM_COLS)
+print('Grid: ' + str(NUM_COLS) + 'x' + str(NUM_ROWS))
 
 
 def socket_function():
@@ -117,7 +120,9 @@ def socket_function():
             frame_data = data[:msg_size]
             data = data[msg_size:]
 
-            frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
+            frame = pickle.loads(frame_data,
+                                 fix_imports=True,
+                                 encoding="bytes")
             frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
 
             frame = imutils.resize(frame, width=320)
@@ -133,8 +138,8 @@ def socket_function():
             spot += 1
             if spot >= NUM_SPOTS:
                 spot = 0
-            
-            
+
+
 socket_thread = threading.Thread(target=socket_function,
                                  daemon=True)
 socket_thread.start()
@@ -155,7 +160,7 @@ while True:
 
     if len(flypics) > 10:
         flypics = flypics[1:]
-        
+
     for i in range(NUM_SPOTS):
         counts[i] += 1
         if counts[i] > len(pics[i]) - 1:
