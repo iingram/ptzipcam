@@ -118,8 +118,8 @@ def socket_function():
             data = data[header_size:]
             msg_size, pan_angle, tilt_angle = struct.unpack(header_format, header)
             print("msg_size: {}".format(msg_size))
-            print("pan_angle: {}".format(pan_angle))
-            print("tilt_angle: {}".format(tilt_angle))
+            print("pan_angle: {:.2f}".format(pan_angle))
+            print("tilt_angle: {:.2f}".format(tilt_angle))
             while len(data) < msg_size:
                 data += conn.recv(4096)
             frame_data = data[:msg_size]
