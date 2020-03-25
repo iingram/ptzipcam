@@ -7,7 +7,7 @@ import numpy as np
 from ptzipcam.ptz_camera import PtzCam
 
 import convert
-import globals
+import globalvars
 
 CONFIG_FILE = 'config.yaml'
 
@@ -38,7 +38,7 @@ def mow_the_lawn(zoom_power):
     TILT_MAX = configs['TILT_MAX']
     TILT_STEPS = configs['TILT_STEPS']
     
-    # global globals.camera_still
+    # global globalvars.camera_still
     ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
 
     pan_min = convert.degrees_to_command(PAN_MIN, 350.0)
@@ -85,11 +85,11 @@ def mow_the_lawn(zoom_power):
 
                 ptz.absmove_w_zoom(x_pos, y_pos, zoom_command)
                 time.sleep(10)
-                globals.pan_angle = x_pos_degrees
-                globals.tilt_angle = y_pos_degrees
-                globals.camera_still = True
+                globalvars.pan_angle = x_pos_degrees
+                globalvars.tilt_angle = y_pos_degrees
+                globalvars.camera_still = True
                 time.sleep(2)
-                globals.camera_still = False
+                globalvars.camera_still = False
                 time.sleep(STEP_DUR)
 
             going_forward = not going_forward
@@ -114,7 +114,7 @@ def visit_spots(zoom_power):
         spots = yaml.load(f, Loader=yaml.SafeLoader)
         spots = np.array(spots)
     
-    # global globals.camera_still
+    # global globalvars.camera_still
     ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
 
     while True:
@@ -130,9 +130,9 @@ def visit_spots(zoom_power):
 
             ptz.absmove_w_zoom(pan_command, tilt_command, zoom_command)
             time.sleep(2)
-            globals.camera_still = True
+            globalvars.camera_still = True
             time.sleep(2)
-            globals.camera_still = False
+            globalvars.camera_still = False
             time.sleep(STEP_DUR)
 
     ptz.stop()
@@ -152,7 +152,7 @@ def visit_spots_two_cameras(zoom_power):
              [78.0, 80.0, 4.0]]
              # [345.0, 85.0, 3.5]]
     
-    # global globals.camera_still
+    # global globalvars.camera_still
     ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
     ptz_2 = PtzCam('192.168.1.63', ONVIF_PORT, USER, PASS)
 
@@ -170,9 +170,9 @@ def visit_spots_two_cameras(zoom_power):
             ptz.absmove_w_zoom(pan_command, tilt_command, zoom_command)
             ptz_2.absmove_w_zoom(pan_command, tilt_command, zoom_command)
             time.sleep(2)
-            globals.camera_still = True
+            globalvars.camera_still = True
             time.sleep(1)
-            globals.camera_still = False
+            globalvars.camera_still = False
             time.sleep(STEP_DUR)
 
     ptz.stop()

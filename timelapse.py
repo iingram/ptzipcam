@@ -15,7 +15,7 @@ from ptzipcam.camera import Camera
 from ptzipcam import ui
 
 import movement_functions
-import globals
+import globalvars
 
 CONFIG_FILE = 'config.yaml'
 
@@ -46,7 +46,7 @@ HEADLESS = configs['HEADLESS']
 MODE = configs['MODE']
 
 # init global variables
-globals.init()
+globalvars.init()
 
 
 class Sender():
@@ -130,7 +130,7 @@ if __name__ == '__main__':
             if frame is None:
                 print('Frame is None.')
 
-            if globals.camera_still and frame is not None:
+            if globalvars.camera_still and frame is not None:
                 if latch:
                     print('Taking a shot.')
 
@@ -150,8 +150,8 @@ if __name__ == '__main__':
                     latch = False
                     if CLIENT_MODE:
                         sender.send(frame,
-                                    globals.pan_angle,
-                                    globals.tilt_angle)
+                                    globalvars.pan_angle,
+                                    globalvars.tilt_angle)
             elif not latch:
                 latch = True
 
