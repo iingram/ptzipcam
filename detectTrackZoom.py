@@ -82,14 +82,25 @@ if __name__ == '__main__':
 
     if RECORD:
         codec = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
+
+        filename = 'video_dtz'
+
+        print(nn.__name__)
         
+        if 'neuralnetwork_coral' in nn.__name__:
+            filename = filename + '_coral'
+        else:
+            filename = filename + '_dnn'
+            
         if not DILATION:
-            vid_writer = cv2.VideoWriter('video_detectTrackZoom.avi',
+            filename = filename + '_lineartime' + '.avi'
+            vid_writer = cv2.VideoWriter(filename,
                                          codec,
                                          FRAME_RATE,
                                          (frame_width, frame_height))
         else:
-            dilation_vid_writer = DilationVideoWriter('video_dilation_dtz.avi',
+            filename = filename + '_dilation' + '.avi'
+            dilation_vid_writer = DilationVideoWriter(filename,
                                                       codec,
                                                       FRAME_RATE,
                                                       (frame_width, frame_height),
