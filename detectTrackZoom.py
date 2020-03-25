@@ -120,14 +120,7 @@ if __name__ == '__main__':
     tilt_init = INIT_POS[1]/45.0
     zoom_init = INIT_POS[2]/25.0
     
-    ptz.absmove_w_zoom(pan_init, tilt_init, zoom_init)
-    epsilon = .01
-    while (pan >= pan_init + epsilon
-           or pan <= pan_init - epsilon
-           or tilt >= tilt_init + epsilon
-           or tilt <= tilt_init - epsilon):
-        time.sleep(.1)
-        pan, tilt, zoom = ptz.get_position()
+    ptz.absmove_w_zoom_waitfordone(pan_init, tilt_init, zoom_init, close_enough=.01)
 
     x_err = 0
     y_err = 0

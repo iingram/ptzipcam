@@ -19,9 +19,7 @@ import globalvars
 
 CONFIG_FILE = 'config.yaml'
 
-NUM_OUTPUT_VIDEOS = 6
 ZOOM_POWER = 4.0
-
 
 if len(sys.argv) > 1:
     CLIENT_MODE = True
@@ -106,7 +104,11 @@ if __name__ == '__main__':
     hostname = socket.gethostname()
 
     vid_writers = []
-    for i in range(NUM_OUTPUT_VIDEOS):
+
+    time.sleep(1)
+    num_output_videos = np.prod(globalvars.grid)
+    print('Number of output videos is {}'.format(num_output_videos))
+    for i in range(num_output_videos):
         video_filename = ('video_timelapse_'
                           + MODE
                           + '_'
@@ -144,7 +146,7 @@ if __name__ == '__main__':
 
                     vid_writers[j].write(frame.astype(np.uint8))
                     j += 1
-                    if j == NUM_OUTPUT_VIDEOS:
+                    if j == num_output_videos:
                         j = 0
 
                     latch = False
@@ -157,7 +159,7 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
 
-        for i in range(NUM_OUTPUT_VIDEOS):
+        for i in range(num_output_videos):
             vid_writers[i].release()
 
         cam.release()

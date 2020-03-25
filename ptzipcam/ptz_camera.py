@@ -1,3 +1,5 @@
+import time
+
 from onvif import ONVIFCamera
 
 
@@ -84,6 +86,28 @@ class PtzCam():
         self.moverequest.Position.Zoom.x = zoom_pos
         self.ptz.AbsoluteMove(self.moverequest)
 
+    def _wait_for_done(self, pan_goal, tilt_goal, zoom_goal, close_enough=.01):
+        """Note: zoom_goal finishing not implemented
+
+        """
+        pan, tilt, zoom = self.get_position()
+        while (pan >= pan_goal + close_enough
+               or pan <= pan_goal - close_enough
+               or tilt >= tilt_goal + close_enough
+               or tilt <= tilt_goal - close_enough):
+            time.sleep(.1)
+            pan, tilt, zoom = self.get_position()
+
+
+    def absmove_w_zoom_waitfordone(self,
+                                   pan_pos,
+                                   tilt_pos,
+                                   zoom_pos,
+                                   close_enough=.01):
+        self.absmove_w_zoom(pan_pos, tilt_pos, zoom_pos)
+        self._wait_for_done(pan_pos, tilt_pos, zoom_pos, close_enough)
+
+        
     def zoom_out_full(self):
         self._prep_abs_move()
         self.moverequest.Position.Zoom.x = 0.0
