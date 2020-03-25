@@ -1,10 +1,10 @@
-import sys
 import threading
 import socket
 import struct
 import pickle
-import cv2
+import argparse
 
+import cv2
 import screeninfo
 import imutils
 
@@ -12,6 +12,15 @@ import numpy as np
 
 from dnntools import draw
 from viztools import visualization as viz
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('-p',
+                    '--port',
+                    required=True,
+                    help='Port for socket connection')
+
+args = parser.parse_args()
 
 JUMP_SCREENS = False
 
@@ -24,7 +33,7 @@ ROW_HEIGHT = 250
 NUM_SPOTS = NUM_ROWS * NUM_COLS
 
 HOST = ''
-PORT = int(sys.argv[1])
+PORT = int(args.port)
 
 window_name = "HQ"
 
