@@ -12,10 +12,11 @@ from ptzipcam.camera import Camera
 from ptzipcam import ui
 from ptzipcam.video_writer import DilationVideoWriter
 
-from dnntools import neuralnetwork as nn
+# from dnntools import neuralnetwork as nn
+from dnntools import neuralnetwork_coral as nn
 from dnntools import draw
 
-DILATION = True
+DILATION = False
 FRAME_RATE = 15
 FRAME_WINDOW = 30
 
@@ -124,17 +125,18 @@ if __name__ == '__main__':
 
     while True:
         pan, tilt, zoom = ptz.get_position()
-        print("Zoom is at: " + str(zoom))
+        # print("Zoom is at: " + str(zoom))
 
         raw_frame = cam.get_frame()
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
         frame = raw_frame.copy()
 
         outs, inference_time = network.infer(frame)
-        lboxes = nn.ObjectDetectorHandler.filter_boxes(outs,
-                                                       frame,
-                                                       CONF_THRESHOLD,
-                                                       NMS_THRESHOLD)
+        print("Inference time is: {}".format(inference_time))
+        lboxes = network.filter_boxes(outs,
+                                      frame,
+                                      CONF_THRESHOLD,
+                                      NMS_THRESHOLD)
 
         # extract the lbox with the highest confidence (that is a target type)
         highest_confidence_tracked_class = 0
@@ -181,8 +183,9 @@ if __name__ == '__main__':
                 y_err = 0
 
             if frames_since_last_acq > 30:
-                x_err = -300
-
+                    # x_err = -300
+                    x_err = 0
+                    
             # # commenting this bit out because it doesn't always work
             # # and may be source of wandering bug
             # if frames_since_last_acq > 30:
