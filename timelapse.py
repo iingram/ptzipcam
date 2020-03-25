@@ -48,6 +48,7 @@ MODE = configs['MODE']
 # init global variables
 globals.init()
 
+
 class Sender():
 
     def __init__(self, host, port):
@@ -61,26 +62,26 @@ class Sender():
                                              self.encode_param)
         data = pickle.dumps(frame_to_send, 0)
         size = len(data)
-        self.sock.sendall(struct.pack(">Lff", size, pan_angle, tilt_angle) + data)
+        header = struct.pack(">Lff", size, pan_angle, tilt_angle)
+        self.sock.sendall(header + data)
 
-    def close(self): 
-        self.sock.close()       
+    def close(self):
+        self.sock.close()
 
 
 if __name__ == '__main__':
     if CLIENT_MODE:
         sender = Sender(HOST, PORT)
-        
-    window_name = 'Mow The Lawn'    
+
+    window_name = 'Mow The Lawn'
     # if not HEADLESS:
     #     cv2.namedWindow(window_name,
     #                     cv2.WINDOW_NORMAL)
 
-        # cv2.setWindowProperty(window_name,
-        #                       cv2.WND_PROP_FULLSCREEN,
-        #                       cv2.WINDOW_FULLSCREEN)
+    #     cv2.setWindowProperty(window_name,
+    #                           cv2.WND_PROP_FULLSCREEN,
+    #                           cv2.WINDOW_FULLSCREEN)
 
-        
     logging.basicConfig(level=logging.DEBUG, filename='log.log')
 
     preamble = 'Movement function:'
@@ -93,7 +94,7 @@ if __name__ == '__main__':
     else:
         print('Invalid movement function specified in config file.  Quitting.')
         sys.exit()
-        
+
     movement_control_thread = threading.Thread(target=movement_function,
                                                args=(ZOOM_POWER,),
                                                daemon=True)
@@ -106,11 +107,18 @@ if __name__ == '__main__':
 
     vid_writers = []
     for i in range(NUM_OUTPUT_VIDEOS):
-        video_filename = 'video_timelapse_' + MODE + '_' + hostname + '_' + str(i) + '.avi'
+        video_filename = ('video_timelapse_'
+                          + MODE
+                          + '_'
+                          + hostname
+                          + '_'
+                          + str(i)
+                          + '.avi')
+
         vid_writers.append(cv2.VideoWriter(video_filename,
-                                          cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
-                                          30,
-                                          (width, height)))
+                                           cv2.VideoWriter_fourcc(*'MJPG'),
+                                           30,
+                                           (width, height)))
     time.sleep(1)
 
     latch = True
@@ -121,7 +129,7 @@ if __name__ == '__main__':
             frame = cam.get_frame()
             if frame is None:
                 print('Frame is None.')
-            
+
             if globals.camera_still and frame is not None:
                 if latch:
                     print('Taking a shot.')
@@ -138,7 +146,7 @@ if __name__ == '__main__':
                     j += 1
                     if j == NUM_OUTPUT_VIDEOS:
                         j = 0
-                    
+
                     latch = False
                     if CLIENT_MODE:
                         sender.send(frame,
@@ -151,7 +159,7 @@ if __name__ == '__main__':
 
         for i in range(NUM_OUTPUT_VIDEOS):
             vid_writers[i].release()
-        
+
         cam.release()
 
         if CLIENT_MODE:
