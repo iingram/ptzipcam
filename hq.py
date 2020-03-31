@@ -1,10 +1,10 @@
-import sys
 import threading
 import socket
 import struct
 import pickle
-import cv2
+import argparse
 
+import cv2
 import screeninfo
 import imutils
 
@@ -12,6 +12,15 @@ import numpy as np
 
 from dnntools import draw
 from viztools import visualization as viz
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('-p',
+                    '--port',
+                    required=True,
+                    help='Port for socket connection')
+
+args = parser.parse_args()
 
 JUMP_SCREENS = False
 
@@ -24,7 +33,7 @@ ROW_HEIGHT = 250
 NUM_SPOTS = NUM_ROWS * NUM_COLS
 
 HOST = ''
-PORT = int(sys.argv[1])
+PORT = int(args.port)
 
 window_name = "HQ"
 
@@ -118,8 +127,8 @@ def socket_function():
             data = data[header_size:]
             msg_size, pan_angle, tilt_angle = struct.unpack(header_format, header)
             print("msg_size: {}".format(msg_size))
-            print("pan_angle: {}".format(pan_angle))
-            print("tilt_angle: {}".format(tilt_angle))
+            print("pan_angle: {:.2f}".format(pan_angle))
+            print("tilt_angle: {:.2f}".format(tilt_angle))
             while len(data) < msg_size:
                 data += conn.recv(4096)
             frame_data = data[:msg_size]
