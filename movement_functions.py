@@ -9,18 +9,20 @@ from ptzipcam.ptz_camera import PtzCam
 import convert
 import globalvars
 
-CONFIG_FILE = 'config.yaml'
 
-with open(CONFIG_FILE) as f:
-    configs = yaml.load(f, Loader=yaml.SafeLoader)
-# ptz camera networking constants
-IP = configs['IP']
-ONVIF_PORT = configs['PORT']
-USER = configs['USER']
-PASS = configs['PASS']
+def _read_configs(config_file):
+    with open(config_file) as f:
+        configs = yaml.load(f, Loader=yaml.SafeLoader)
+    # ptz camera networking constants
+    ip = configs['IP']
+    onvif_port = configs['PORT']
+    user = configs['USER']
+    password = configs['PASS']
+    timelapse_config_filename = configs['TIMELAPSE_CONFIG_FILENAME']
+    return ip, onvif_port, user, password, timelapse_config_filename
 
 
-def mow_the_lawn(zoom_power):
+def mow_the_lawn(zoom_power, config_file):
     """Thread function for moving the camera through a "mow the lawn"
     pattern: panning across, then tilting up a step, panning back, tilting
     up a step, etc.
@@ -28,7 +30,9 @@ def mow_the_lawn(zoom_power):
     ZOOM_FACTOR = 4.0
     RASTER_PATTERN = True
 
-    with open('config_timelapse.yaml') as f:
+    IP, ONVIF_PORT, USER, PASS, TIMELAPSE_CONFIG_FILENAME = _read_configs(config_file)
+    
+    with open(TIMELAPSE_CONFIG_FILENAME) as f:
         configs = yaml.load(f, Loader=yaml.SafeLoader)
     PAN_MIN = configs['PAN_MIN']
     PAN_MAX = configs['PAN_MAX']
@@ -103,7 +107,7 @@ def mow_the_lawn(zoom_power):
     ptz.stop()
 
 
-def visit_spots(zoom_power):
+def visit_spots(zoom_power, config_file):
     """Thread function for moving the camera through a series of spots of interest
     """
 

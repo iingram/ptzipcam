@@ -5,6 +5,7 @@ import socket
 import logging
 import pickle
 import struct
+import argparse
 
 import cv2
 import yaml
@@ -17,14 +18,30 @@ from ptzipcam import ui
 import movement_functions
 import globalvars
 
-CONFIG_FILE = 'config.yaml'
+parser = argparse.ArgumentParser()
+parser.add_argument('-c',
+                    '--config',
+                    default='config.yaml',
+                    help='Filename of configuration file')
+parser.add_argument('-i',
+                    '--host_ip',
+                    required=False,
+                    help='Host IP to connect to if in client mode')
+parser.add_argument('-p',
+                    '--port',
+                    required=False,
+                    help='Port to use if in client mode')
+
+args = parser.parse_args()
+
+CONFIG_FILE = args.config
 
 ZOOM_POWER = 4.0
 
-if len(sys.argv) > 1:
+if args.host_ip:
     CLIENT_MODE = True
-    HOST = sys.argv[1]
-    PORT = int(sys.argv[2])
+    HOST = args.host_ip
+    PORT = int(args.port)
 else:
     CLIENT_MODE = False
 
@@ -35,10 +52,12 @@ IP = configs['IP']
 USER = configs['USER']
 PASS = configs['PASS']
 
+TIMELAPSE_CONFIG_FILENAME = configs['TIMELAPSE_CONFIG_FILENAME']
+
 # ptz camera setup constants
 ORIENTATION = configs['ORIENTATION']
 
-with open('config_timelapse.yaml') as f:
+with open(TIMELAPSE_CONFIG_FILENAME) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 HEADLESS = configs['HEADLESS']
 MODE = configs['MODE']
@@ -94,7 +113,7 @@ if __name__ == '__main__':
         sys.exit()
 
     movement_control_thread = threading.Thread(target=movement_function,
-                                               args=(ZOOM_POWER,),
+                                               args=(ZOOM_POWER, CONFIG_FILE),
                                                daemon=True)
     movement_control_thread.start()
 
