@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import threading
@@ -99,8 +100,16 @@ if __name__ == '__main__':
     #                           cv2.WND_PROP_FULLSCREEN,
     #                           cv2.WINDOW_FULLSCREEN)
 
-    logging.basicConfig(level=logging.DEBUG, filename='log.log')
+    # logging.basicConfig(level=logging.DEBUG, filename='/home/ian/timelapse.log')
+    # logging.basicConfig(level=logging.DEBUG, filename='timelapse.log')
+    # logging.debug('anything?')
 
+    record_file = time.strftime("%Y_%m_%d_%H-%M-%S") + '.csv'
+    record_file = os.path.join('/home/ian/special', record_file)
+    with open(record_file, 'w') as f: f.write('IMAGE_FILE, PAN_ANGLE, TILT_ANGLE\n')
+
+    with open('/home/ian/timelapse.log', 'w') as f: f.write('[INFO] Just started.\n')
+    
     preamble = 'Movement function:'
     if MODE == 'mow':
         print(preamble, 'Mow the lawn')
@@ -117,6 +126,8 @@ if __name__ == '__main__':
                                                daemon=True)
     movement_control_thread.start()
 
+    with open('/home/ian/timelapse.log', 'a') as f: f.write('[INFO] started movement control thread\n')
+    
     cam = Camera(ip=IP, user=USER, passwd=PASS)
     width, height = cam.get_resolution()
 
@@ -136,6 +147,7 @@ if __name__ == '__main__':
                           + str(i)
                           + '.avi')
 
+        video_filename = os.path.join('/home/ian/special/videos', video_filename)
         vid_writers.append(cv2.VideoWriter(video_filename,
                                            cv2.VideoWriter_fourcc(*'MJPG'),
                                            30,
@@ -145,8 +157,12 @@ if __name__ == '__main__':
     latch = True
 
     j = 0
+
+    with open('/home/ian/timelapse.log', 'a') as f: f.write('[INFO] about to start main loop\n')
+    
     try:
         while True:
+
             frame = cam.get_frame()
             if frame is None:
                 print('Frame is None.')
@@ -154,6 +170,7 @@ if __name__ == '__main__':
             if globalvars.camera_still and frame is not None:
                 if latch:
                     print('Taking a shot.')
+                    with open('/home/ian/timelapse.log', 'a') as f: f.write('[INFO] taking a shot\n')
 
                     frame = ui.orient_frame(frame, ORIENTATION)
 
@@ -163,6 +180,21 @@ if __name__ == '__main__':
                         if key == ord('q'):
                             break
 
+                    front_bit = time.strftime("%Y_%m_%d_%H-%M-%S")    
+                    image_filename = front_bit + '.jpg'
+                    image_filename_w_path = os.path.join('/home/ian/special/images/', image_filename)
+                    cv2.imwrite(image_filename_w_path, frame)
+
+                    record_line = '{},{:.2f},{:.2f}\n'.format(image_filename,
+                                                              globalvars.pan_angle,
+                                                              globalvars.tilt_angle)
+
+                    # record_line = (image_filename + ','
+                    #                + str(globalvars.pan_angle) + ','
+                    #                + str(globalvars.tilt_angle) + '\n')
+                    
+                    with open(record_file, 'a') as f: f.write(record_line)
+                    
                     vid_writers[j].write(frame.astype(np.uint8))
                     j += 1
                     if j == num_output_videos:
