@@ -39,6 +39,10 @@ def create_layout(num_rows, num_columns, column_width, row_height, upside_down=F
     return layout
 
 
+def print_layout_geometry(num_rows, num_columns):
+    print('Grid: ' + str(num_columns) + 'x' + str(num_rows))
+
+
 class Display():
 
     def __init__(self, window_name, jump_screens, layout):
