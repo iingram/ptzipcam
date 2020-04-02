@@ -3,6 +3,8 @@ import screeninfo
 
 import numpy as np
 
+from dnntools import draw
+
 def create_layout(num_rows, num_columns, column_width, row_height):
     layout = []
 
@@ -20,8 +22,10 @@ def create_layout(num_rows, num_columns, column_width, row_height):
 
 class Display():
 
-    def __init__(self, window_name, jump_screens):
+    def __init__(self, window_name, jump_screens, layout):
         self.window_name = window_name
+        self.layout = layout
+
         cv2.namedWindow(self.window_name,
                         cv2.WINDOW_NORMAL)
 
@@ -41,12 +45,29 @@ class Display():
                               cv2.WND_PROP_FULLSCREEN,
                               cv2.WINDOW_FULLSCREEN)
 
+        self.counts = []
+        for i in range(len(self.layout)):
+            self.counts.append(0)
+
+        
         self.refresh_canvas()
 
     def refresh_canvas(self):
         self.canvas = np.zeros((self.screen_height, self.screen_width, 3), np.uint8)
 
-    def draw(self):
+    def draw(self, pics):
+        for i in range(len(self.layout)):
+            self.counts[i] += 1
+            if self.counts[i] > len(pics[i]) - 1:
+                self.counts[i] = 0
+
+            if len(pics[i]):
+                draw.image_onto_image(self.canvas,
+                                      pics[i][self.counts[i]],
+                                      self.layout[i])
+                                      # (i * (10 + pics[i][0].shape[1]),
+                                      #  260))
+        
         cv2.imshow(self.window_name, self.canvas)
         key = cv2.waitKey(30)
         return key

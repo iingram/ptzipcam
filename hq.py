@@ -9,7 +9,6 @@ import imutils
 
 import numpy as np
 
-from dnntools import draw
 from viztools import visualization as viz
 
 import viz_hq 
@@ -26,23 +25,20 @@ NUM_COLS = 10
 NUM_ROWS = 7
 COL_WIDTH = 330
 ROW_HEIGHT = 250
-NUM_SPOTS = NUM_ROWS * NUM_COLS
 
 HOST = ''
 PORT = int(args.port)
 
-WINDOW_NAME = "HQ"
-display = viz_hq.Display(WINDOW_NAME, JUMP_SCREENS)
-
 flypics = []
 pics = []
 
-for i in range(NUM_SPOTS):
-    pics.append(list())
-
 layout = viz_hq.create_layout(NUM_ROWS, NUM_COLS, COL_WIDTH, ROW_HEIGHT)
 print('Grid: ' + str(NUM_COLS) + 'x' + str(NUM_ROWS))
+WINDOW_NAME = "HQ"
+display = viz_hq.Display(WINDOW_NAME, JUMP_SCREENS, layout)
 
+for i in range(len(layout)):
+    pics.append(list())
 
 def socket_function():
     global flypics, pics
@@ -99,12 +95,12 @@ def socket_function():
                                             np.array([layout[spot_count][0], 0]),
                                             np.array(layout[spot_count])))
             spot_count += 1
-            if spot_count >= NUM_SPOTS:
+            if spot_count >= len(layout):
                 spot_count = 0
 
             pics[spot].append(frame)
             spot += 1
-            if spot >= NUM_SPOTS:
+            if spot >= len(layout):
                 spot = 0
 
 
@@ -112,32 +108,15 @@ socket_thread = threading.Thread(target=socket_function,
                                  daemon=True)
 socket_thread.start()
 
-counts = []
-for i in range(NUM_SPOTS):
-    counts.append(0)
-
 while True:
     display.refresh_canvas()
     
-    for pic in flypics:
-        pic.update()
-        pic.display(display.canvas)
-
+    for flypic in flypics:
+        flypic.update()
+        flypic.display(display.canvas)
     if len(flypics) > 10:
         flypics = flypics[1:]
 
-    for i in range(NUM_SPOTS):
-        counts[i] += 1
-        if counts[i] > len(pics[i]) - 1:
-            counts[i] = 0
-
-        if len(pics[i]):
-            draw.image_onto_image(display.canvas,
-                                  pics[i][counts[i]],
-                                  layout[i])
-                                  # (i * (10 + pics[i][0].shape[1]),
-                                  #  260))
-
-    key = display.draw()
+    key = display.draw(pics)
     if key == ord('q'):
         break
