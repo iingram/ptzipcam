@@ -104,7 +104,7 @@ if __name__ == '__main__':
     # logging.basicConfig(level=logging.DEBUG, filename='timelapse.log')
     # logging.debug('anything?')
 
-    record_file = time.strftime("%Y_%m_%d_%H-%M-%S") + '.csv'
+    record_file = time.strftime("%Y-%m-%dT%H:%M:%S") + '.csv'
     record_file = os.path.join('/home/ian/special', record_file)
     with open(record_file, 'w') as f: f.write('IMAGE_FILE, PAN_ANGLE, TILT_ANGLE\n')
 
@@ -180,7 +180,7 @@ if __name__ == '__main__':
                         if key == ord('q'):
                             break
 
-                    front_bit = time.strftime("%Y_%m_%d_%H-%M-%S")    
+                    front_bit = time.strftime("%Y-%m-%dT%H:%M:%S")    
                     image_filename = front_bit + '.jpg'
                     image_filename_w_path = os.path.join('/home/ian/special/images/', image_filename)
                     cv2.imwrite(image_filename_w_path, frame)
