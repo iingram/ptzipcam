@@ -5,7 +5,6 @@ import pickle
 import argparse
 
 import cv2
-import screeninfo
 import imutils
 
 import numpy as np
@@ -13,80 +12,35 @@ import numpy as np
 from dnntools import draw
 from viztools import visualization as viz
 
-parser = argparse.ArgumentParser()
+import viz_hq 
 
+parser = argparse.ArgumentParser()
 parser.add_argument('-p',
                     '--port',
                     required=True,
                     help='Port for socket connection')
-
 args = parser.parse_args()
 
 JUMP_SCREENS = False
-
 NUM_COLS = 10
 NUM_ROWS = 7
-
 COL_WIDTH = 330
 ROW_HEIGHT = 250
-
 NUM_SPOTS = NUM_ROWS * NUM_COLS
 
 HOST = ''
 PORT = int(args.port)
 
-window_name = "HQ"
-
-cv2.namedWindow(window_name,
-                cv2.WINDOW_NORMAL)
-
-screen_resolutions = screeninfo.get_monitors()
-screen_width = screen_resolutions[0].width
-screen_height = screen_resolutions[0].height
-
-if JUMP_SCREENS:
-    print("[NOTICE] Expecting that a second screen is attached.")
-    main_screen_width = screen_resolutions[1].width
-
-    cv2.moveWindow(window_name,
-                   main_screen_width,
-                   0)
-
-cv2.setWindowProperty(window_name,
-                      cv2.WND_PROP_FULLSCREEN,
-                      cv2.WINDOW_FULLSCREEN)
-
-canvas = np.zeros((screen_height, screen_width, 3), np.uint8)
-
-# cv2.imshow(window_name, canvas)
-# cv2.waitKey(1)
-
-frame = canvas
+WINDOW_NAME = "HQ"
+display = viz_hq.Display(WINDOW_NAME, JUMP_SCREENS)
 
 flypics = []
-
 pics = []
 
 for i in range(NUM_SPOTS):
     pics.append(list())
 
-
-def create_layout(num_rows, num_columns):
-    layout = []
-
-    for row in range(num_rows)[::-1]:
-        if row % 2 == 0:
-            for column in range(num_columns)[::-1]:
-                layout.append([COL_WIDTH * column + COL_WIDTH,
-                               ROW_HEIGHT * row + ROW_HEIGHT])
-        else:
-            for column in range(num_columns):
-                layout.append([COL_WIDTH * column + COL_WIDTH,
-                               ROW_HEIGHT * row + ROW_HEIGHT])
-    return layout
-
-
-layout = create_layout(NUM_ROWS, NUM_COLS)
+layout = viz_hq.create_layout(NUM_ROWS, NUM_COLS, COL_WIDTH, ROW_HEIGHT)
 print('Grid: ' + str(NUM_COLS) + 'x' + str(NUM_ROWS))
 
 
@@ -163,11 +117,11 @@ for i in range(NUM_SPOTS):
     counts.append(0)
 
 while True:
-    canvas = np.zeros((screen_height, screen_width, 3), np.uint8)
-
+    display.refresh_canvas()
+    
     for pic in flypics:
         pic.update()
-        pic.display(canvas)
+        pic.display(display.canvas)
 
     if len(flypics) > 10:
         flypics = flypics[1:]
@@ -178,13 +132,12 @@ while True:
             counts[i] = 0
 
         if len(pics[i]):
-            draw.image_onto_image(canvas,
+            draw.image_onto_image(display.canvas,
                                   pics[i][counts[i]],
                                   layout[i])
                                   # (i * (10 + pics[i][0].shape[1]),
                                   #  260))
 
-    cv2.imshow(window_name, canvas)
-    key = cv2.waitKey(30)
+    key = display.draw()
     if key == ord('q'):
         break
