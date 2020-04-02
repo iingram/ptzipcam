@@ -30,15 +30,13 @@ HOST = ''
 PORT = int(args.port)
 
 flypics = []
-pics = []
 
-layout = viz_hq.create_layout(NUM_ROWS, NUM_COLS, COL_WIDTH, ROW_HEIGHT)
+layout = viz_hq.create_layout(NUM_ROWS, NUM_COLS, COL_WIDTH, ROW_HEIGHT, upside_down=False)
 print('Grid: ' + str(NUM_COLS) + 'x' + str(NUM_ROWS))
 WINDOW_NAME = "HQ"
 display = viz_hq.Display(WINDOW_NAME, JUMP_SCREENS, layout)
 
-for i in range(len(layout)):
-    pics.append(list())
+pics = viz_hq.init_pics(layout)
 
 
 def socket_function():

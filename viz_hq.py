@@ -6,18 +6,36 @@ import numpy as np
 from dnntools import draw
 
 
-def create_layout(num_rows, num_columns, column_width, row_height):
+def init_pics(layout):
+    pics = []
+    for i in range(len(layout)):
+        pics.append(list())
+    return pics
+
+
+def create_layout(num_rows, num_columns, column_width, row_height, upside_down=False):
     layout = []
 
-    for row in range(num_rows)[::-1]:
-        if row % 2 == 0:
-            for column in range(num_columns)[::-1]:
-                layout.append([column_width * column + column_width,
-                               row_height * row + row_height])
-        else:
-            for column in range(num_columns):
-                layout.append([column_width * column + column_width,
-                               row_height * row + row_height])
+    if upside_down:
+        for row in range(num_rows):
+            if row % 2 == 0:
+                for column in range(num_columns):
+                    layout.append([column_width * column + column_width,
+                                   row_height * row + row_height])
+            else:
+                for column in range(num_columns)[::-1]:
+                    layout.append([column_width * column + column_width,
+                                   row_height * row + row_height])
+    else:
+        for row in range(num_rows)[::-1]:
+            if row % 2 == 0:
+                for column in range(num_columns)[::-1]:
+                    layout.append([column_width * column + column_width,
+                                   row_height * row + row_height])
+            else:
+                for column in range(num_columns):
+                    layout.append([column_width * column + column_width,
+                                   row_height * row + row_height])
     return layout
 
 
