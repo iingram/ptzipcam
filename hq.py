@@ -11,7 +11,7 @@ import numpy as np
 
 from viztools import visualization as viz
 
-import viz_hq 
+import viz_hq
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-p',
@@ -39,6 +39,7 @@ display = viz_hq.Display(WINDOW_NAME, JUMP_SCREENS, layout)
 
 for i in range(len(layout)):
     pics.append(list())
+
 
 def socket_function():
     global flypics, pics
@@ -110,7 +111,7 @@ socket_thread.start()
 
 while True:
     display.refresh_canvas()
-    
+
     for flypic in flypics:
         flypic.update()
         flypic.display(display.canvas)

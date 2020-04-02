@@ -5,6 +5,7 @@ import numpy as np
 
 from dnntools import draw
 
+
 def create_layout(num_rows, num_columns, column_width, row_height):
     layout = []
 
@@ -49,11 +50,11 @@ class Display():
         for i in range(len(self.layout)):
             self.counts.append(0)
 
-        
         self.refresh_canvas()
 
     def refresh_canvas(self):
-        self.canvas = np.zeros((self.screen_height, self.screen_width, 3), np.uint8)
+        self.canvas = np.zeros((self.screen_height, self.screen_width, 3),
+                               np.uint8)
 
     def draw(self, pics):
         for i in range(len(self.layout)):
@@ -65,13 +66,10 @@ class Display():
                 draw.image_onto_image(self.canvas,
                                       pics[i][self.counts[i]],
                                       self.layout[i])
-                                      # (i * (10 + pics[i][0].shape[1]),
-                                      #  260))
-        
+
         cv2.imshow(self.window_name, self.canvas)
         key = cv2.waitKey(30)
         return key
-        
+
     def release(self):
         cv2.DestroyAllWindows()
-        
