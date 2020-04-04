@@ -48,6 +48,7 @@ class Display():
     def __init__(self, window_name, jump_screens, layout):
         self.window_name = window_name
         self.layout = layout
+        self.frame_duration = 30
 
         cv2.namedWindow(self.window_name,
                         cv2.WINDOW_NORMAL)
@@ -90,7 +91,7 @@ class Display():
                                       self.layout[i])
 
         cv2.imshow(self.window_name, self.canvas)
-        key = cv2.waitKey(30)
+        key = cv2.waitKey(self.frame_duration)
         return key
 
     def release(self):

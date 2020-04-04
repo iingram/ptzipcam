@@ -28,3 +28,8 @@ while True:
     key = display.draw(pics)
     if key == ord('q'):
         break
+    elif key == ord('s'):
+        display.frame_duration = 1000
+    elif key == ord('f'):
+        display.frame_duration = 30
+        
