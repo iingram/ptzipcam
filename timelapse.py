@@ -100,13 +100,15 @@ if __name__ == '__main__':
     #                           cv2.WND_PROP_FULLSCREEN,
     #                           cv2.WINDOW_FULLSCREEN)
 
-    # logging.basicConfig(level=logging.DEBUG, filename='/home/ian/timelapse.log')
+    # logging.basicConfig(level=logging.DEBUG,
+    #                     filename='/home/ian/timelapse.log')
     # logging.basicConfig(level=logging.DEBUG, filename='timelapse.log')
     # logging.debug('anything?')
 
     recorder = ImageStreamRecorder('/home/ian/special/')
-    with open('/home/ian/timelapse.log', 'w') as f: f.write('[INFO] Just started.\n')
-    
+    with open('/home/ian/timelapse.log', 'w') as f:
+        f.write('[INFO] Just started.\n')
+
     preamble = 'Movement function:'
     if MODE == 'mow':
         print(preamble, 'Mow the lawn')
@@ -123,8 +125,9 @@ if __name__ == '__main__':
                                                daemon=True)
     movement_control_thread.start()
 
-    with open('/home/ian/timelapse.log', 'a') as f: f.write('[INFO] started movement control thread\n')
-    
+    with open('/home/ian/timelapse.log', 'a') as f:
+        f.write('[INFO] started movement control thread\n')
+
     cam = Camera(ip=IP, user=USER, passwd=PASS)
     width, height = cam.get_resolution()
 
@@ -144,7 +147,8 @@ if __name__ == '__main__':
                           + str(i)
                           + '.avi')
 
-        video_filename = os.path.join('/home/ian/special/videos', video_filename)
+        video_filename = os.path.join('/home/ian/special/videos',
+                                      video_filename)
         vid_writers.append(cv2.VideoWriter(video_filename,
                                            cv2.VideoWriter_fourcc(*'MJPG'),
                                            30,
@@ -155,8 +159,9 @@ if __name__ == '__main__':
 
     j = 0
 
-    with open('/home/ian/timelapse.log', 'a') as f: f.write('[INFO] about to start main loop\n')
-    
+    with open('/home/ian/timelapse.log', 'a') as f:
+        f.write('[INFO] about to start main loop\n')
+
     try:
         while True:
 
@@ -167,7 +172,8 @@ if __name__ == '__main__':
             if globalvars.camera_still and frame is not None:
                 if latch:
                     print('Taking a shot.')
-                    with open('/home/ian/timelapse.log', 'a') as f: f.write('[INFO] taking a shot\n')
+                    with open('/home/ian/timelapse.log', 'a') as f:
+                        f.write('[INFO] taking a shot\n')
 
                     frame = ui.orient_frame(frame, ORIENTATION)
 
@@ -180,7 +186,7 @@ if __name__ == '__main__':
                     recorder.record_image(frame,
                                           globalvars.pan_angle,
                                           globalvars.tilt_angle)
-                    
+
                     vid_writers[j].write(frame.astype(np.uint8))
                     j += 1
                     if j == num_output_videos:
