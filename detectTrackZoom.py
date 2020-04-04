@@ -10,6 +10,7 @@ import numpy as np
 from ptzipcam.ptz_camera import PtzCam
 from ptzipcam.camera import Camera
 from ptzipcam import ui
+from ptzipcam import io
 from ptzipcam.video_writer import DilationVideoWriter
 
 # from dnntools import neuralnetwork as nn
@@ -69,6 +70,7 @@ if __name__ == '__main__':
     if not HEADLESS:
         uih = ui.UI_Handler(frame, window_name)
 
+    print(nn.__name__)
     network = nn.ObjectDetectorHandler(MODEL_CONFIG,
                                        MODEL_WEIGHTS,
                                        INPUT_WIDTH,
@@ -81,12 +83,12 @@ if __name__ == '__main__':
     total_pixels = frame_width * frame_height
 
     if RECORD:
-        codec = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
+        recorder = io.ImageStreamRecorder('/home/ian/images_dtz')
+
+        codec = cv2.VideoWriter_fourcc(*'MJPG')
 
         filename = 'video_dtz'
 
-        print(nn.__name__)
-        
         if 'neuralnetwork_coral' in nn.__name__:
             filename = filename + '_coral'
         else:
@@ -208,6 +210,10 @@ if __name__ == '__main__':
                 break
 
         if RECORD:
+            recorder.record_image(frame,
+                                  pan,
+                                  tilt)
+
             if not DILATION:
                 vid_writer.write(frame.astype(np.uint8))
             else:

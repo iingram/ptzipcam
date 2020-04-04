@@ -1,6 +1,8 @@
 import os
 import time
+import math
 
+from datetime import datetime
 import cv2
 
 
@@ -15,6 +17,8 @@ class ImageStreamRecorder():
 
     def record_image(self, image, pan_angle, tilt_angle):
         front_bit = time.strftime("%Y-%m-%dT%H:%M:%S")
+        dt = datetime.now()
+        front_bit = front_bit + '_{:03d}'.format(math.floor(dt.microsecond/1000))
         image_filename = front_bit + '.jpg'
         full_path = os.path.join(self.path, 'images')
         image_filename_w_path = os.path.join(full_path, image_filename)
