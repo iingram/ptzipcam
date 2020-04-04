@@ -3,7 +3,6 @@ import sys
 import time
 import threading
 import socket
-import logging
 import pickle
 import struct
 import argparse
@@ -15,6 +14,7 @@ import numpy as np
 
 from ptzipcam.camera import Camera
 from ptzipcam import ui
+from ptzipcam.io import ImageStreamRecorder
 
 import movement_functions
 import globalvars
@@ -104,10 +104,7 @@ if __name__ == '__main__':
     # logging.basicConfig(level=logging.DEBUG, filename='timelapse.log')
     # logging.debug('anything?')
 
-    record_file = time.strftime("%Y-%m-%dT%H:%M:%S") + '.csv'
-    record_file = os.path.join('/home/ian/special', record_file)
-    with open(record_file, 'w') as f: f.write('IMAGE_FILE, PAN_ANGLE, TILT_ANGLE\n')
-
+    recorder = ImageStreamRecorder('/home/ian/special/')
     with open('/home/ian/timelapse.log', 'w') as f: f.write('[INFO] Just started.\n')
     
     preamble = 'Movement function:'
@@ -180,20 +177,9 @@ if __name__ == '__main__':
                         if key == ord('q'):
                             break
 
-                    front_bit = time.strftime("%Y-%m-%dT%H:%M:%S")    
-                    image_filename = front_bit + '.jpg'
-                    image_filename_w_path = os.path.join('/home/ian/special/images/', image_filename)
-                    cv2.imwrite(image_filename_w_path, frame)
-
-                    record_line = '{},{:.2f},{:.2f}\n'.format(image_filename,
-                                                              globalvars.pan_angle,
-                                                              globalvars.tilt_angle)
-
-                    # record_line = (image_filename + ','
-                    #                + str(globalvars.pan_angle) + ','
-                    #                + str(globalvars.tilt_angle) + '\n')
-                    
-                    with open(record_file, 'a') as f: f.write(record_line)
+                    recorder.record_image(frame,
+                                          globalvars.pan_angle,
+                                          globalvars.tilt_angle)
                     
                     vid_writers[j].write(frame.astype(np.uint8))
                     j += 1
