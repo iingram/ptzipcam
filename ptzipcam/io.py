@@ -21,6 +21,8 @@ class ImageStreamRecorder():
         front_bit = front_bit + '_{:03d}'.format(math.floor(dt.microsecond/1000))
         image_filename = front_bit + '.jpg'
         full_path = os.path.join(self.path, 'images')
+        if not os.path.exists(full_path):
+            os.mkdir(full_path)
         image_filename_w_path = os.path.join(full_path, image_filename)
         cv2.imwrite(image_filename_w_path, image)
 
