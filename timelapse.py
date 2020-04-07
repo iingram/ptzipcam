@@ -53,6 +53,7 @@ IP = configs['IP']
 USER = configs['USER']
 PASS = configs['PASS']
 
+RECORD_FOLDER = configs['RECORD_FOLDER']
 TIMELAPSE_CONFIG_FILENAME = configs['TIMELAPSE_CONFIG_FILENAME']
 
 # ptz camera setup constants
@@ -105,7 +106,7 @@ if __name__ == '__main__':
     # logging.basicConfig(level=logging.DEBUG, filename='timelapse.log')
     # logging.debug('anything?')
 
-    recorder = ImageStreamRecorder('/home/ian/special/')
+    recorder = ImageStreamRecorder(RECORD_FOLDER)
     with open('/home/ian/timelapse.log', 'w') as f:
         f.write('[INFO] Just started.\n')
 
