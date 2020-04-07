@@ -1,13 +1,15 @@
+TRACKED_CLASS: [giraffe, person]
+
 HEADLESS: False
 
-
-TRACKED_CLASS: [giraffe, person]
+TIMELAPSE_CONFIG_FILENAME: config_timelapse.yaml
 
 # Stream: Main = 1, Sub = 2, Third = 3 
 STREAM: 3
 
 RECORD: False
 
+# currently i think are dependent on camera type and current image resolution
 PID_GAINS: [-0.0016, 0.002]
 
 # INIT_POS: [-0.5, 0.9, 0.1]  # pan (-1:1), tilt (-1:1), zoom (0:1); 
