@@ -4,14 +4,14 @@ import os
 import yaml
 # import time
 
-from ptz_camera import PtzCam
-from camera import Camera
-import ui
+from ptzipcam.ptz_camera import PtzCam
+from ptzipcam.camera import Camera
+from ptzipcam import ui
 
 from dnntools import neuralnetwork as nn
 from dnntools import draw
 
-with open('configs.yaml') as f:
+with open('config.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
 ORIENTATION = configs['ORIENTATION']
