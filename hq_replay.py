@@ -43,4 +43,3 @@ while True:
         display.frame_duration = 1000
     elif key == ord('f'):
         display.frame_duration = 30
-        
