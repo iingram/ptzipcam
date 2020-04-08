@@ -12,7 +12,10 @@ def read_in_pics(path, csv_file, layout, image_width):
 
     df = pd.read_csv(csv_file)
 
+    # df = df.loc[1:1000]
+    
     for index, row in df.iterrows():
+        print('[INFO] Reading image {}'.format(index))
         full_path =  os.path.join(path,
                                   row['IMAGE_FILE'])
 
