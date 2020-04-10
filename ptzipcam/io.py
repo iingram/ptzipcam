@@ -25,7 +25,7 @@ class ImageStreamRecorder():
         self.record_file = timestamp_string + '.csv'
         self.record_file = os.path.join(self.path, self.record_file)
         with open(self.record_file, 'w') as f:
-            f.write('IMAGE_FILE, PAN_ANGLE, TILT_ANGLE\n')
+            f.write('IMAGE_FILE,PAN_ANGLE,TILT_ANGLE\n')
 
     def record_image(self, image, pan_angle, tilt_angle):
         front_bit = time.strftime("%Y-%m-%dT%H:%M:%S")
