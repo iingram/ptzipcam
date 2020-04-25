@@ -31,7 +31,7 @@ def mow_the_lawn(zoom_power, config_file):
     RASTER_PATTERN = True
 
     IP, ONVIF_PORT, USER, PASS, TIMELAPSE_CONFIG_FILENAME = _read_configs(config_file)
-    
+
     with open(TIMELAPSE_CONFIG_FILENAME) as f:
         configs = yaml.load(f, Loader=yaml.SafeLoader)
     PAN_MIN = configs['PAN_MIN']
@@ -42,25 +42,28 @@ def mow_the_lawn(zoom_power, config_file):
     TILT_MAX = configs['TILT_MAX']
     TILT_STEPS = configs['TILT_STEPS']
 
-    print('Grid: {} {}'.format(PAN_STEPS, TILT_STEPS))
+    print('[INFO] Grid: {} {}'.format(PAN_STEPS, TILT_STEPS))
     globalvars.grid = (PAN_STEPS, TILT_STEPS)
     
     # global globalvars.camera_still
     ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
-
+    print('[INFO] Connected to camera.') 
+    
     pan_min = convert.degrees_to_command(PAN_MIN, 350.0)
     pan_max = convert.degrees_to_command(PAN_MAX, 350.0)
     tilt_min = convert.degrees_to_command(TILT_MIN, 90.0)
     tilt_max = convert.degrees_to_command(TILT_MAX, 90.0)
     zoom_command = ZOOM_FACTOR/zoom_power
 
-    ptz.absmove_w_zoom_waitfordone(pan_min, tilt_min, zoom_command, close_enough=.01)
+    print('[INFO] Moving camera to initial position {}, {}, {}'.format(PAN_MIN, TILT_MIN, ZOOM_FACTOR))
+    ptz.absmove_w_zoom_waitfordone(pan_min, tilt_min, zoom_command, close_enough=.1)
+    print('[INFO] Finished moving camera to initial position')
 
     going_up = True
 
     pan_pass_duration_estimate = int(((2 + 2 + STEP_DUR) * PAN_STEPS)/60)
 
-    print('Will take about {} minutes to complete a pan pass.'.format(pan_pass_duration_estimate))
+    print('[INFO] Will take about {} minutes to complete a pan pass.'.format(pan_pass_duration_estimate))
 
     while True:
         going_forward = True
