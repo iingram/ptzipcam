@@ -1,13 +1,13 @@
 HEADLESS: True
 
-MODE: spots # spots
+MODE: mow # spots, mow
 
 PAN_MIN: 0 # in degrees
 PAN_MAX: 350 # in degrees; small hikvision goes to 350 
 PAN_STEPS: 10
 
-TILT_MIN: -44 # in degrees
-TILT_MAX: 44 # in degrees
+TILT_MIN: 0 # in degrees
+TILT_MAX: 90 # in degrees
 TILT_STEPS: 10
 
 STEP_DUR: 10
