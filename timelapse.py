@@ -134,31 +134,31 @@ if __name__ == '__main__':
 
     hostname = socket.gethostname()
 
-    vid_writers = []
-
     time.sleep(1)
-    num_output_videos = np.prod(globalvars.grid)
-    print('Number of output videos is {}'.format(num_output_videos))
-    for i in range(num_output_videos):
-        video_filename = ('video_timelapse_'
-                          + MODE
-                          + '_'
-                          + hostname
-                          + '_'
-                          + str(i)
-                          + '.avi')
 
-        video_filename = os.path.join('/home/ian/special/videos',
-                                      video_filename)
-        vid_writers.append(cv2.VideoWriter(video_filename,
-                                           cv2.VideoWriter_fourcc(*'MJPG'),
-                                           30,
-                                           (width, height)))
+    # vid_writers = []
+    # num_output_videos = np.prod(globalvars.grid)
+    # print('Number of output videos is {}'.format(num_output_videos))
+    # for i in range(num_output_videos):
+    #     video_filename = ('video_timelapse_'
+    #                       + MODE
+    #                       + '_'
+    #                       + hostname
+    #                       + '_'
+    #                       + str(i)
+    #                       + '.avi')
+
+    #     video_filename = os.path.join('/home/ian/special/videos',
+    #                                   video_filename)
+    #     vid_writers.append(cv2.VideoWriter(video_filename,
+    #                                        cv2.VideoWriter_fourcc(*'MJPG'),
+    #                                        30,
+    #                                        (width, height)))
     time.sleep(1)
 
     latch = True
 
-    j = 0
+    # j = 0
 
     with open('/home/ian/timelapse.log', 'a') as f:
         f.write('[INFO] about to start main loop\n')
@@ -188,10 +188,10 @@ if __name__ == '__main__':
                                           globalvars.pan_angle,
                                           globalvars.tilt_angle)
 
-                    vid_writers[j].write(frame.astype(np.uint8))
-                    j += 1
-                    if j == num_output_videos:
-                        j = 0
+                    # vid_writers[j].write(frame.astype(np.uint8))
+                    # j += 1
+                    # if j == num_output_videos:
+                    #     j = 0
 
                     latch = False
                     if CLIENT_MODE:
@@ -203,8 +203,8 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
 
-        for i in range(num_output_videos):
-            vid_writers[i].release()
+        # for i in range(num_output_videos):
+        #     vid_writers[i].release()
 
         cam.release()
 
