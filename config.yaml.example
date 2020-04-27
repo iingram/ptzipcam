@@ -13,7 +13,7 @@ PID_GAINS: [-0.0016, 0.002]
 INIT_POS: [-110.0, 44.9, 4.0]  # pan (-180.0:180.0), tilt (-45.0:45.0), zoom (0.0:25.0)
 ORIENTATION: up  # left up down right
 
-IP: 192.168.1.64
+IP: 192.168.2.64  # cameras ship as 192.168.1.64
 PORT: 80
 USER: admin        
 PASS: NyalaChow22  
