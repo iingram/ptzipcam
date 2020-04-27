@@ -2,7 +2,7 @@ RECORD_FOLDER: /home/ian/twitcher_recordings
 HEADLESS: False
 # person, giraffe, cup, cat, dog, horse, sheep, cow, elephant, bear, zebra
 TRACKED_CLASS: [giraffe, person]
-TIMELAPSE_CONFIG_FILENAME: config_timelapse.yaml
+TIMELAPSE_CONFIG_FILENAME: /home/ian/lib/ptzipcam/config_timelapse.yaml
 # Stream: Main = 1, Sub = 2, Third = 3 
 STREAM: 3
 RECORD: False
