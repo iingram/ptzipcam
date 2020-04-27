@@ -17,7 +17,7 @@ from ptzipcam.video_writer import DilationVideoWriter
 from dnntools import neuralnetwork_coral as nn
 from dnntools import draw
 
-DILATION = False
+# DILATION = True
 FRAME_RATE = 15
 FRAME_WINDOW = 30
 
@@ -94,19 +94,19 @@ if __name__ == '__main__':
         else:
             filename = filename + '_dnn'
             
-        if not DILATION:
-            filename = filename + '_lineartime' + '.avi'
-            vid_writer = cv2.VideoWriter(filename,
-                                         codec,
-                                         FRAME_RATE,
-                                         (frame_width, frame_height))
-        else:
-            filename = filename + '_dilation' + '.avi'
-            dilation_vid_writer = DilationVideoWriter(filename,
-                                                      codec,
-                                                      FRAME_RATE,
-                                                      (frame_width, frame_height),
-                                                      FRAME_WINDOW)
+        # if not DILATION:
+        #     filename = filename + '_lineartime' + '.avi'
+        #     vid_writer = cv2.VideoWriter(filename,
+        #                                  codec,
+        #                                  FRAME_RATE,
+        #                                  (frame_width, frame_height))
+        # else:
+        #     filename = filename + '_dilation' + '.avi'
+        #     dilation_vid_writer = DilationVideoWriter(filename,
+        #                                               codec,
+        #                                               FRAME_RATE,
+        #                                               (frame_width, frame_height),
+        #                                               FRAME_WINDOW)
 
 
         
@@ -214,10 +214,10 @@ if __name__ == '__main__':
                                   pan,
                                   tilt)
 
-            if not DILATION:
-                vid_writer.write(frame.astype(np.uint8))
-            else:
-                dilation_vid_writer.update(frame, target_lbox is not None)
+            # if not DILATION:
+            #     vid_writer.write(frame.astype(np.uint8))
+            # else:
+            #     dilation_vid_writer.update(frame, target_lbox is not None)
             
 
         # run position controller on ptz system
@@ -250,11 +250,11 @@ if __name__ == '__main__':
             # print('stop action')
             ptz.stop()
 
-    if RECORD:
-        if not DILATION:
-            vid_writer.release()
-        else:
-            dilation_vid_writer.release()
+    # if RECORD:
+    #     if not DILATION:
+    #         vid_writer.release()
+    #     else:
+    #         dilation_vid_writer.release()
     cam.release()
     ptz.stop()
     if not HEADLESS:
