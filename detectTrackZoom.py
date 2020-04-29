@@ -5,13 +5,12 @@ import time
 
 import yaml
 import cv2
-import numpy as np
 
 from ptzipcam.ptz_camera import PtzCam
 from ptzipcam.camera import Camera
 from ptzipcam import ui
 from ptzipcam import io
-from ptzipcam.video_writer import DilationVideoWriter
+# from ptzipcam.video_writer import DilationVideoWriter
 
 # from dnntools import neuralnetwork as nn
 from dnntools import neuralnetwork_coral as nn
@@ -93,7 +92,7 @@ if __name__ == '__main__':
             filename = filename + '_coral'
         else:
             filename = filename + '_dnn'
-            
+
         # if not DILATION:
         #     filename = filename + '_lineartime' + '.avi'
         #     vid_writer = cv2.VideoWriter(filename,
@@ -108,8 +107,6 @@ if __name__ == '__main__':
         #                                               (frame_width, frame_height),
         #                                               FRAME_WINDOW)
 
-
-        
     # initialize position of camera
     x_velocity = 0
     y_velocity = 0
@@ -121,8 +118,11 @@ if __name__ == '__main__':
     pan_init = INIT_POS[0]/180.0
     tilt_init = INIT_POS[1]/45.0
     zoom_init = INIT_POS[2]/25.0
-    
-    ptz.absmove_w_zoom_waitfordone(pan_init, tilt_init, zoom_init, close_enough=.01)
+
+    ptz.absmove_w_zoom_waitfordone(pan_init,
+                                   tilt_init,
+                                   zoom_init,
+                                   close_enough=.01)
 
     x_err = 0
     y_err = 0
@@ -138,7 +138,9 @@ if __name__ == '__main__':
         frame = raw_frame.copy()
 
         outs, inference_time = network.infer(frame)
-        print("Inference time is: {}".format(inference_time))
+        msg = ("[INFO] Inference time: "
+               + "{:.1f} milliseconds".format(inference_time))
+        print(msg)
         lboxes = network.filter_boxes(outs,
                                       frame,
                                       CONF_THRESHOLD,
@@ -156,7 +158,7 @@ if __name__ == '__main__':
         # if there is an appropriate lbox attempt to adjust ptz cam
         if target_lbox:
             print(CLASSES[target_lbox['class_id']])
-            
+
             frames_since_last_acq = 0
             draw.labeled_box(frame, CLASSES, target_lbox)
             xc, yc = draw.box_to_coords(target_lbox['box'],
@@ -178,7 +180,9 @@ if __name__ == '__main__':
             else:
                 zoom_command = 0.0
 
-            if box_width >= .7 * frame_width or box_height >= .7 * frame_height:
+            filling_much_of_width = box_width >= .7 * frame_width
+            filling_much_of_height = box_height >= .7 * frame_height
+            if filling_much_of_width or filling_much_of_height:
                 zoom_command = 0.0
         else:
             zoom_command = 0
@@ -189,9 +193,9 @@ if __name__ == '__main__':
                 y_err = 0
 
             if frames_since_last_acq > 30:
-                    # x_err = -300
-                    x_err = 0
-                    
+                # x_err = -300
+                x_err = 0
+
             # # commenting this bit out because it doesn't always work
             # # and may be source of wandering bug
             # if frames_since_last_acq > 30:
@@ -218,7 +222,6 @@ if __name__ == '__main__':
             #     vid_writer.write(frame.astype(np.uint8))
             # else:
             #     dilation_vid_writer.update(frame, target_lbox is not None)
-            
 
         # run position controller on ptz system
         ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
