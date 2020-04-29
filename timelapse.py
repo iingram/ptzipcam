@@ -186,7 +186,8 @@ if __name__ == '__main__':
 
                     recorder.record_image(frame,
                                           globalvars.pan_angle,
-                                          globalvars.tilt_angle)
+                                          globalvars.tilt_angle,
+                                          'N/A')
 
                     # vid_writers[j].write(frame.astype(np.uint8))
                     # j += 1
