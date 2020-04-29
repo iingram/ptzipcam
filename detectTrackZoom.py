@@ -9,11 +9,12 @@ import cv2
 from ptzipcam.ptz_camera import PtzCam
 from ptzipcam.camera import Camera
 from ptzipcam import ui
-from ptzipcam import io
+from ptzipcam.io import ImageStreamRecorder
 # from ptzipcam.video_writer import DilationVideoWriter
 
 # from dnntools import neuralnetwork as nn
 from dnntools import neuralnetwork_coral as nn
+
 from dnntools import draw
 
 # DILATION = True
@@ -82,7 +83,7 @@ if __name__ == '__main__':
     total_pixels = frame_width * frame_height
 
     if RECORD:
-        recorder = io.ImageStreamRecorder('/home/ian/images_dtz')
+        recorder = ImageStreamRecorder('/home/ian/images_dtz')
 
         codec = cv2.VideoWriter_fourcc(*'MJPG')
 
@@ -156,8 +157,10 @@ if __name__ == '__main__':
                     target_lbox = lbox
 
         # if there is an appropriate lbox attempt to adjust ptz cam
+        detected_class = 'nothing detected'
         if target_lbox:
-            print(CLASSES[target_lbox['class_id']])
+            detected_class = CLASSES[target_lbox['class_id']]
+            print("[INFO] Detected: " + detected_class)
 
             frames_since_last_acq = 0
             draw.labeled_box(frame, CLASSES, target_lbox)
@@ -216,7 +219,8 @@ if __name__ == '__main__':
         if RECORD:
             recorder.record_image(frame,
                                   pan,
-                                  tilt)
+                                  tilt,
+                                  detected_class)
 
             # if not DILATION:
             #     vid_writer.write(frame.astype(np.uint8))

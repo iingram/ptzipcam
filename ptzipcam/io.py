@@ -22,20 +22,21 @@ class ImageStreamRecorder():
             be over written (not too likely as they have millisecond \
             timestamps but not impossible.).  This also means that is \
             likely a system clock is off for the folder name (also \
-            timestamped) to be duplicate') 
+            timestamped) to be duplicate')
         self.record_file = timestamp_string + '.csv'
         self.record_file = os.path.join(self.path, self.record_file)
         with open(self.record_file, 'w') as f:
-            f.write('IMAGE_FILE,PAN_ANGLE,TILT_ANGLE\n')
+            f.write('IMAGE_FILE,PAN_ANGLE,TILT_ANGLE,CLASS\n')
 
-    def record_image(self, image, pan_angle, tilt_angle):
+    def record_image(self, image, pan_angle, tilt_angle, detected_class):
         front_bit = time.strftime(self.timestamp_format)
         # maybe you should avoid a call to time and datetime and just
         # get everything from datetime. later.
         dt = datetime.now()
-        front_bit = front_bit + '_{:03d}'.format(math.floor(dt.microsecond/1000))
+        front_bit = (front_bit
+                     + '_{:03d}'.format(math.floor(dt.microsecond/1000)))
         image_filename = front_bit + '.jpg'
-        
+
         # full_path = os.path.join(self.path, 'images')
         # if not os.path.exists(full_path):
         #     os.mkdir(full_path)
@@ -44,8 +45,9 @@ class ImageStreamRecorder():
                                              image_filename)
         cv2.imwrite(image_filename_w_path, image)
 
-        record_line = '{},{:.2f},{:.2f}\n'.format(image_filename,
-                                                  pan_angle,
-                                                  tilt_angle)
+        record_line = '{},{:.2f},{:.2f},{}\n'.format(image_filename,
+                                                     pan_angle,
+                                                     tilt_angle,
+                                                     detected_class)
         with open(self.record_file, 'a') as f:
             f.write(record_line)
