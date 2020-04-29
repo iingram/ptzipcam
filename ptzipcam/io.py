@@ -10,7 +10,8 @@ class ImageStreamRecorder():
 
     def __init__(self, path):
         self.path = path
-        timestamp_string = time.strftime("%Y-%m-%dT%H:%M:%S")
+        self.timestamp_format = "%Y-%m-%dT%H-%M-%S"
+        timestamp_string = time.strftime(self.timestamp_format)
         image_folder_name = timestamp_string + '_images'
         self.image_path = os.path.join(self.path, image_folder_name)
         if not os.path.exists(self.image_path):
@@ -28,7 +29,7 @@ class ImageStreamRecorder():
             f.write('IMAGE_FILE,PAN_ANGLE,TILT_ANGLE\n')
 
     def record_image(self, image, pan_angle, tilt_angle):
-        front_bit = time.strftime("%Y-%m-%dT%H:%M:%S")
+        front_bit = time.strftime(self.timestamp_format)
         # maybe you should avoid a call to time and datetime and just
         # get everything from datetime. later.
         dt = datetime.now()
