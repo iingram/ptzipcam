@@ -2,6 +2,7 @@
 
 import os
 import time
+import argparse
 
 import yaml
 import cv2
@@ -17,11 +18,17 @@ from dnntools import neuralnetwork_coral as nn
 
 from dnntools import draw
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-c',
+                    '--config',
+                    default='config.yaml',
+                    help='Filename of configuration file')
+args = parser.parse_args()
+CONFIG_FILE = args.config
+
 # DILATION = True
 FRAME_RATE = 15
 FRAME_WINDOW = 30
-
-CONFIG_FILE = 'config.yaml'
 
 with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
@@ -70,7 +77,7 @@ if __name__ == '__main__':
     if not HEADLESS:
         uih = ui.UI_Handler(frame, window_name)
 
-    print(nn.__name__)
+    print("[INFO] Using: " + nn.__name__)
     network = nn.ObjectDetectorHandler(MODEL_CONFIG,
                                        MODEL_WEIGHTS,
                                        INPUT_WIDTH,
@@ -135,6 +142,9 @@ if __name__ == '__main__':
         # print("Zoom is at: " + str(zoom))
 
         raw_frame = cam.get_frame()
+        if raw_frame is None:
+            continue
+        
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
         frame = raw_frame.copy()
 
