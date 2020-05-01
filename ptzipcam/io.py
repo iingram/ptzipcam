@@ -26,9 +26,14 @@ class ImageStreamRecorder():
         self.record_file = timestamp_string + '.csv'
         self.record_file = os.path.join(self.path, self.record_file)
         with open(self.record_file, 'w') as f:
-            f.write('IMAGE_FILE,PAN_ANGLE,TILT_ANGLE,CLASS\n')
+            f.write('IMAGE_FILE,PAN_ANGLE,TILT_ANGLE,CLASS,SCORE\n')
 
-    def record_image(self, image, pan_angle, tilt_angle, detected_class):
+    def record_image(self,
+                     image,
+                     pan_angle,
+                     tilt_angle,
+                     detected_class,
+                     score):
         front_bit = time.strftime(self.timestamp_format)
         # maybe you should avoid a call to time and datetime and just
         # get everything from datetime. later.
@@ -45,9 +50,10 @@ class ImageStreamRecorder():
                                              image_filename)
         cv2.imwrite(image_filename_w_path, image)
 
-        record_line = '{},{:.2f},{:.2f},{}\n'.format(image_filename,
-                                                     pan_angle,
-                                                     tilt_angle,
-                                                     detected_class)
+        record_line = '{},{:.2f},{:.2f},{},{:.1f}\n'.format(image_filename,
+                                                            pan_angle,
+                                                            tilt_angle,
+                                                            detected_class,
+                                                            score)
         with open(self.record_file, 'a') as f:
             f.write(record_line)

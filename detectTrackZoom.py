@@ -158,9 +158,13 @@ if __name__ == '__main__':
 
         # if there is an appropriate lbox attempt to adjust ptz cam
         detected_class = 'nothing detected'
+        score = 0.0
         if target_lbox:
             detected_class = CLASSES[target_lbox['class_id']]
-            print("[INFO] Detected: " + detected_class)
+            score = 100 * target_lbox['confidence']
+            print("[INFO] Detected: "
+                  + "{} with confidence {:.1f}".format(detected_class,
+                                                       score))
 
             frames_since_last_acq = 0
             draw.labeled_box(frame, CLASSES, target_lbox)
@@ -220,7 +224,8 @@ if __name__ == '__main__':
             recorder.record_image(frame,
                                   pan,
                                   tilt,
-                                  detected_class)
+                                  detected_class,
+                                  score)
 
             # if not DILATION:
             #     vid_writer.write(frame.astype(np.uint8))
