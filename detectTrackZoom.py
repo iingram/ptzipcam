@@ -92,14 +92,12 @@ if __name__ == '__main__':
     if RECORD:
         recorder = ImageStreamRecorder('/home/ian/images_dtz')
 
-        codec = cv2.VideoWriter_fourcc(*'MJPG')
-
-        filename = 'video_dtz'
-
-        if 'neuralnetwork_coral' in nn.__name__:
-            filename = filename + '_coral'
-        else:
-            filename = filename + '_dnn'
+        # codec = cv2.VideoWriter_fourcc(*'MJPG')
+        # filename = 'video_dtz'
+        # if 'neuralnetwork_coral' in nn.__name__:
+        #     filename = filename + '_coral'
+        # else:
+        #     filename = filename + '_dnn'
 
         # if not DILATION:
         #     filename = filename + '_lineartime' + '.avi'
@@ -143,6 +141,7 @@ if __name__ == '__main__':
 
         raw_frame = cam.get_frame()
         if raw_frame is None:
+            print('Frame is None.')
             continue
         
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
