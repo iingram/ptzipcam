@@ -2,6 +2,7 @@
 
 import os
 import time
+import argparse
 
 import yaml
 import cv2
@@ -17,11 +18,17 @@ from dnntools import neuralnetwork_coral as nn
 
 from dnntools import draw
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-c',
+                    '--config',
+                    default='config.yaml',
+                    help='Filename of configuration file')
+args = parser.parse_args()
+CONFIG_FILE = args.config
+
 # DILATION = True
 FRAME_RATE = 15
 FRAME_WINDOW = 30
-
-CONFIG_FILE = 'config.yaml'
 
 with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
@@ -70,7 +77,7 @@ if __name__ == '__main__':
     if not HEADLESS:
         uih = ui.UI_Handler(frame, window_name)
 
-    print(nn.__name__)
+    print("[INFO] Using: " + nn.__name__)
     network = nn.ObjectDetectorHandler(MODEL_CONFIG,
                                        MODEL_WEIGHTS,
                                        INPUT_WIDTH,
@@ -85,14 +92,12 @@ if __name__ == '__main__':
     if RECORD:
         recorder = ImageStreamRecorder('/home/ian/images_dtz')
 
-        codec = cv2.VideoWriter_fourcc(*'MJPG')
-
-        filename = 'video_dtz'
-
-        if 'neuralnetwork_coral' in nn.__name__:
-            filename = filename + '_coral'
-        else:
-            filename = filename + '_dnn'
+        # codec = cv2.VideoWriter_fourcc(*'MJPG')
+        # filename = 'video_dtz'
+        # if 'neuralnetwork_coral' in nn.__name__:
+        #     filename = filename + '_coral'
+        # else:
+        #     filename = filename + '_dnn'
 
         # if not DILATION:
         #     filename = filename + '_lineartime' + '.avi'
@@ -135,6 +140,10 @@ if __name__ == '__main__':
         # print("Zoom is at: " + str(zoom))
 
         raw_frame = cam.get_frame()
+        if raw_frame is None:
+            print('Frame is None.')
+            continue
+        
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
         frame = raw_frame.copy()
 
@@ -158,9 +167,13 @@ if __name__ == '__main__':
 
         # if there is an appropriate lbox attempt to adjust ptz cam
         detected_class = 'nothing detected'
+        score = 0.0
         if target_lbox:
             detected_class = CLASSES[target_lbox['class_id']]
-            print("[INFO] Detected: " + detected_class)
+            score = 100 * target_lbox['confidence']
+            print("[INFO] Detected: "
+                  + "{} with confidence {:.1f}".format(detected_class,
+                                                       score))
 
             frames_since_last_acq = 0
             draw.labeled_box(frame, CLASSES, target_lbox)
@@ -220,7 +233,8 @@ if __name__ == '__main__':
             recorder.record_image(frame,
                                   pan,
                                   tilt,
-                                  detected_class)
+                                  detected_class,
+                                  score)
 
             # if not DILATION:
             #     vid_writer.write(frame.astype(np.uint8))
