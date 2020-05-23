@@ -12,6 +12,37 @@ def _checkZeroness(number):
         return number
 
 
+class MotorController():
+
+    def __init__(self, pid_gains, orientation):
+        self.pid_gains = pid_gains
+        self.orientation = orientation
+
+    def _calc_command(self, err, k):
+        command = k * err
+        if command >= 1.0:
+            command = 1.0
+        if command <= -1.0:
+            command = -1.0
+
+        # if command > -0.1 and command < 0.1:
+        #     command = 0.0
+
+        return command
+        
+    def run(self, x_err, y_err):
+        if self.orientation == 'down':
+            x_err = -x_err
+            y_err = -y_err
+
+        x_velocity = self._calc_command(x_err, self.pid_gains[0])
+        y_velocity = self._calc_command(y_err, self.pid_gains[1])
+
+        return (x_velocity, y_velocity)
+    
+
+    
+
 class PtzCam():
     """Class for controlling the pan-tilt-zoom of an ONVIF-compliant IP
     camera that has PTZ capability.

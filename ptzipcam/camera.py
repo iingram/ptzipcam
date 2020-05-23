@@ -21,10 +21,22 @@ class Camera():
                  ip='192.168.1.64',
                  user='admin',
                  passwd='NyalaChow22',
-                 stream=3):
+                 stream=3,
+                 rtsp_port=554,
+                 cam_brand='hikvision'):
 
-        stream_string = ':554/Streaming/Channels/10' + str(stream)
-        
+        if cam_brand == 'axis':
+            stream_string = (':'
+                             + str(rtsp_port)
+                             + '/axis-media/media.amp')
+        elif cam_brand == 'hikvision':
+            stream_string = (':'
+                             + str(rtsp_port)
+                             + '/Streaming/Channels/10'
+                             + str(stream))
+        else:
+            print('[ERROR] Camera type not recognized.')
+            
         address = ('rtsp://'
                    + user
                    + ':'

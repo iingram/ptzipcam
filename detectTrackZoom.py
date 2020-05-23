@@ -8,6 +8,7 @@ import yaml
 import cv2
 
 from ptzipcam.ptz_camera import PtzCam
+from ptzipcam.ptz_camera import MotorController
 from ptzipcam.camera import Camera
 from ptzipcam import ui
 from ptzipcam.io import ImageStreamRecorder
@@ -69,6 +70,8 @@ if __name__ == '__main__':
     # cam = Camera()
     cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
 
+    motor_controller = MotorController(PID_GAINS, ORIENTATION)
+    
     frame = cam.get_frame()
     frame = ui.orient_frame(frame, ORIENTATION)
 
@@ -114,8 +117,6 @@ if __name__ == '__main__':
         #                                               FRAME_WINDOW)
 
     # initialize position of camera
-    x_velocity = 0
-    y_velocity = 0
     zoom_command = 0
     ptz.zoom_out_full()
     time.sleep(1)
@@ -242,34 +243,12 @@ if __name__ == '__main__':
             #     dilation_vid_writer.update(frame, target_lbox is not None)
 
         # run position controller on ptz system
-        ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
-
-        def calc_command(err, k):
-            command = k * err
-            if command >= 1.0:
-                command = 1.0
-            if command <= -1.0:
-                command = -1.0
-
-            # if command > -0.1 and command < 0.1:
-            #     command = 0.0
-
-            return command
-
-        # x_velocity = calc_command(x_err, -.005)
-        # y_velocity = calc_command(y_err, .005)
-
-        if ORIENTATION == 'down':
-            x_err = -x_err
-            y_err = -y_err
-
-        x_velocity = calc_command(x_err, PID_GAINS[0])
-
-        y_velocity = calc_command(y_err, PID_GAINS[1])
-
+        x_velocity, y_velocity = motor_controller.run(x_err, y_err) 
         if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
             # print('stop action')
             ptz.stop()
+
+        ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
 
     # if RECORD:
     #     if not DILATION:

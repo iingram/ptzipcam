@@ -1,3 +1,8 @@
+"""Utility to simply connect to a camera's video stream, display it,
+and record it.
+
+"""
+
 import argparse
 import yaml
 
@@ -19,9 +24,12 @@ with open(CONFIG_FILE) as f:
 # ptz camera networking constants
 IP = configs['IP']
 PORT = configs['PORT']
+RTSP_PORT = configs['RTSP_PORT']
+CAM_BRAND = configs['CAM_BRAND']
 USER = configs['USER']
 PASS = configs['PASS']
-STREAM = configs['STREAM']
+if CAM_BRAND == 'hikvision':
+    STREAM = configs['STREAM']
 
 ORIENTATION = configs['ORIENTATION']
 RECORD = configs['RECORD']
@@ -31,7 +39,11 @@ HEADLESS = configs['HEADLESS']
 
 if __name__ == '__main__':
     # cam = Camera()
-    cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
+    cam = Camera(ip=IP,
+                 user=USER,
+                 passwd=PASS,
+                 cam_brand=CAM_BRAND,
+                 rtsp_port=RTSP_PORT)
 
     frame = cam.get_frame()
     frame = ui.orient_frame(frame, ORIENTATION)
