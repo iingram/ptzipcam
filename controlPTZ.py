@@ -15,7 +15,7 @@ PASS = configs['PASS']
 STREAM = configs['STREAM']
 
 # ptz camera setup constants
-INIT_POS = configs['INIT_POS']
+# INIT_POS = configs['INIT_POS']
 ORIENTATION = configs['ORIENTATION']
 
 cam = Camera(ip=IP, user=USER, passwd=PASS, stream=2)
@@ -29,16 +29,20 @@ Z_DELTA = .1
 if __name__ == '__main__':
     ptz = PtzCam(IP, PORT, USER, PASS)
 
-    pan, tilt, zoom = ptz.get_position()
-    pan_command = INIT_POS[0]/180.0
-    tilt_command = INIT_POS[1]/45.0
-    zoom_command = INIT_POS[2]/25.0
+    # pan_command = INIT_POS[0]/180.0
+    # tilt_command = INIT_POS[1]/45.0
+    # zoom_command = INIT_POS[2]/25.0
 
-    ptz.absmove_w_zoom_waitfordone(pan_command,
-                                   tilt_command,
-                                   zoom_command,
-                                   close_enough=.01)
-    
+    # ptz.absmove_w_zoom_waitfordone(pan_command,
+    #                                tilt_command,
+    #                                zoom_command,
+    #                                close_enough=.01)
+
+    pan, tilt, zoom = ptz.get_position()
+    pan_command = pan
+    tilt_command = tilt
+    zoom_command = zoom
+
     key = 'd'
 
     print("Keys:\n",
@@ -54,15 +58,13 @@ if __name__ == '__main__':
           "z: zoom in (full)\n",
           "a: zoom out (full)\n")
 
-    
-    
     while True:
 
         if key == ord('w'):
             break
         elif key == ord('i'):
             # move_up(ptz, moverequest)
-            tilt_command -= Y_DELTA 
+            tilt_command -= Y_DELTA
         elif key == ord('u'):
             # move_up(ptz, moverequest, fine=True)
             tilt_command -= Y_DELTA_FINE
@@ -103,7 +105,7 @@ if __name__ == '__main__':
         pan_command = keep_in_bounds(pan_command, -1.0, 1.0)
         tilt_command = keep_in_bounds(tilt_command, 0.0, 1.0)
         zoom_command = keep_in_bounds(zoom_command, 0.0, 1.0)
-        
+
         ptz.absmove_w_zoom(pan_command,
                            tilt_command,
                            zoom_command)
@@ -111,11 +113,11 @@ if __name__ == '__main__':
         print("Pan: {:.2f}, Tilt: {:.2f}, Zoom: {:.2f}".format(pan_command,
                                                                tilt_command,
                                                                zoom_command))
-        
+
         frame = None
         frame = cam.get_frame()
         if frame is not None:
             cv2.imshow('Control PTZ Camera', frame)
             key = cv2.waitKey(0)
-            
+
     cv2.destroyAllWindows()
