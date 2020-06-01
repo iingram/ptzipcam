@@ -1,12 +1,22 @@
 import yaml
+import argparse
 
 import cv2
 
 from ptzipcam.camera import Camera
 from ptzipcam.ptz_camera import PtzCam
 
-with open('config.yaml') as f:
+parser = argparse.ArgumentParser()
+parser.add_argument('-c',
+                    '--config',
+                    default='../config.yaml',
+                    help='Filename of configuration file')
+args = parser.parse_args()
+CONFIG_FILE = args.config
+
+with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
+
 # ptz camera networking constants
 IP = configs['IP']
 PORT = configs['PORT']
