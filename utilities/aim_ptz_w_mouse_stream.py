@@ -9,7 +9,7 @@ from ptzipcam import ui
 parser = argparse.ArgumentParser()
 parser.add_argument('-c',
                     '--config',
-                    default='config.yaml',
+                    default='../config.yaml',
                     help='Filename of configuration file')
 args = parser.parse_args()
 CONFIG_FILE = args.config
