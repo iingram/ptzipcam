@@ -39,9 +39,7 @@ class MotorController():
         y_velocity = self._calc_command(y_err, self.pid_gains[1])
 
         return (x_velocity, y_velocity)
-    
 
-    
 
 class PtzCam():
     """Class for controlling the pan-tilt-zoom of an ONVIF-compliant IP
@@ -55,9 +53,14 @@ class PtzCam():
                  pword='NyalaChow22'):
 
         mycam = ONVIFCamera(ip, port, user, pword)
-        media = mycam.create_media_service()
-        self.ptz = mycam.create_ptz_service()
-        self.media_profile = media.GetProfiles()[0]
+        media_service = mycam.create_media_service()
+        self.ptz_service = mycam.create_ptz_service()
+        self.imaging_service = mycam.create_imaging_service()
+
+        # on hikvision cameras there have been 3 profiles: one for each stream
+        self.media_profile = media_service.GetProfiles()[0]
+        
+        self.video_source = media_service.GetVideoSources()[0] 
 
         # self.moverequest = self.ptz.create_type('ContinuousMove')
         # self.moverequest.ProfileToken = media_profile.token
@@ -68,54 +71,101 @@ class PtzCam():
         # self.moverequest.Velocity = {'PanTilt': {'x': -1, 'y': 1},
         #                              'Zoom': {'x': 0.0}}
 
+    def focus_out(self):
+        focus_request = self.imaging_service.create_type('Move')
+        focus_request.VideoSourceToken = self.video_source.token 
+        focus_request.Focus = {'Continuous': {'Speed': 0.1}}
+        self.imaging_service.Move(focus_request) 
+
+    def focus_in(self):
+        focus_request = self.imaging_service.create_type('Move')
+        focus_request.VideoSourceToken = self.video_source.token 
+        focus_request.Focus = {'Continuous': {'Speed': -0.1}}
+        self.imaging_service.Move(focus_request) 
+
+    def focus_stop(self):
+        self.imaging_service.Stop(self.video_source.token)
+        
     def move(self, x_velocity, y_velocity):
-        self.moverequest = self.ptz.create_type('ContinuousMove')
-        self.moverequest.ProfileToken = self.media_profile.token
-        self.moverequest.Velocity = {'PanTilt': {'x': x_velocity, 'y': y_velocity},
+        move_request = self.ptz_service.create_type('ContinuousMove')
+        move_request.ProfileToken = self.media_profile.token
+        move_request.Velocity = {'PanTilt': {'x': x_velocity, 'y': y_velocity},
                                      'Zoom': {'x': 0.0}}
-        self.ptz.ContinuousMove(self.moverequest)
+        self.ptz_service.ContinuousMove(move_request)
 
     def move_w_zoom(self, x_velocity, y_velocity, zoom_command):
         x_velocity = float(_checkZeroness(x_velocity))
         y_velocity = float(_checkZeroness(y_velocity))
         zoom_command = _checkZeroness(zoom_command)
 
-        self.moverequest = self.ptz.create_type('ContinuousMove')
-        self.moverequest.ProfileToken = self.media_profile.token
-        self.moverequest.Velocity = {'PanTilt': {'x': x_velocity, 'y': y_velocity},
+        move_request = self.ptz_service.create_type('ContinuousMove')
+        move_request.ProfileToken = self.media_profile.token
+        move_request.Velocity = {'PanTilt': {'x': x_velocity, 'y': y_velocity},
                                      'Zoom': {'x': zoom_command}}
-        self.ptz.ContinuousMove(self.moverequest)
+        self.ptz_service.ContinuousMove(move_request)
 
     def _prep_abs_move(self):
-        self.moverequest = self.ptz.create_type('AbsoluteMove')
-        self.moverequest.ProfileToken = self.media_profile.token
-        if self.moverequest.Position is None:
-            self.moverequest.Position = self.ptz.GetStatus({'ProfileToken': self.media_profile.token}).Position
-            self.moverequest.Speed = self.media_profile.PTZConfiguration.DefaultPTZSpeed
+        move_request = self.ptz_service.create_type('AbsoluteMove')
+        move_request.ProfileToken = self.media_profile.token
+        if move_request.Position is None:
+            move_request.Position = self.ptz_service.GetStatus({'ProfileToken': self.media_profile.token}).Position
+            move_request.Speed = self.media_profile.PTZConfiguration.DefaultPTZSpeed
 
+        return move_request
+            
     def get_position(self):
-        self.moverequest = self.ptz.create_type('AbsoluteMove')
-        self.moverequest.ProfileToken = self.media_profile.token
-        position = self.ptz.GetStatus({'ProfileToken': self.media_profile.token}).Position
+        move_request = self.ptz_service.create_type('AbsoluteMove')
+        move_request.ProfileToken = self.media_profile.token
+        position = self.ptz_service.GetStatus({'ProfileToken': self.media_profile.token}).Position
 
         # x = pan, y = tilt
-        return position['PanTilt']['x'], position['PanTilt']['y'], position['Zoom']['x']
+        return (position['PanTilt']['x'],
+                position['PanTilt']['y'],
+                position['Zoom']['x'])
 
     def absmove(self, x_pos, y_pos):
-        self._prep_abs_move()
-        self.moverequest.Position.PanTilt.x = x_pos
-        self.moverequest.Position.PanTilt.y = y_pos
-        self.ptz.AbsoluteMove(self.moverequest)
+        move_request = self._prep_abs_move()
+        move_request.Position.PanTilt.x = x_pos
+        move_request.Position.PanTilt.y = y_pos
+        self.ptz_service.AbsoluteMove(move_request)
 
     def absmove_w_zoom(self, pan_pos, tilt_pos, zoom_pos):
+        """Move PTZ camera to an absolute pan, tilt, zoom state.
+
+        Parameters
+        ----------
+        pan_pos : float
+
+            The desired pan position expressed as a value in accepted
+            range (often -1.0 to 1.0) that maps to the actual range of
+            the camera (e.g. 0-350 degrees or 0-360 degrees).
+
+        tilt_pos : float
+
+            The desired tilt position expressed as a value in accepted
+            range (often -1.0 to 1.0) that maps to the actual range of
+            the camera (e.g. 0-90 degrees or -5 to 90 degrees)
+
+        zoom_pos : float
+
+            The desired zoom "position" expressed as a value in
+            accepted range (often 0.0 to 1.0) that maps to the actual
+            zoom range of the camera.
+
+        Returns
+        -------
+        None
+
+        """
         zoom_pos = _checkZeroness(zoom_pos)
         pan_pos = _checkZeroness(pan_pos)
         tilt_pos = _checkZeroness(tilt_pos)
-        self._prep_abs_move()
-        self.moverequest.Position.PanTilt.x = pan_pos
-        self.moverequest.Position.PanTilt.y = tilt_pos
-        self.moverequest.Position.Zoom.x = zoom_pos
-        self.ptz.AbsoluteMove(self.moverequest)
+
+        move_request = self._prep_abs_move()
+        move_request.Position.PanTilt.x = pan_pos
+        move_request.Position.PanTilt.y = tilt_pos
+        move_request.Position.Zoom.x = zoom_pos
+        self.ptz_service.AbsoluteMove(move_request)
 
     def _wait_for_done(self, pan_goal, tilt_goal, zoom_goal, close_enough=.01):
         """Note: zoom_goal finishing not implemented
@@ -129,7 +179,6 @@ class PtzCam():
             time.sleep(.1)
             pan, tilt, zoom = self.get_position()
 
-
     def absmove_w_zoom_waitfordone(self,
                                    pan_pos,
                                    tilt_pos,
@@ -138,23 +187,23 @@ class PtzCam():
         self.absmove_w_zoom(pan_pos, tilt_pos, zoom_pos)
         self._wait_for_done(pan_pos, tilt_pos, zoom_pos, close_enough)
 
-        
     def zoom_out_full(self):
-        self._prep_abs_move()
-        self.moverequest.Position.Zoom.x = 0.0
-        self.ptz.AbsoluteMove(self.moverequest)
+        move_request = self._prep_abs_move()
+        move_request.Position.Zoom.x = 0.0
+        self.ptz_service.AbsoluteMove(move_request)
 
     def zoom_in_full(self):
-        self._prep_abs_move()
-        self.moverequest.Position.Zoom.x = 1.0
-        self.ptz.AbsoluteMove(self.moverequest)
+        move_request = self._prep_abs_move()
+        move_request.Position.Zoom.x = 1.0
+        self.ptz_service.AbsoluteMove(move_request)
 
     def zoom(self, zoom_command):
         zoom_command = _checkZeroness(zoom_command)
-        self._prep_abs_move()
-        self.moverequest.Position.Zoom.x = zoom_command
-        self.ptz.AbsoluteMove(self.moverequest)
+
+        move_request = self._prep_abs_move()
+        move_request.Position.Zoom.x = zoom_command
+        self.ptz_service.AbsoluteMove(move_request)
 
     def stop(self):
-        self._prep_abs_move()
-        self.ptz.Stop({'ProfileToken': self.moverequest.ProfileToken})
+        move_request = self._prep_abs_move()
+        self.ptz_service.Stop({'ProfileToken': move_request.ProfileToken})
