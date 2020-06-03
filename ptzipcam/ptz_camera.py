@@ -4,6 +4,24 @@ from onvif import ONVIFCamera
 
 
 def _checkZeroness(number):
+    """Checks if a number is very close to zero (within a window) and if
+it is makes it less close by placing it at the edge of that window.
+
+    Parameters
+    ----------
+
+    number : float
+
+        A number to be checked for closeness to zero
+
+    Returns
+    -------
+
+    number : float
+
+        The "fixed" number
+
+    """
     e = .001
 
     if number < e and number > -e:
