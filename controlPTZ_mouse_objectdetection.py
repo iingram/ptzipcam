@@ -1,4 +1,5 @@
-#!/home/ian/.virtualenvs/ptzSpotter/bin/python
+#!/usr/bin/env python
+
 
 import os
 import yaml
@@ -60,10 +61,10 @@ if __name__ == '__main__':
         frame = raw_frame.copy()
 
         outs, inference_time = network.infer(frame)
-        lboxes =  nn.ObjectDetectorHandler.filter_boxes(outs,
-                                                        frame,
-                                                        CONF_THRESHOLD,
-                                                        NMS_THRESHOLD)
+        lboxes =  network.filter_boxes(outs,
+                                       frame,
+                                       CONF_THRESHOLD,
+                                       NMS_THRESHOLD)
 
         for lbox in lboxes:
             draw.labeled_box(frame, classes, lbox)
