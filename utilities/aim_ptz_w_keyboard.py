@@ -5,6 +5,7 @@ import cv2
 
 from ptzipcam.camera import Camera
 from ptzipcam.ptz_camera import PtzCam
+from ptzipcam import ui
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-c',
@@ -31,9 +32,9 @@ ORIENTATION = configs['ORIENTATION']
 cam = Camera(ip=IP, user=USER, passwd=PASS, stream=2)
 
 Y_DELTA = .1
-Y_DELTA_FINE = .01
+Y_DELTA_FINE = .001
 X_DELTA = .1
-X_DELTA_FINE = .01
+X_DELTA_FINE = .001
 Z_DELTA = .1
 
 if __name__ == '__main__':
@@ -127,6 +128,7 @@ if __name__ == '__main__':
         frame = None
         frame = cam.get_frame()
         if frame is not None:
+            frame = ui.orient_frame(frame, ORIENTATION)
             cv2.imshow('Control PTZ Camera', frame)
             key = cv2.waitKey(0)
 
