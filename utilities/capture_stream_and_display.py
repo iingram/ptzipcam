@@ -61,7 +61,10 @@ if __name__ == '__main__':
     total_pixels = frame_width * frame_height
 
     if RECORD:
+        print('[INFO] Recording is ON.')
         recorder = ImageStreamRecorder('/home/ian/images_dtz')
+    else:
+        print('[INFO] Recording is OFF.')
 
     while True:
         raw_frame = cam.get_frame()
