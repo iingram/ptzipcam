@@ -29,7 +29,7 @@ class MotorController():
         #     command = 0.0
 
         return command
-        
+
     def run(self, x_err, y_err):
         if self.orientation == 'down':
             x_err = -x_err
@@ -59,8 +59,8 @@ class PtzCam():
 
         # on hikvision cameras there have been 3 profiles: one for each stream
         self.media_profile = media_service.GetProfiles()[0]
-        
-        self.video_source = media_service.GetVideoSources()[0] 
+
+        self.video_source = media_service.GetVideoSources()[0]
 
         # self.moverequest = self.ptz.create_type('ContinuousMove')
         # self.moverequest.ProfileToken = media_profile.token
@@ -73,24 +73,24 @@ class PtzCam():
 
     def focus_out(self):
         focus_request = self.imaging_service.create_type('Move')
-        focus_request.VideoSourceToken = self.video_source.token 
+        focus_request.VideoSourceToken = self.video_source.token
         focus_request.Focus = {'Continuous': {'Speed': 0.1}}
-        self.imaging_service.Move(focus_request) 
+        self.imaging_service.Move(focus_request)
 
     def focus_in(self):
         focus_request = self.imaging_service.create_type('Move')
-        focus_request.VideoSourceToken = self.video_source.token 
+        focus_request.VideoSourceToken = self.video_source.token
         focus_request.Focus = {'Continuous': {'Speed': -0.1}}
-        self.imaging_service.Move(focus_request) 
+        self.imaging_service.Move(focus_request)
 
     def focus_stop(self):
         self.imaging_service.Stop(self.video_source.token)
-        
+
     def move(self, x_velocity, y_velocity):
         move_request = self.ptz_service.create_type('ContinuousMove')
         move_request.ProfileToken = self.media_profile.token
         move_request.Velocity = {'PanTilt': {'x': x_velocity, 'y': y_velocity},
-                                     'Zoom': {'x': 0.0}}
+                                 'Zoom': {'x': 0.0}}
         self.ptz_service.ContinuousMove(move_request)
 
     def move_w_zoom(self, x_velocity, y_velocity, zoom_command):
@@ -101,7 +101,7 @@ class PtzCam():
         move_request = self.ptz_service.create_type('ContinuousMove')
         move_request.ProfileToken = self.media_profile.token
         move_request.Velocity = {'PanTilt': {'x': x_velocity, 'y': y_velocity},
-                                     'Zoom': {'x': zoom_command}}
+                                 'Zoom': {'x': zoom_command}}
         self.ptz_service.ContinuousMove(move_request)
 
     def _prep_abs_move(self):
@@ -112,7 +112,7 @@ class PtzCam():
             move_request.Speed = self.media_profile.PTZConfiguration.DefaultPTZSpeed
 
         return move_request
-            
+
     def get_position(self):
         move_request = self.ptz_service.create_type('AbsoluteMove')
         move_request.ProfileToken = self.media_profile.token
