@@ -1,3 +1,4 @@
+import time
 import yaml
 import argparse
 
@@ -58,51 +59,81 @@ if __name__ == '__main__':
 
     print("Keys:\n",
           "w: quit\n",
-          "k: up\n",
-          "m: up (fine)\n",
-          "i: down\n",
-          "u: down (fine)\n",
-          "j: left\n",
-          "h: left (fine)\n",
-          "l: right\n",
-          "p: right (fine)\n",
-          "z: zoom in (full)\n",
-          "a: zoom out (full)\n")
+          "y: tilt up (fine)\n",
+          "u: tilt up\n",
+          "i: tilt down\n",
+          "o: tilt down (fine)\n",
+          "h: pan left (fine)\n",
+          "j: pan left\n",
+          "k: pan right\n",
+          "l: pan right (fine)\n",
+          "a: focus in (fine)\n",
+          "s: focus in \n",
+          "d: focus out \n",
+          "f: focus out (fine)\n",
+          "x: zoom in \n",
+          "c: zoom out \n")
 
     while True:
 
         if key == ord('w'):
             break
-        elif key == ord('i'):
-            # move_up(ptz, moverequest)
-            tilt_command -= Y_DELTA
-        elif key == ord('u'):
-            # move_up(ptz, moverequest, fine=True)
+        elif key == ord('y'):
+            # tilt up fine
             tilt_command -= Y_DELTA_FINE
-        elif key == ord('k'):
-            # move_down(ptz, moverequest)
+        elif key == ord('u'):
+            # tilt up
+            tilt_command -= Y_DELTA
+        elif key == ord('i'):
+            # tilt down
             tilt_command += Y_DELTA
-        elif key == ord('m'):
-            # move_down(ptz, moverequest, fine=True)
+        elif key == ord('o'):
+            # tilt down fine
             tilt_command += Y_DELTA_FINE
-        elif key == ord('j'):
-            # move_right(ptz, moverequest)
-            pan_command += X_DELTA
         elif key == ord('h'):
-            # move_right(ptz, moverequest, fine=True)
+            # pan right fine
             pan_command += X_DELTA_FINE
-        elif key == ord('l'):
-            # move_left(ptz, moverequest)
+        elif key == ord('j'):
+            # pan right
+            pan_command += X_DELTA
+        elif key == ord('k'):
+            # pan left
             pan_command -= X_DELTA
-        elif key == ord('p'):
-            # move_left(ptz, moverequest, fine=True)
+        elif key == ord('l'):
+            # pan left fine
             pan_command -= X_DELTA_FINE
-        elif key == ord('z'):
-            # zoom_in(ptz, moverequest)
-            zoom_command += X_DELTA
         elif key == ord('a'):
-            # zoom_out(ptz, moverequest)
+            # focus in fine
+            ptz.focus_in()
+            time.sleep(0.5)
+            ptz.focus_stop()
+        elif key == ord('s'):
+            # focus in
+            ptz.focus_in()
+            time.sleep(1)
+            ptz.focus_stop()
+        elif key == ord('d'):
+            # focus out
+            ptz.focus_out()
+            time.sleep(1)
+            ptz.focus_stop()
+        elif key == ord('f'):
+            # focus out fine
+            ptz.focus_out()
+            time.sleep(.5)
+            ptz.focus_stop()
+        elif key == ord('z'):
+            # zoom in fine
+            zoom_command += X_DELTA_FINE
+        elif key == ord('x'):
+            # zoom in
+            zoom_command += X_DELTA
+        elif key == ord('c'):
+            # zoom out
             zoom_command -= X_DELTA
+        elif key == ord('v'):
+            # zoom out fine
+            zoom_command -= X_DELTA_FINE
         elif key == ord('u'):
             pass
 
