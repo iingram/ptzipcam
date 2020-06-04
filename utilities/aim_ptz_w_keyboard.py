@@ -1,7 +1,6 @@
 import time
 import yaml
 import argparse
-
 import cv2
 
 from ptzipcam.camera import Camera
@@ -30,7 +29,7 @@ STREAM = configs['STREAM']
 # INIT_POS = configs['INIT_POS']
 ORIENTATION = configs['ORIENTATION']
 
-cam = Camera(ip=IP, user=USER, passwd=PASS, stream=2)
+cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
 
 Y_DELTA = .1
 Y_DELTA_FINE = .001
