@@ -106,6 +106,9 @@ class PtzCam():
         # self.moverequest.Velocity = {'PanTilt': {'x': -1, 'y': 1},
         #                              'Zoom': {'x': 0.0}}
 
+    def __del__(self):
+        print('[INFO] PtzCam object deletion.')
+        
     def focus_out(self):
         focus_request = self.imaging_service.create_type('Move')
         focus_request.VideoSourceToken = self.video_source.token
