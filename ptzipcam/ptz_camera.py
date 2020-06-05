@@ -60,7 +60,9 @@ class MotorController():
 
 
 class PtzCam():
-    """Class for controlling the pan-tilt-zoom of an ONVIF-compliant IP
+    """Class to control PTZ on ONVIF-compliant PTZ IP Camera
+
+    Allows control of the pan, tilt, and zoom of an ONVIF-compliant IP
     camera that has PTZ capability.
 
     """
@@ -69,7 +71,22 @@ class PtzCam():
                  port='80',
                  user='admin',
                  pword='NyalaChow22'):
+        """ PtzCam constructor
 
+        Parameters
+        ----------
+        ip : str
+           The IP address of the camera to connect to.
+        port : str
+           ONVIF port on the camera. This is usually 80
+        user : str
+           Valid username of account on the IP camera being connected to.
+        pword : str
+           Password for the account on the IP camera.
+
+        """
+
+        
         mycam = ONVIFCamera(ip, port, user, pword)
         media_service = mycam.create_media_service()
         self.ptz_service = mycam.create_ptz_service()
