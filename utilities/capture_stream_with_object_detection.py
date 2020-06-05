@@ -62,7 +62,8 @@ if __name__ == '__main__':
                  user=USER,
                  passwd=PASS,
                  cam_brand=CAM_BRAND,
-                 rtsp_port=RTSP_PORT)
+                 rtsp_port=RTSP_PORT,
+                 stream=STREAM)
 
     frame = cam.get_frame()
     frame = ui.orient_frame(frame, ORIENTATION)
