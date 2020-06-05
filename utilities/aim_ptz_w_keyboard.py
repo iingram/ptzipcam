@@ -12,6 +12,10 @@ parser.add_argument('-c',
                     '--config',
                     default='../config.yaml',
                     help='Filename of configuration file')
+parser.add_argument('-s',
+                    '--stream',
+                    default=None,
+                    help='Stream to use if want to override config file.')
 args = parser.parse_args()
 CONFIG_FILE = args.config
 
@@ -23,8 +27,11 @@ IP = configs['IP']
 PORT = configs['PORT']
 USER = configs['USER']
 PASS = configs['PASS']
-STREAM = configs['STREAM']
-
+if args.stream is None:
+    STREAM = configs['STREAM']
+else:
+    STREAM = int(args.stream)
+    
 # ptz camera setup constants
 # INIT_POS = configs['INIT_POS']
 ORIENTATION = configs['ORIENTATION']
@@ -70,8 +77,10 @@ if __name__ == '__main__':
           "s: focus in \n",
           "d: focus out \n",
           "f: focus out (fine)\n",
-          "x: zoom in \n",
-          "c: zoom out \n")
+          "z: zoom out fine \n",
+          "x: zoom out  \n",
+          "c: zoom in \n",
+          "v: zoom in fine \n")
 
     while True:
 
@@ -123,16 +132,16 @@ if __name__ == '__main__':
             ptz.focus_stop()
         elif key == ord('z'):
             # zoom in fine
-            zoom_command += X_DELTA_FINE
+            zoom_command -= X_DELTA_FINE
         elif key == ord('x'):
             # zoom in
-            zoom_command += X_DELTA
+            zoom_command -= X_DELTA
         elif key == ord('c'):
             # zoom out
-            zoom_command -= X_DELTA
+            zoom_command += X_DELTA
         elif key == ord('v'):
             # zoom out fine
-            zoom_command -= X_DELTA_FINE
+            zoom_command += X_DELTA_FINE
         elif key == ord('u'):
             pass
 
@@ -151,7 +160,7 @@ if __name__ == '__main__':
                            tilt_command,
                            zoom_command)
 
-        print("Pan: {:.2f}, Tilt: {:.2f}, Zoom: {:.2f}".format(pan_command,
+        print("Pan: {:.3f}, Tilt: {:.3f}, Zoom: {:.3f}".format(pan_command,
                                                                tilt_command,
                                                                zoom_command))
 
@@ -163,3 +172,6 @@ if __name__ == '__main__':
             key = cv2.waitKey(0)
 
     cv2.destroyAllWindows()
+    # cam.release()
+    del cam
+    del ptz
