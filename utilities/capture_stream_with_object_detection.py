@@ -36,6 +36,8 @@ USER = configs['USER']
 PASS = configs['PASS']
 if CAM_BRAND == 'hikvision':
     STREAM = configs['STREAM']
+else:
+    STREAM = None
 
 ORIENTATION = configs['ORIENTATION']
 RECORD = configs['RECORD']
@@ -125,6 +127,6 @@ if __name__ == '__main__':
                                   'N/A',
                                   0.0)
 
-    cam.release()
+    del cam
     if not HEADLESS:
         uih.clean_up()
