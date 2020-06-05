@@ -18,7 +18,7 @@ from ptzipcam.ptz_camera import PtzCam
 ap = argparse.ArgumentParser()
 ap.add_argument('-c',
                 '--config',
-                default='config.yaml',
+                default='../config.yaml',
                 help='Configuration file.')
 args = ap.parse_args()
 config_file = args.config
