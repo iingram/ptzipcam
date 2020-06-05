@@ -51,6 +51,7 @@ class Camera():
 
         self.cam_thread = threading.Thread(target=camera_thread_function,
                                            args=(self.cap, self.frame))
+        self.cam_thread.daemon = True
         self.cam_thread.start()
 
     def get_frame(self):
@@ -62,5 +63,9 @@ class Camera():
     def get_resolution(self):
         return self.frame[0].shape[1], self.frame[0].shape[0]
 
-    def release(self):
+    # def release(self):
+    #     self.cap.release()
+
+    def __del__(self):
+        print('[INFO] Camera object deletion')
         self.cap.release()
