@@ -30,6 +30,8 @@ USER = configs['USER']
 PASS = configs['PASS']
 if CAM_BRAND == 'hikvision':
     STREAM = configs['STREAM']
+else:
+    STREAM = None
 
 ORIENTATION = configs['ORIENTATION']
 RECORD = configs['RECORD']
