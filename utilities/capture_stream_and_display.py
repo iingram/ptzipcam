@@ -89,6 +89,7 @@ if __name__ == '__main__':
                                   'N/A',
                                   0.0)
 
-    cam.release()
+    # cam.release()
+    del cam
     if not HEADLESS:
         uih.clean_up()
