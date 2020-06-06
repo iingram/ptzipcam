@@ -14,9 +14,7 @@ import pandas as pd
 
 ap = argparse.ArgumentParser()
 
-ap.add_argument('-f',
-                '--filename',
-                required=True,
+ap.add_argument('filename',
                 help='CSV file of image series.')
 ap.add_argument('-s',
                 '--stride',
