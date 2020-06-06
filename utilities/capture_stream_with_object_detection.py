@@ -17,14 +17,11 @@ from dnntools import neuralnetwork as nn
 from dnntools import draw
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-c',
-                    '--config',
-                    default='../config.yaml',
+parser.add_argument('config_file_path',
                     help='Filename of configuration file')
 args = parser.parse_args()
-CONFIG_FILE = args.config
 
-with open(CONFIG_FILE) as f:
+with open(args.config_file_path) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
 # ptz camera networking constants
@@ -89,7 +86,10 @@ if __name__ == '__main__':
 
     if RECORD:
         recorder = ImageStreamRecorder('/home/ian/images_dtz')
-
+        print('[INFO] Recording is ON')
+    else:
+        print('[INFO] Recording is OFF')
+        
     while True:
         raw_frame = cam.get_frame()
         if raw_frame is None:
