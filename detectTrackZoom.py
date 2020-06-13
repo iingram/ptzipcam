@@ -253,7 +253,7 @@ if __name__ == '__main__':
     #         vid_writer.release()
     #     else:
     #         dilation_vid_writer.release()
-    cam.release()
+    del cam
     ptz.stop()
     if not HEADLESS:
         uih.clean_up()

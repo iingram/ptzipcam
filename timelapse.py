@@ -20,9 +20,7 @@ import movement_functions
 import globalvars
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-c',
-                    '--config',
-                    default='config.yaml',
+parser.add_argument('config_file_path',
                     help='Filename of configuration file')
 parser.add_argument('-i',
                     '--host_ip',
@@ -35,7 +33,7 @@ parser.add_argument('-p',
 
 args = parser.parse_args()
 
-CONFIG_FILE = args.config
+CONFIG_FILE = args.config_file_path
 
 ZOOM_POWER = 4.0
 
@@ -208,7 +206,7 @@ if __name__ == '__main__':
         # for i in range(num_output_videos):
         #     vid_writers[i].release()
 
-        cam.release()
+        del cam
 
         if CLIENT_MODE:
             sender.close()
