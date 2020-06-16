@@ -63,86 +63,94 @@ if __name__ == '__main__':
 
     key = 'd'
 
+    keys = ['w',
+            'a','s','d','f',
+            'h','j','k','l',
+            'y','u','i','o',
+            'z','x','c','v',
+            'd']
+
     print("Keys:\n",
-          "w: quit\n",
-          "y: tilt up (fine)\n",
-          "u: tilt up\n",
-          "i: tilt down\n",
-          "o: tilt down (fine)\n",
-          "h: pan left (fine)\n",
-          "j: pan left\n",
-          "k: pan right\n",
-          "l: pan right (fine)\n",
-          "a: focus in (fine)\n",
-          "s: focus in \n",
-          "d: focus out \n",
-          "f: focus out (fine)\n",
-          "z: zoom out fine \n",
-          "x: zoom out  \n",
-          "c: zoom in \n",
-          "v: zoom in fine \n")
+          keys[0] + ": quit\n",
+          keys[1] + ": tilt up (fine)\n",
+          keys[2] + ": tilt up\n",
+          keys[3] + ": tilt down\n",
+          keys[4] + ": tilt down (fine)\n",
+          keys[5] + ": pan left (fine)\n",
+          keys[6] + ": pan left\n",
+          keys[7] + ": pan right\n",
+          keys[8] + ": pan right (fine)\n",
+          keys[9] + ": focus in (fine)\n",
+          keys[10] + ": focus in \n",
+          keys[11] + ": focus out \n",
+          keys[12] + ": focus out (fine)\n",
+          keys[13] + ": zoom out fine \n",
+          keys[14] + ": zoom out  \n",
+          keys[15] + ": zoom in \n",
+          keys[16] + ": zoom in fine \n",
+          keys[17] + ": update frame")
 
     while True:
 
-        if key == ord('w'):
+        if key == ord(keys[0]):
             break
-        elif key == ord('y'):
+        elif key == ord(keys[1]):
             # tilt up fine
             tilt_command -= Y_DELTA_FINE
-        elif key == ord('u'):
+        elif key == ord(keys[2]):
             # tilt up
             tilt_command -= Y_DELTA
-        elif key == ord('i'):
+        elif key == ord(keys[3]):
             # tilt down
             tilt_command += Y_DELTA
-        elif key == ord('o'):
+        elif key == ord(keys[4]):
             # tilt down fine
             tilt_command += Y_DELTA_FINE
-        elif key == ord('h'):
+        elif key == ord(keys[5]):
             # pan right fine
             pan_command += X_DELTA_FINE
-        elif key == ord('j'):
+        elif key == ord(keys[6]):
             # pan right
             pan_command += X_DELTA
-        elif key == ord('k'):
+        elif key == ord(keys[7]):
             # pan left
             pan_command -= X_DELTA
-        elif key == ord('l'):
+        elif key == ord(keys[8]):
             # pan left fine
             pan_command -= X_DELTA_FINE
-        elif key == ord('a'):
+        elif key == ord(keys[9]):
             # focus in fine
             ptz.focus_in()
             time.sleep(0.5)
             ptz.focus_stop()
-        elif key == ord('s'):
+        elif key == ord(keys[10]):
             # focus in
             ptz.focus_in()
             time.sleep(1)
             ptz.focus_stop()
-        elif key == ord('d'):
+        elif key == ord(keys[11]):
             # focus out
             ptz.focus_out()
             time.sleep(1)
             ptz.focus_stop()
-        elif key == ord('f'):
+        elif key == ord(keys[12]):
             # focus out fine
             ptz.focus_out()
             time.sleep(.5)
             ptz.focus_stop()
-        elif key == ord('z'):
+        elif key == ord(keys[13]):
             # zoom in fine
             zoom_command -= X_DELTA_FINE
-        elif key == ord('x'):
+        elif key == ord(keys[14]):
             # zoom in
             zoom_command -= X_DELTA
-        elif key == ord('c'):
+        elif key == ord(keys[15]):
             # zoom out
             zoom_command += X_DELTA
-        elif key == ord('v'):
+        elif key == ord(keys[16]):
             # zoom out fine
             zoom_command += X_DELTA_FINE
-        elif key == ord('u'):
+        elif key == ord(keys[17]):
             pass
 
         def keep_in_bounds(command, minn, maxx):
