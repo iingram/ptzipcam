@@ -8,9 +8,7 @@ from ptzipcam.ptz_camera import PtzCam
 from ptzipcam import ui
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-c',
-                    '--config',
-                    default='../config.yaml',
+parser.add_argument('config',
                     help='Filename of configuration file')
 parser.add_argument('-s',
                     '--stream',
@@ -38,11 +36,20 @@ ORIENTATION = configs['ORIENTATION']
 
 cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
 
-Y_DELTA = .1
+Y_DELTA = .05
 Y_DELTA_FINE = .001
-X_DELTA = .1
+X_DELTA = .05
 X_DELTA_FINE = .001
-Z_DELTA = .1
+Z_DELTA = .01
+Z_DELTA_FINE = .004
+F_TIME = 1
+F_TIME_FINE = .05
+
+if ORIENTATION == 'down':
+    Y_DELTA = -Y_DELTA
+    Y_DELTA_FINE = -Y_DELTA_FINE
+    X_DELTA = -X_DELTA
+    X_DELTA_FINE = -X_DELTA_FINE
 
 if __name__ == '__main__':
     ptz = PtzCam(IP, PORT, USER, PASS)
@@ -61,14 +68,14 @@ if __name__ == '__main__':
     tilt_command = tilt
     zoom_command = zoom
 
-    key = 'd'
+    key = None
 
     keys = ['w',
             'a','s','d','f',
             'h','j','k','l',
             'y','u','i','o',
             'z','x','c','v',
-            'd']
+            'r']
 
     print("Keys:\n",
           keys[0] + ": quit\n",
@@ -121,38 +128,40 @@ if __name__ == '__main__':
         elif key == ord(keys[9]):
             # focus in fine
             ptz.focus_in()
-            time.sleep(0.5)
+            time.sleep(F_TIME_FINE)
             ptz.focus_stop()
         elif key == ord(keys[10]):
             # focus in
             ptz.focus_in()
-            time.sleep(1)
+            time.sleep(F_TIME)
             ptz.focus_stop()
         elif key == ord(keys[11]):
             # focus out
             ptz.focus_out()
-            time.sleep(1)
+            time.sleep(F_TIME)
             ptz.focus_stop()
         elif key == ord(keys[12]):
             # focus out fine
             ptz.focus_out()
-            time.sleep(.5)
+            time.sleep(F_TIME_FINE)
             ptz.focus_stop()
         elif key == ord(keys[13]):
             # zoom in fine
-            zoom_command -= X_DELTA_FINE
+            zoom_command -= Z_DELTA_FINE
         elif key == ord(keys[14]):
             # zoom in
-            zoom_command -= X_DELTA
+            zoom_command -= Z_DELTA
         elif key == ord(keys[15]):
             # zoom out
-            zoom_command += X_DELTA
+            zoom_command += Z_DELTA
         elif key == ord(keys[16]):
             # zoom out fine
-            zoom_command += X_DELTA_FINE
+            zoom_command += Z_DELTA_FINE
         elif key == ord(keys[17]):
             pass
-
+        else:
+            pass
+        
         def keep_in_bounds(command, minn, maxx):
             if command <= minn:
                 command = minn
