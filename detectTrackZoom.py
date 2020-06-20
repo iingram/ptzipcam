@@ -20,9 +20,7 @@ from dnntools import neuralnetwork_coral as nn
 from dnntools import draw
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-c',
-                    '--config',
-                    default='config.yaml',
+parser.add_argument('config',
                     help='Filename of configuration file')
 args = parser.parse_args()
 CONFIG_FILE = args.config
@@ -255,7 +253,7 @@ if __name__ == '__main__':
     #         vid_writer.release()
     #     else:
     #         dilation_vid_writer.release()
-    cam.release()
+    del cam
     ptz.stop()
     if not HEADLESS:
         uih.clean_up()
