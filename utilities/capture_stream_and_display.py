@@ -11,9 +11,7 @@ from ptzipcam import ui
 from ptzipcam.io import ImageStreamRecorder
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-c',
-                    '--config',
-                    default='../config.yaml',
+parser.add_argument('config',
                     help='Filename of configuration file')
 args = parser.parse_args()
 CONFIG_FILE = args.config
