@@ -48,6 +48,8 @@ def mow_the_lawn(zoom_power, config_file):
     # global globalvars.camera_still
     ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
     print('[INFO] Connected to camera.') 
+    ptz.twitch()
+    print('[INFO] Twitching camera so user has some indication things are OK.') 
     
     pan_min = convert.degrees_to_command(PAN_MIN, 350.0)
     pan_max = convert.degrees_to_command(PAN_MAX, 350.0)

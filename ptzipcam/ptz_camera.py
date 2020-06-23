@@ -167,6 +167,17 @@ class PtzCam():
         move_request.Position.PanTilt.y = y_pos
         self.ptz_service.AbsoluteMove(move_request)
 
+    def twitch(self):
+        pan, tilt, zoom = self.get_position()
+        self.absmove_w_zoom(pan, tilt + 0.2, zoom)
+        time.sleep(1.0)
+        self.absmove_w_zoom(pan + 0.1, tilt + 0.2, zoom)
+        time.sleep(1.0)
+        self.absmove_w_zoom(pan + 0.1, tilt, zoom)
+        time.sleep(1.0)
+        self.absmove_w_zoom(pan, tilt, zoom)
+        time.sleep(1.0)
+    
     def absmove_w_zoom(self, pan_pos, tilt_pos, zoom_pos):
         """Move PTZ camera to an absolute pan, tilt, zoom state.
 
