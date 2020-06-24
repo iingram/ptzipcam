@@ -25,12 +25,14 @@ ap.add_argument('-r',
                 default=30,
                 help="Desired frames per second (program only approximates)")
 
+print("[INFO]: don't forget that you can set stride and fps on cli")
+
 args = ap.parse_args()
 
 csv_filename = args.filename
 stride = int(args.stride)
 msecs_per_frame = int(1000 * (1.0/int(args.rate)))
-print(msecs_per_frame)
+print('[INFO] FPS results in {} milliseconds per frame.'.format(msecs_per_frame))
 main_timestamp = csv_filename.split('.')[0]
 
 df = pd.read_csv(csv_filename)
@@ -44,7 +46,7 @@ for index, row in df.iterrows():
     if count % stride == 0:
         count = 0
         filename = os.path.join(base_path, row.IMAGE_FILE)
-        print(filename)
+        # print(filename)
         img = cv2.imread(filename)
 
         cv2.imshow('hoot', img)
