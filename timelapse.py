@@ -108,7 +108,7 @@ if __name__ == '__main__':
     with open('/home/ian/timelapse.log', 'w') as f:
         f.write('[INFO] Just started.\n')
 
-    preamble = 'Movement function:'
+    preamble = '[INFO] Movement function:'
     if MODE == 'mow':
         print(preamble, 'Mow the lawn')
         movement_function = movement_functions.mow_the_lawn

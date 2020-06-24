@@ -1,5 +1,6 @@
 import time
 
+import numpy as np
 from onvif import ONVIFCamera
 
 
@@ -97,6 +98,10 @@ class PtzCam():
 
         self.video_source = media_service.GetVideoSources()[0]
 
+        self.pan_bounds = [-1.0, 1.0]
+        self.tilt_bounds = [-1.0, 1.0]
+        self.zoom_bounds = [0.0, 1.0]
+        
         # self.moverequest = self.ptz.create_type('ContinuousMove')
         # self.moverequest.ProfileToken = media_profile.token
         # # if self.moverequest.Velocity is None:
@@ -169,11 +174,15 @@ class PtzCam():
 
     def twitch(self):
         pan, tilt, zoom = self.get_position()
-        self.absmove_w_zoom(pan, tilt + 0.2, zoom)
+
+        pan_2 = np.clip(pan + 0.1, *self.pan_bounds)
+        tilt_2 = np.clip(tilt + 0.2, *self.tilt_bounds)
+
+        self.absmove_w_zoom(pan, tilt_2, zoom)
         time.sleep(1.0)
-        self.absmove_w_zoom(pan + 0.1, tilt + 0.2, zoom)
+        self.absmove_w_zoom(pan_2, tilt_2, zoom)
         time.sleep(1.0)
-        self.absmove_w_zoom(pan + 0.1, tilt, zoom)
+        self.absmove_w_zoom(pan_2, tilt, zoom)
         time.sleep(1.0)
         self.absmove_w_zoom(pan, tilt, zoom)
         time.sleep(1.0)
