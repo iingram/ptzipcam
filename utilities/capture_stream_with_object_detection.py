@@ -77,7 +77,7 @@ if __name__ == '__main__':
                                        MODEL_WEIGHTS,
                                        INPUT_WIDTH,
                                        INPUT_HEIGHT)
-        
+
     frame = cam.get_frame()
     frame_width = frame.shape[1]
     frame_height = frame.shape[0]
@@ -89,7 +89,7 @@ if __name__ == '__main__':
         print('[INFO] Recording is ON')
     else:
         print('[INFO] Recording is OFF')
-        
+
     while True:
         raw_frame = cam.get_frame()
         if raw_frame is None:
@@ -112,7 +112,7 @@ if __name__ == '__main__':
             # detected_class = CLASSES[lbox['class_id']]
             # score = 100 * lbox['confidence']
             draw.labeled_box(frame, CLASSES, lbox)
-        
+
         # update ui and handle user input
 
         if not HEADLESS:

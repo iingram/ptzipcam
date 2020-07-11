@@ -29,7 +29,7 @@ if args.stream is None:
     STREAM = configs['STREAM']
 else:
     STREAM = int(args.stream)
-    
+
 # ptz camera setup constants
 # INIT_POS = configs['INIT_POS']
 ORIENTATION = configs['ORIENTATION']
@@ -71,10 +71,10 @@ if __name__ == '__main__':
     key = None
 
     keys = ['w',
-            'a','s','d','f',
-            'h','j','k','l',
-            'y','u','i','o',
-            'z','x','c','v',
+            'a', 's', 'd', 'f',
+            'h', 'j', 'k', 'l',
+            'y', 'u', 'i', 'o',
+            'z', 'x', 'c', 'v',
             'r']
 
     print("Keys:\n",
@@ -161,7 +161,7 @@ if __name__ == '__main__':
             pass
         else:
             pass
-        
+
         def keep_in_bounds(command, minn, maxx):
             if command <= minn:
                 command = minn
