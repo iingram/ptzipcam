@@ -32,7 +32,8 @@ args = ap.parse_args()
 csv_filename = args.filename
 stride = int(args.stride)
 msecs_per_frame = int(1000 * (1.0/int(args.rate)))
-print('[INFO] FPS results in {} milliseconds per frame.'.format(msecs_per_frame))
+print('[INFO] FPS results in '
+      '{} milliseconds per frame.'.format(msecs_per_frame))
 main_timestamp = csv_filename.split('.')[0]
 
 df = pd.read_csv(csv_filename)
