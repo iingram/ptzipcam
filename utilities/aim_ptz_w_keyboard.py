@@ -51,18 +51,17 @@ if ORIENTATION == 'down':
     X_DELTA_FINE = -X_DELTA_FINE
 
 
-def main_ui_loop(stdscr):
-    # prep camera control
+def main_ui_function(stdscr):
+    # PREP CAMERA CONTROL
     ptz = PtzCam(IP, PORT, USER, PASS)
     cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
-
 
     pan, tilt, zoom = ptz.get_position()
     pan_command = pan
     tilt_command = tilt
     zoom_command = zoom
 
-    # prep ui elements
+    # PREP UI ELEMENTS
     key = 0
     height, width = stdscr.getmaxyx()
 
@@ -82,11 +81,11 @@ def main_ui_loop(stdscr):
     statusbarstr = ("Pan: j,l |"
                     "Tilt: i,k |"
                     "Zoom: z,x |"
+                    "Focus: f,g |"
                     "Shift: finer |"
                     "q to exit")
 
-    
-    # Loop where k is the last character pressed
+    # MAIN LOOP
     while (key != ord('q')):
         # retrieve and display frame
         frame = None
@@ -94,8 +93,8 @@ def main_ui_loop(stdscr):
         if frame is not None:
             frame = ui.orient_frame(frame, ORIENTATION)
             cv2.imshow('Control PTZ Camera', frame)
-            key_throwaway = cv2.waitKey(33)
-        
+            _ = cv2.waitKey(33)
+
         # Initialization
         stdscr.clear()
         height, width = stdscr.getmaxyx()
@@ -108,7 +107,6 @@ def main_ui_loop(stdscr):
             tilt_command -= Y_DELTA
         elif key == ord('I'):
             tilt_command -= Y_DELTA_FINE
-
 
         elif key == ord('l'):
             pan_command -= X_DELTA
@@ -160,13 +158,11 @@ def main_ui_loop(stdscr):
                            tilt_command,
                            zoom_command)
 
-
-        
         # Render status bar
         stdscr.attron(curses.color_pair(3))
         try:
-            stdscr.addstr(7, 0, statusbarstr)
-            stdscr.addstr(7,
+            stdscr.addstr(8, 0, statusbarstr)
+            stdscr.addstr(8,
                           len(statusbarstr),
                           " " * (width - len(statusbarstr) - 1))
         except:
@@ -196,6 +192,8 @@ def main_ui_loop(stdscr):
         stdscr.addstr(4, 0, angle_str, curses.color_pair(1))
         angle_str = "Zoom: {:.3f}".format(zoom_command)
         stdscr.addstr(5, 0, angle_str, curses.color_pair(1))
+        angle_str = "Focus: Sorta unknown"
+        stdscr.addstr(6, 0, angle_str, curses.color_pair(1))
 
         curses.curs_set(0)
 
@@ -211,107 +209,9 @@ def main_ui_loop(stdscr):
     del ptz
 
 
-    
-if __name__ == '__main__':
-    curses.wrapper(main_ui_loop)
-    
-
-    # key = None
-
-    # keys = ['w',
-    #         'a', 's', 'd', 'f',
-    #         'h', 'j', 'k', 'l',
-    #         'y', 'u', 'i', 'o',
-    #         'z', 'x', 'c', 'v',
-    #         'r']
-
-    # print("Keys:\n",
-    #       keys[0] + ": quit\n",
-    #       keys[1] + ": tilt up (fine)\n",
-    #       keys[2] + ": tilt up\n",
-    #       keys[3] + ": tilt down\n",
-    #       keys[4] + ": tilt down (fine)\n",
-    #       keys[5] + ": pan left (fine)\n",
-    #       keys[6] + ": pan left\n",
-    #       keys[7] + ": pan right\n",
-    #       keys[8] + ": pan right (fine)\n",
-    #       keys[9] + ": focus in (fine)\n",
-    #       keys[10] + ": focus in \n",
-    #       keys[11] + ": focus out \n",
-    #       keys[12] + ": focus out (fine)\n",
-    #       keys[13] + ": zoom out fine \n",
-    #       keys[14] + ": zoom out  \n",
-    #       keys[15] + ": zoom in \n",
-    #       keys[16] + ": zoom in fine \n",
-    #       keys[17] + ": update frame")
-
-    # while True:
-
-    #     if key == ord(keys[0]):
-    #         break
-    #     elif key == ord(keys[1]):
-    #         # tilt up fine
-    #         tilt_command -= Y_DELTA_FINE
-    #     elif key == ord(keys[2]):
-    #         # tilt up
-    #         tilt_command -= Y_DELTA
-    #     elif key == ord(keys[3]):
-    #         # tilt down
-    #         tilt_command += Y_DELTA
-    #     elif key == ord(keys[4]):
-    #         # tilt down fine
-    #         tilt_command += Y_DELTA_FINE
-    #     elif key == ord(keys[5]):
-    #         # pan right fine
-    #         pan_command += X_DELTA_FINE
-    #     elif key == ord(keys[6]):
-    #         # pan right
-    #         pan_command += X_DELTA
-    #     elif key == ord(keys[7]):
-    #         # pan left
-    #         pan_command -= X_DELTA
-    #     elif key == ord(keys[8]):
-    #         # pan left fine
-    #         pan_command -= X_DELTA_FINE
-    #     elif key == ord(keys[9]):
-    #         # focus in fine
-    #         ptz.focus_in()
-    #         time.sleep(F_TIME_FINE)
-    #         ptz.focus_stop()
-    #     elif key == ord(keys[10]):
-    #         # focus in
-    #     elif key == ord(keys[11]):
-    #         # focus out
-    #         ptz.focus_out()
-    #         time.sleep(F_TIME)
-    #         ptz.focus_stop()
-    #     elif key == ord(keys[12]):
-    #         # focus out fine
-    #         ptz.focus_out()
-    #         time.sleep(F_TIME_FINE)
-    #         ptz.focus_stop()
-    #     elif key == ord(keys[13]):
-    #         # zoom in fine
-    #         zoom_command -= Z_DELTA_FINE
-    #     elif key == ord(keys[14]):
-    #         # zoom in
-    #         zoom_command -= Z_DELTA
-    #     elif key == ord(keys[15]):
-    #         # zoom out
-    #         zoom_command += Z_DELTA
-    #     elif key == ord(keys[16]):
-    #         # zoom out fine
-    #         zoom_command += Z_DELTA_FINE
-    #     elif key == ord(keys[17]):
-    #         pass
-    #     else:
-    #         pass
+def main():
+    curses.wrapper(main_ui_function)
 
 
-
-
-
-
-
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
