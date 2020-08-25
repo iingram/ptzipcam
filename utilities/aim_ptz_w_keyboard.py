@@ -76,8 +76,9 @@ def main_ui_function(stdscr):
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
     # Declaration of strings
-    title = "SageCam Keyboard Control:"[:width-1]
+    title = "SageCam Test Tools Keyboard Control:"[:width-1]
     subtitle = "Aim PTZ IP Camera with Keyboard"[:width-1]
+    usage_note = "(Only updates camera view once per keystroke)"[:width-1]
     statusbarstr = ("Pan: j,l |"
                     "Tilt: i,k |"
                     "Zoom: z,x |"
@@ -99,6 +100,7 @@ def main_ui_function(stdscr):
         stdscr.clear()
         height, width = stdscr.getmaxyx()
 
+        # parse keyboard input
         if key == ord('k'):
             tilt_command += Y_DELTA
         elif key == ord('K'):
@@ -160,9 +162,12 @@ def main_ui_function(stdscr):
 
         # Render status bar
         stdscr.attron(curses.color_pair(3))
+        # doing the exception as it appears to prevent a crashing bug
+        # brought about when the window is resized so the width is
+        # less than the status bar string
         try:
-            stdscr.addstr(8, 0, statusbarstr)
-            stdscr.addstr(8,
+            stdscr.addstr(9, 0, statusbarstr)
+            stdscr.addstr(9,
                           len(statusbarstr),
                           " " * (width - len(statusbarstr) - 1))
         except:
@@ -170,31 +175,28 @@ def main_ui_function(stdscr):
 
         stdscr.attroff(curses.color_pair(3))
 
-        # Turning on attributes for title
+        # Curses title section
         stdscr.attron(curses.color_pair(2))
         stdscr.attron(curses.A_BOLD)
-
-        # Rendering title
         stdscr.addstr(0, 0, title)
 
-        # Turning off attributes for title
         stdscr.attroff(curses.color_pair(2))
         stdscr.attroff(curses.A_BOLD)
-
-        # Print rest of text
         stdscr.addstr(1, 0, subtitle)
-        stdscr.addstr(2, 0, '-' * 31)
+        stdscr.addstr(2, 0, usage_note)
+        # stdscr.addstr(3, 0, '-' * 31)
 
-        # Print pan, tilt, zoom values
+        # Write pan, tilt, zoom values
         angle_str = "Pan: {:.3f}".format(pan_command)
-        stdscr.addstr(3, 0, angle_str, curses.color_pair(1))
-        angle_str = "Tilt: {:.3f}".format(tilt_command)
         stdscr.addstr(4, 0, angle_str, curses.color_pair(1))
-        angle_str = "Zoom: {:.3f}".format(zoom_command)
+        angle_str = "Tilt: {:.3f}".format(tilt_command)
         stdscr.addstr(5, 0, angle_str, curses.color_pair(1))
-        angle_str = "Focus: Sorta unknown"
+        angle_str = "Zoom: {:.3f}".format(zoom_command)
         stdscr.addstr(6, 0, angle_str, curses.color_pair(1))
+        angle_str = "Focus: Sorta unknown"
+        stdscr.addstr(7, 0, angle_str, curses.color_pair(1))
 
+        # hide cursor
         curses.curs_set(0)
 
         # Refresh the screen
