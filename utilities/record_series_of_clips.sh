@@ -8,8 +8,8 @@ while true; do
     printf "Next clip\n"
     current_time=$(date "+%Y.%m.%d-%H.%M.%S")
     # file_name=bushmasters
-    file_name=$current_time.mp4
-    ffmpeg -i rtsp://admin:b22shm**stters@10.10.32.206:554/Streaming/Channels/103 -acodec copy -vcodec copy $file_name -nostdin  &
+    file_name=/home/ian/mang_vipers/$current_time.mp4
+    ffmpeg -i rtsp://admin:b22shm**stters@10.10.32.206:554/Streaming/Channels/102 -acodec copy -vcodec copy $file_name -nostdin  &
     vlc_pid=$!
 
     sleep 30m
