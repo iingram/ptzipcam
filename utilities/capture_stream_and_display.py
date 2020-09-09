@@ -33,6 +33,7 @@ else:
 
 ORIENTATION = configs['ORIENTATION']
 RECORD = configs['RECORD']
+RECORD_FOLDER = configs['RECORD_FOLDER']
 
 # GUI constants
 HEADLESS = configs['HEADLESS']
@@ -62,7 +63,7 @@ if __name__ == '__main__':
 
     if RECORD:
         print('[INFO] Recording is ON.')
-        recorder = ImageStreamRecorder('/home/ian/images_dtz')
+        recorder = ImageStreamRecorder(RECORD_FOLDER)
     else:
         print('[INFO] Recording is OFF.')
 
