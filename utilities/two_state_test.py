@@ -58,13 +58,15 @@ def core_function(stdscr):
     while key != ord('q'):
         stdscr.clear()
         time.sleep(.1)
-        pan, tilt, zoom = ptz.get_position()
-        # run position controller on ptz system
-        x_velocity, y_velocity = motor_controller.run(x_err, y_err)
+        # pan, tilt, zoom = ptz.get_position()
+        if key == ord('s'):
+            x_velocity = -.1
+        else:
+            x_velocity, y_velocity = motor_controller.run(x_err, y_err)
+
         if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
             # print('stop action')
             ptz.stop()
-
         ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
 
         # Refresh the screen
