@@ -35,6 +35,14 @@ else:
 # INIT_POS = configs['INIT_POS']
 ORIENTATION = configs['ORIENTATION']
 
+INFINITE_PAN = configs['INFINITE_PAN']
+CAM_TILT_MIN = configs['CAM_TILT_MIN']
+CAM_TILT_MAX = configs['CAM_TILT_MAX']
+CAM_PAN_MIN = configs['CAM_PAN_MIN']
+CAM_PAN_MAX = configs['CAM_PAN_MAX']
+CAM_ZOOM_MIN = configs['CAM_ZOOM_MIN']
+CAM_ZOOM_MAX = configs['CAM_ZOOM_MAX']
+
 Y_DELTA = .05
 Y_DELTA_FINE = .001
 X_DELTA = .05
@@ -152,9 +160,19 @@ def main_ui_function(stdscr):
                 command = maxx
             return command
 
-        pan_command = keep_in_bounds(pan_command, -1.0, 1.0)
-        tilt_command = keep_in_bounds(tilt_command, 0.0, 1.0)
-        zoom_command = keep_in_bounds(zoom_command, 0.0, 1.0)
+        def wrap_pan(command, minn, maxx):
+            if command <= minn:
+                command = maxx - minn + command
+            elif command >= maxx:
+                command = minn - maxx + command
+            return command
+
+        if INFINITE_PAN:
+            pan_command = wrap_pan(pan_command, CAM_PAN_MIN, CAM_PAN_MAX)
+        else:
+            pan_command = keep_in_bounds(pan_command, CAM_PAN_MIN, CAM_PAN_MAX)
+        tilt_command = keep_in_bounds(tilt_command, CAM_TILT_MIN, CAM_TILT_MAX)
+        zoom_command = keep_in_bounds(zoom_command, CAM_ZOOM_MIN, CAM_ZOOM_MAX)
 
         ptz.absmove_w_zoom(pan_command,
                            tilt_command,

@@ -1,5 +1,6 @@
 RECORD_FOLDER: /home/ian/twitcher_recordings
 HEADLESS: False
+
 # bird, person, giraffe, cup, cat, dog, horse, sheep, cow, elephant, bear, zebra
 TRACKED_CLASS: [giraffe, person]
 TIMELAPSE_CONFIG_FILENAME: config_timelapse.yaml
@@ -17,6 +18,14 @@ IP: 192.168.2.64  # cameras ship as 192.168.1.64
 PORT: 80
 USER: admin        
 PASS: NyalaChow22  
+
+CAM_TILT_MIN: -1.0
+CAM_TILT_MAX: 1.0
+CAM_PAN_MIN: -1.0
+CAM_PAN_MAX: 1.0
+CAM_ZOOM_MIN: 0.0
+CAM_ZOOM_MAX: 1.0
+INFINITE_PAN: True
 
 CONF_THRESHOLD: .5
 NMS_THRESHOLD: .9
