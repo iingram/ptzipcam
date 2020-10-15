@@ -31,6 +31,8 @@ if args.stream is None:
 else:
     STREAM = int(args.stream)
 
+HEADLESS = configs['HEADLESS']
+
 # ptz camera setup constants
 # INIT_POS = configs['INIT_POS']
 ORIENTATION = configs['ORIENTATION']
@@ -101,8 +103,9 @@ def main_ui_function(stdscr):
         frame = cam.get_frame()
         if frame is not None:
             frame = ui.orient_frame(frame, ORIENTATION)
-            cv2.imshow('Control PTZ Camera', frame)
-            _ = cv2.waitKey(33)
+            if not HEADLESS:
+                cv2.imshow('Control PTZ Camera', frame)
+                _ = cv2.waitKey(33)
 
         # Initialization
         stdscr.clear()
@@ -223,7 +226,8 @@ def main_ui_function(stdscr):
         # Wait for next input
         key = stdscr.getch()
 
-    cv2.destroyAllWindows()
+    if not HEADLESS:
+        cv2.destroyAllWindows()
     # cam.release()
     del cam
     del ptz
