@@ -106,7 +106,9 @@ def main_ui_function(stdscr):
             if not HEADLESS:
                 cv2.imshow('Control PTZ Camera', frame)
                 _ = cv2.waitKey(33)
-
+            else:
+                time.sleep(.033)
+                
         # Initialization
         stdscr.clear()
         height, width = stdscr.getmaxyx()
