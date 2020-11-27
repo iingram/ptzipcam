@@ -71,9 +71,9 @@ class MotorController():
         filling_much_of_height = box_height >= .7 * self.frame_height
         if filling_much_of_width or filling_much_of_height:
             zoom_command = 0.0
-        
+
         return x_err, y_err, zoom_command
-        
+
     def _calc_command(self, err, k):
         command = k * err
         if command >= 1.0:
@@ -124,7 +124,6 @@ class PtzCam():
 
         """
 
-        
         mycam = ONVIFCamera(ip, port, user, pword)
         media_service = mycam.create_media_service()
         self.ptz_service = mycam.create_ptz_service()
@@ -138,7 +137,7 @@ class PtzCam():
         self.pan_bounds = [-1.0, 1.0]
         self.tilt_bounds = [-1.0, 1.0]
         self.zoom_bounds = [0.0, 1.0]
-        
+
         # self.moverequest = self.ptz.create_type('ContinuousMove')
         # self.moverequest.ProfileToken = media_profile.token
         # # if self.moverequest.Velocity is None:
@@ -150,7 +149,7 @@ class PtzCam():
 
     def __del__(self):
         print('[INFO] PtzCam object deletion.')
-        
+
     def focus_out(self):
         focus_request = self.imaging_service.create_type('Move')
         focus_request.VideoSourceToken = self.video_source.token
@@ -223,7 +222,7 @@ class PtzCam():
         time.sleep(1.0)
         self.absmove_w_zoom(pan, tilt, zoom)
         time.sleep(1.0)
-    
+
     def absmove_w_zoom(self, pan_pos, tilt_pos, zoom_pos):
         """Move PTZ camera to an absolute pan, tilt, zoom state.
 
