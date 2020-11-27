@@ -62,6 +62,36 @@ CLASSES = nn.read_classes_from_file(CLASSES_FILE)
 # GUI constants
 HEADLESS = configs['HEADLESS']
 
+class Perception():
+
+    def __init__(self):
+        self.network = nn.ObjectDetectorHandler(MODEL_CONFIG,
+                                                MODEL_WEIGHTS,
+                                                INPUT_WIDTH,
+                                                INPUT_HEIGHT)
+
+
+    def update(self, frame):
+        outs, inference_time = self.network.infer(frame)
+        msg = ("[INFO] Inference time: "
+               + "{:.1f} milliseconds".format(inference_time))
+        print(msg)
+        lboxes = self.network.filter_boxes(outs,
+                                      frame,
+                                      CONF_THRESHOLD,
+                                      NMS_THRESHOLD)
+
+        # extract the lbox with the highest confidence (that is a target type)
+        highest_confidence_tracked_class = 0
+        target_lbox = None
+        for lbox in lboxes:
+            if CLASSES[lbox['class_id']] in TRACKED_CLASS:
+                if lbox['confidence'] > highest_confidence_tracked_class:
+                    highest_confidence_tracked_class = lbox['confidence']
+                    target_lbox = lbox
+
+        return target_lbox
+        
 if __name__ == '__main__':
     # construct core objects
     ptz = PtzCam(IP, PORT, USER, PASS)
@@ -73,16 +103,14 @@ if __name__ == '__main__':
     frame = cam.get_frame()
     frame = ui.orient_frame(frame, ORIENTATION)
 
+    perception = Perception()
+    
     window_name = 'Detect, Track, and Zoom'
 
     if not HEADLESS:
         uih = ui.UI_Handler(frame, window_name)
 
     print("[INFO] Using: " + nn.__name__)
-    network = nn.ObjectDetectorHandler(MODEL_CONFIG,
-                                       MODEL_WEIGHTS,
-                                       INPUT_WIDTH,
-                                       INPUT_HEIGHT)
 
     frame = cam.get_frame()
     frame_width = frame.shape[1]
@@ -146,24 +174,8 @@ if __name__ == '__main__':
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
         frame = raw_frame.copy()
 
-        outs, inference_time = network.infer(frame)
-        msg = ("[INFO] Inference time: "
-               + "{:.1f} milliseconds".format(inference_time))
-        print(msg)
-        lboxes = network.filter_boxes(outs,
-                                      frame,
-                                      CONF_THRESHOLD,
-                                      NMS_THRESHOLD)
-
-        # extract the lbox with the highest confidence (that is a target type)
-        highest_confidence_tracked_class = 0
-        target_lbox = None
-        for lbox in lboxes:
-            if CLASSES[lbox['class_id']] in TRACKED_CLASS:
-                if lbox['confidence'] > highest_confidence_tracked_class:
-                    highest_confidence_tracked_class = lbox['confidence']
-                    target_lbox = lbox
-
+        target_lbox = perception.update(frame)
+        
         # if there is an appropriate lbox attempt to adjust ptz cam
         detected_class = 'nothing detected'
         score = 0.0
