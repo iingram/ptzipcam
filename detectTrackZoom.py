@@ -5,7 +5,6 @@ import time
 import argparse
 
 import yaml
-import cv2
 
 from ptzipcam.ptz_camera import PtzCam
 from ptzipcam.ptz_camera import MotorController
@@ -62,6 +61,7 @@ CLASSES = nn.read_classes_from_file(CLASSES_FILE)
 # GUI constants
 HEADLESS = configs['HEADLESS']
 
+
 class Perception():
 
     def __init__(self):
@@ -70,16 +70,15 @@ class Perception():
                                                 INPUT_WIDTH,
                                                 INPUT_HEIGHT)
 
-
     def update(self, frame):
         outs, inference_time = self.network.infer(frame)
         msg = ("[INFO] Inference time: "
                + "{:.1f} milliseconds".format(inference_time))
         print(msg)
         lboxes = self.network.filter_boxes(outs,
-                                      frame,
-                                      CONF_THRESHOLD,
-                                      NMS_THRESHOLD)
+                                           frame,
+                                           CONF_THRESHOLD,
+                                           NMS_THRESHOLD)
 
         # extract the lbox with the highest confidence (that is a target type)
         highest_confidence_tracked_class = 0
@@ -91,7 +90,8 @@ class Perception():
                     target_lbox = lbox
 
         return target_lbox
-        
+
+
 if __name__ == '__main__':
     # construct core objects
     ptz = PtzCam(IP, PORT, USER, PASS)
@@ -99,12 +99,12 @@ if __name__ == '__main__':
     cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
 
     motor_controller = MotorController(PID_GAINS, ORIENTATION)
-    
+
     frame = cam.get_frame()
     frame = ui.orient_frame(frame, ORIENTATION)
 
     perception = Perception()
-    
+
     window_name = 'Detect, Track, and Zoom'
 
     if not HEADLESS:
@@ -170,12 +170,12 @@ if __name__ == '__main__':
         if raw_frame is None:
             print('Frame is None.')
             continue
-        
+
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
         frame = raw_frame.copy()
 
         target_lbox = perception.update(frame)
-        
+
         # if there is an appropriate lbox attempt to adjust ptz cam
         detected_class = 'nothing detected'
         score = 0.0
@@ -253,7 +253,7 @@ if __name__ == '__main__':
             #     dilation_vid_writer.update(frame, target_lbox is not None)
 
         # run position controller on ptz system
-        x_velocity, y_velocity = motor_controller.run(x_err, y_err) 
+        x_velocity, y_velocity = motor_controller.run(x_err, y_err)
         if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
             # print('stop action')
             ptz.stop()
