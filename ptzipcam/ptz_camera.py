@@ -3,6 +3,8 @@ import time
 import numpy as np
 from onvif import ONVIFCamera
 
+from dnntools import draw
+
 
 def _checkZeroness(number):
     """Checks if a number is very close to zero (within a window) and if
@@ -33,10 +35,45 @@ it is makes it less close by placing it at the edge of that window.
 
 class MotorController():
 
-    def __init__(self, pid_gains, orientation):
+    def __init__(self, pid_gains, orientation, example_frame):
         self.pid_gains = pid_gains
         self.orientation = orientation
 
+        self.frame_width = example_frame.shape[1]
+        self.frame_height = example_frame.shape[0]
+
+        self.total_frame_pixels = self.frame_width * self.frame_height
+
+    def calc_errors(self,
+                    target_lbox,
+                    zoom_command):
+        xc, yc = draw.box_to_coords(target_lbox['box'],
+                                    return_kind='center')
+        ret = draw.box_to_coords(target_lbox['box'])
+        x, y, box_width, box_height = ret
+        x_err = self.frame_width/2 - xc
+        y_err = self.frame_height/2 - yc
+
+        # zoom command calculations
+        target_bb_pixels = box_width * box_height
+
+        # if x_err < 50 and y_err < 50:
+        # if x_err != 0 and x_err < 50 and y_err < 50:
+        if (target_bb_pixels / self.total_frame_pixels) < .3:
+            zoom_command += .1
+            if zoom_command >= 1.0:
+                zoom_command = 1.0
+            # zoom_command = 1.0
+        else:
+            zoom_command = 0.0
+
+        filling_much_of_width = box_width >= .7 * self.frame_width
+        filling_much_of_height = box_height >= .7 * self.frame_height
+        if filling_much_of_width or filling_much_of_height:
+            zoom_command = 0.0
+        
+        return x_err, y_err, zoom_command
+        
     def _calc_command(self, err, k):
         command = k * err
         if command >= 1.0:
