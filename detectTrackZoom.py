@@ -61,37 +61,6 @@ CLASSES = nn.read_classes_from_file(CLASSES_FILE)
 # GUI constants
 HEADLESS = configs['HEADLESS']
 
-
-class Perception():
-
-    def __init__(self):
-        self.network = nn.ObjectDetectorHandler(MODEL_CONFIG,
-                                                MODEL_WEIGHTS,
-                                                INPUT_WIDTH,
-                                                INPUT_HEIGHT)
-
-    def update(self, frame):
-        outs, inference_time = self.network.infer(frame)
-        msg = ("[INFO] Inference time: "
-               + "{:.1f} milliseconds".format(inference_time))
-        print(msg)
-        lboxes = self.network.filter_boxes(outs,
-                                           frame,
-                                           CONF_THRESHOLD,
-                                           NMS_THRESHOLD)
-
-        # extract the lbox with the highest confidence (that is a target type)
-        highest_confidence_tracked_class = 0
-        target_lbox = None
-        for lbox in lboxes:
-            if CLASSES[lbox['class_id']] in TRACKED_CLASS:
-                if lbox['confidence'] > highest_confidence_tracked_class:
-                    highest_confidence_tracked_class = lbox['confidence']
-                    target_lbox = lbox
-
-        return target_lbox
-
-
 if __name__ == '__main__':
     # construct core objects
     ptz = PtzCam(IP, PORT, USER, PASS)
@@ -99,7 +68,15 @@ if __name__ == '__main__':
     cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
     frame = cam.get_frame()
     motor_controller = MotorController(PID_GAINS, ORIENTATION, frame)
-    perception = Perception()
+
+    detector = nn.TargetDetector(MODEL_CONFIG,
+                                 MODEL_WEIGHTS,
+                                 INPUT_WIDTH,
+                                 INPUT_HEIGHT,
+                                 CONF_THRESHOLD,
+                                 NMS_THRESHOLD,
+                                 CLASSES,
+                                 TRACKED_CLASS)
 
     window_name = 'Detect, Track, and Zoom'
 
@@ -162,7 +139,7 @@ if __name__ == '__main__':
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
         frame = raw_frame.copy()
 
-        target_lbox = perception.update(frame)
+        target_lbox = detector.detect(frame)
 
         if target_lbox:
             detected_class = CLASSES[target_lbox['class_id']]
