@@ -142,14 +142,14 @@ if __name__ == '__main__':
         target_lbox = detector.detect(frame)
 
         if target_lbox:
-            detected_class = CLASSES[target_lbox['class_id']]
+            detected_class = detector.class_names[target_lbox['class_id']]
             score = 100 * target_lbox['confidence']
             print("[INFO] Detected: "
                   + "{} with confidence {:.1f}".format(detected_class,
                                                        score))
 
             frames_since_last_target = 0
-            draw.labeled_box(frame, CLASSES, target_lbox)
+            draw.labeled_box(frame, detector.class_names, target_lbox)
 
             commands = motor_controller.calc_errors(target_lbox,
                                                     zoom_command)
