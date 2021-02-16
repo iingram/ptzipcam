@@ -6,7 +6,6 @@ import time
 import argparse
 
 import yaml
-import cv2
 
 from ptzipcam.ptz_camera import PtzCam
 from ptzipcam.ptz_camera import MotorController
@@ -15,8 +14,8 @@ from ptzipcam import ui
 from ptzipcam.io import ImageStreamRecorder
 # from ptzipcam.video_writer import DilationVideoWriter
 
-# from dnntools import neuralnetwork as nn
-from dnntools import neuralnetwork_coral as nn
+from dnntools import neuralnetwork as nn
+# from dnntools import neuralnetwork_coral as nn
 
 from dnntools import draw
 
@@ -72,30 +71,27 @@ if __name__ == '__main__':
     ptz = PtzCam(IP, PORT, USER, PASS)
     # cam = Camera()
     cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
-
-    motor_controller = MotorController(PID_GAINS, ORIENTATION)
-    
     frame = cam.get_frame()
-    frame = ui.orient_frame(frame, ORIENTATION)
+    if frame is None:
+        log.warning('Frame is None.')
+
+    motor_controller = MotorController(PID_GAINS, ORIENTATION, frame)
+
+    detector = nn.TargetDetector(MODEL_CONFIG,
+                                 MODEL_WEIGHTS,
+                                 INPUT_WIDTH,
+                                 INPUT_HEIGHT,
+                                 CONF_THRESHOLD,
+                                 NMS_THRESHOLD,
+                                 CLASSES,
+                                 TRACKED_CLASS)
 
     window_name = 'Detect, Track, and Zoom'
 
     if not HEADLESS:
         uih = ui.UI_Handler(frame, window_name)
 
-    log.info("Using: " + nn.__name__)
-    network = nn.ObjectDetectorHandler(MODEL_CONFIG,
-                                       MODEL_WEIGHTS,
-                                       INPUT_WIDTH,
-                                       INPUT_HEIGHT)
-
-    frame = cam.get_frame()
-    if frame is None:
-        log.warning('Frame is None.')
-    frame_width = frame.shape[1]
-    frame_height = frame.shape[0]
-
-    total_pixels = frame_width * frame_height
+    log.info("[INFO] Using: " + nn.__name__)
 
     if RECORD:
         recorder = ImageStreamRecorder('/home/ian/images_dtz')
@@ -139,90 +135,52 @@ if __name__ == '__main__':
     x_err = 0
     y_err = 0
 
-    frames_since_last_acq = 0
+    frames_since_last_target = 0
 
     while True:
         pan, tilt, zoom = ptz.get_position()
-        # print("Zoom is at: " + str(zoom))
-
         raw_frame = cam.get_frame()
         if raw_frame is None:
             print('Frame is None.')
             continue
-        
+
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
         frame = raw_frame.copy()
 
-        outs, inference_time = network.infer(frame)
-        msg = ("[INFO] Inference time: "
-               + "{:.1f} milliseconds".format(inference_time))
-        print(msg)
-        lboxes = network.filter_boxes(outs,
-                                      frame,
-                                      CONF_THRESHOLD,
-                                      NMS_THRESHOLD)
+        target_lbox = detector.detect(frame)
 
-        # extract the lbox with the highest confidence (that is a target type)
-        highest_confidence_tracked_class = 0
-        target_lbox = None
-        for lbox in lboxes:
-            if CLASSES[lbox['class_id']] in TRACKED_CLASS:
-                if lbox['confidence'] > highest_confidence_tracked_class:
-                    highest_confidence_tracked_class = lbox['confidence']
-                    target_lbox = lbox
-
-        # if there is an appropriate lbox attempt to adjust ptz cam
-        detected_class = 'nothing detected'
-        score = 0.0
         if target_lbox:
-            detected_class = CLASSES[target_lbox['class_id']]
+            detected_class = detector.class_names[target_lbox['class_id']]
             score = 100 * target_lbox['confidence']
             print("[INFO] Detected: "
                   + "{} with confidence {:.1f}".format(detected_class,
                                                        score))
 
-            frames_since_last_acq = 0
-            draw.labeled_box(frame, CLASSES, target_lbox)
-            xc, yc = draw.box_to_coords(target_lbox['box'],
-                                        return_kind='center')
-            ret = draw.box_to_coords(target_lbox['box'])
-            x, y, box_width, box_height = ret
-            x_err = frame_width/2 - xc
-            y_err = frame_height/2 - yc
+            frames_since_last_target = 0
+            draw.labeled_box(frame, detector.class_names, target_lbox)
 
-            target_bb_pixels = box_width * box_height
-
-            # if x_err < 50 and y_err < 50:
-            # if x_err != 0 and x_err < 50 and y_err < 50:
-            if (target_bb_pixels / total_pixels) < .3:
-                zoom_command += .1
-                if zoom_command >= 1.0:
-                    zoom_command = 1.0
-                # zoom_command = 1.0
-            else:
-                zoom_command = 0.0
-
-            filling_much_of_width = box_width >= .7 * frame_width
-            filling_much_of_height = box_height >= .7 * frame_height
-            if filling_much_of_width or filling_much_of_height:
-                zoom_command = 0.0
+            commands = motor_controller.calc_errors(target_lbox,
+                                                    zoom_command)
+            x_err, y_err, zoom_command = commands
         else:
+            detected_class = 'nothing detected'
+            score = 0.0
             zoom_command = 0
-            # print(str(time.time()) + ': no target')
-            frames_since_last_acq += 1
-            if frames_since_last_acq > 10:
+
+            frames_since_last_target += 1
+            if frames_since_last_target > 10:
                 x_err = 0
                 y_err = 0
 
-            if frames_since_last_acq > 30:
+            if frames_since_last_target > 30:
                 # x_err = -300
                 x_err = 0
 
             # # commenting this bit out because it doesn't always work
             # # and may be source of wandering bug
-            # if frames_since_last_acq > 30:
+            # if frames_since_last_target > 30:
             #     ptz.absmove(INIT_POS[0], INIT_POS[1])
-            if frames_since_last_acq > 30:
+            if frames_since_last_target > 30:
                 zoom_command -= .05
                 if zoom_command <= -1.0:
                     zoom_command = -1.0
@@ -248,7 +206,7 @@ if __name__ == '__main__':
             #     dilation_vid_writer.update(frame, target_lbox is not None)
 
         # run position controller on ptz system
-        x_velocity, y_velocity = motor_controller.run(x_err, y_err) 
+        x_velocity, y_velocity = motor_controller.run(x_err, y_err)
         if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
             # print('stop action')
             ptz.stop()
