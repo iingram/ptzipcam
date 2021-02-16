@@ -1,5 +1,6 @@
 #!/home/ian/.virtualenvs/ptzSpotter/bin/python
 
+import logging
 import os
 import time
 import argparse
@@ -17,6 +18,10 @@ from dnntools import neuralnetwork as nn
 # from dnntools import neuralnetwork_coral as nn
 
 from dnntools import draw
+
+logging.basicConfig(level='INFO',
+                    format='[%(levelname)s] %(message)s (%(name)s)')
+log = getLogger('main')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config',
@@ -67,6 +72,9 @@ if __name__ == '__main__':
     # cam = Camera()
     cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
     frame = cam.get_frame()
+    if frame is None:
+        log.warning('Frame is None.')
+
     motor_controller = MotorController(PID_GAINS, ORIENTATION, frame)
 
     detector = nn.TargetDetector(MODEL_CONFIG,
@@ -83,7 +91,7 @@ if __name__ == '__main__':
     if not HEADLESS:
         uih = ui.UI_Handler(frame, window_name)
 
-    print("[INFO] Using: " + nn.__name__)
+    log.info("[INFO] Using: " + nn.__name__)
 
     if RECORD:
         recorder = ImageStreamRecorder('/home/ian/images_dtz')
