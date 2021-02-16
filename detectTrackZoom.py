@@ -1,5 +1,6 @@
 #!/home/ian/.virtualenvs/ptzSpotter/bin/python
 
+import logging
 import os
 import time
 import argparse
@@ -18,6 +19,10 @@ from ptzipcam.io import ImageStreamRecorder
 from dnntools import neuralnetwork_coral as nn
 
 from dnntools import draw
+
+logging.basicConfig(level='INFO',
+                    format='[%(levelname)s] %(message)s (%(name)s)')
+log = getLogger('main')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config',
@@ -78,13 +83,15 @@ if __name__ == '__main__':
     if not HEADLESS:
         uih = ui.UI_Handler(frame, window_name)
 
-    print("[INFO] Using: " + nn.__name__)
+    log.info("Using: " + nn.__name__)
     network = nn.ObjectDetectorHandler(MODEL_CONFIG,
                                        MODEL_WEIGHTS,
                                        INPUT_WIDTH,
                                        INPUT_HEIGHT)
 
     frame = cam.get_frame()
+    if frame is None:
+        log.warning('Frame is None.')
     frame_width = frame.shape[1]
     frame_height = frame.shape[0]
 
