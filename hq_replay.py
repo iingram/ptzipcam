@@ -1,6 +1,7 @@
 import argparse
 
-import viz_hq
+from viztools.visualization import create_layout, GridDisplay, print_layout_geometry
+
 import io_hq
 
 parser = argparse.ArgumentParser()
@@ -20,14 +21,14 @@ NUM_ROWS = 7
 COL_WIDTH = 330
 ROW_HEIGHT = 250
 
-layout = viz_hq.create_layout(NUM_ROWS,
-                              NUM_COLS,
-                              COL_WIDTH,
-                              ROW_HEIGHT,
-                              upside_down=False)
-viz_hq.print_layout_geometry(NUM_ROWS, NUM_COLS)
+layout = create_layout(NUM_ROWS,
+                       NUM_COLS,
+                       COL_WIDTH,
+                       ROW_HEIGHT,
+                       upside_down=False)
+print_layout_geometry(NUM_ROWS, NUM_COLS)
 
-display = viz_hq.Display("HQ Replay", JUMP_SCREENS, layout)
+display = GridDisplay("HQ Replay", JUMP_SCREENS, layout)
 
 pics = io_hq.read_in_pics(args.base_path,
                           args.csv_file,

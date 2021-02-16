@@ -5,11 +5,11 @@ import imutils
 
 import pandas as pd
 
-import viz_hq
+from viztools.visualization import init_pics
 
 
 def read_in_pics(path, csv_file, layout, image_width):
-    pics = viz_hq.init_pics(layout)
+    pics = init_pics(layout)
 
     df = pd.read_csv(csv_file)
 
