@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 import time
@@ -18,6 +19,11 @@ from ptzipcam.io import ImageStreamRecorder
 
 import movement_functions
 import globalvars
+
+
+logging.basicConfig(level='INFO',
+                    format='[%(levelname)s] %(message)s (%(name)s)')
+            
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config_file_path',
@@ -50,6 +56,7 @@ with open(CONFIG_FILE) as f:
 IP = configs['IP']
 USER = configs['USER']
 PASS = configs['PASS']
+STREAM = configs['STREAM']
 
 RECORD_FOLDER = configs['RECORD_FOLDER']
 TIMELAPSE_CONFIG_FILENAME = configs['TIMELAPSE_CONFIG_FILENAME']
@@ -127,7 +134,7 @@ if __name__ == '__main__':
     with open('/home/ian/timelapse.log', 'a') as f:
         f.write('[INFO] started movement control thread\n')
 
-    cam = Camera(ip=IP, user=USER, passwd=PASS)
+    cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
     width, height = cam.get_resolution()
 
     hostname = socket.gethostname()
@@ -166,7 +173,7 @@ if __name__ == '__main__':
 
             frame = cam.get_frame()
             if frame is None:
-                print('Frame is None.')
+                log.warning('Frame is None.')
 
             if globalvars.camera_still and frame is not None:
                 if latch:
