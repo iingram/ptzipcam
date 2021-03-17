@@ -21,10 +21,22 @@ class Camera():
                  ip='192.168.1.64',
                  user='admin',
                  passwd='NyalaChow22',
-                 stream=3):
+                 stream=3,
+                 rtsp_port=554,
+                 cam_brand='hikvision'):
 
-        stream_string = ':554/Streaming/Channels/10' + str(stream)
-        
+        if cam_brand == 'axis':
+            stream_string = (':'
+                             + str(rtsp_port)
+                             + '/axis-media/media.amp')
+        elif cam_brand == 'hikvision':
+            stream_string = (':'
+                             + str(rtsp_port)
+                             + '/Streaming/Channels/10'
+                             + str(stream))
+        else:
+            print('[ERROR] Camera type not recognized.')
+            
         address = ('rtsp://'
                    + user
                    + ':'
@@ -39,6 +51,7 @@ class Camera():
 
         self.cam_thread = threading.Thread(target=camera_thread_function,
                                            args=(self.cap, self.frame))
+        self.cam_thread.daemon = True
         self.cam_thread.start()
 
     def get_frame(self):
@@ -50,5 +63,9 @@ class Camera():
     def get_resolution(self):
         return self.frame[0].shape[1], self.frame[0].shape[0]
 
-    def release(self):
+    # def release(self):
+    #     self.cap.release()
+
+    def __del__(self):
+        print('[INFO] Camera object deletion')
         self.cap.release()

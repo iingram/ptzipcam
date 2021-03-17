@@ -9,7 +9,7 @@ import imutils
 
 import numpy as np
 
-from viztools import visualization as viz
+from viztools.visualization import FlyingPicBox
 
 import viz_hq
 
@@ -31,7 +31,12 @@ PORT = int(args.port)
 
 flypics = []
 
-layout = viz_hq.create_layout(NUM_ROWS, NUM_COLS, COL_WIDTH, ROW_HEIGHT, upside_down=False)
+layout = viz_hq.create_layout(NUM_ROWS,
+                              NUM_COLS,
+                              COL_WIDTH,
+                              ROW_HEIGHT,
+                              upside_down=False)
+
 print('Grid: ' + str(NUM_COLS) + 'x' + str(NUM_ROWS))
 WINDOW_NAME = "HQ"
 display = viz_hq.Display(WINDOW_NAME, JUMP_SCREENS, layout)
@@ -74,7 +79,8 @@ def socket_function():
             print("Done Recv: {}".format(len(data)))
             header = data[:header_size]
             data = data[header_size:]
-            msg_size, pan_angle, tilt_angle = struct.unpack(header_format, header)
+            msg_size, pan_angle, tilt_angle = struct.unpack(header_format,
+                                                            header)
             print("msg_size: {}".format(msg_size))
             print("pan_angle: {:.2f}".format(pan_angle))
             print("tilt_angle: {:.2f}".format(tilt_angle))
@@ -90,9 +96,9 @@ def socket_function():
 
             frame = imutils.resize(frame, width=320)
 
-            flypics.append(viz.FlyingPicBox(frame,
-                                            np.array([layout[spot_count][0], 0]),
-                                            np.array(layout[spot_count])))
+            flypics.append(FlyingPicBox(frame,
+                                        np.array([layout[spot_count][0], 0]),
+                                        np.array(layout[spot_count])))
             spot_count += 1
             if spot_count >= len(layout):
                 spot_count = 0

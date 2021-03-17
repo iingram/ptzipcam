@@ -1,8 +1,3 @@
-#!/home/ian/.virtualenvs/ptzSpotter/bin/python
-
-# Need to do something in the realm of this first:
-# ffmpeg -rtsp_transport tcp -i rtsp://admin:NyalaChow22@192.168.1.64:554/Streaming/Channels/103 -b 1900k -f mpegts udp://127.0.0.1:5000
-
 import yaml
 import argparse
 # import time
@@ -11,32 +6,30 @@ from ptzipcam.ptz_camera import PtzCam
 from ptzipcam.camera import Camera
 from ptzipcam import ui
 
-ap = argparse.ArgumentParser()
-
-ap.add_argument('-n',
-                '--num',
-                default='64',
-                help='last bit of camera IP (assumes rest')
-
-args = ap.parse_args()
-
-IP = "192.168.1." + args.num  # Camera IP address
-PORT = 80           # Port
-USER = "admin"         # Username
-PASS = "NyalaChow22"        # Password
-
-CONFIG_FILE = 'config.yaml'
+parser = argparse.ArgumentParser()
+parser.add_argument('-c',
+                    '--config',
+                    default='../config.yaml',
+                    help='Filename of configuration file')
+args = parser.parse_args()
+CONFIG_FILE = args.config
 
 with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
-STREAM = configs['STREAM']  
+# ptz camera networking constants
+IP = configs['IP']
+PORT = configs['PORT']
+USER = configs['USER']
+PASS = configs['PASS']
+STREAM = configs['STREAM']
+
 ORIENTATION = configs['ORIENTATION']
 
 if __name__ == '__main__':
     ptz = PtzCam(IP, PORT, USER, PASS)
     cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
-    
+
     frame = cam.get_frame()
     frame = ui.orient_frame(frame, ORIENTATION)
 
@@ -48,9 +41,14 @@ if __name__ == '__main__':
     zoom_command = False
     ptz.zoom_out_full()
 
+    print('Tool to control ptz ip camera with mouse and see stream.')
+
     while True:
         # time.sleep(1)
         frame = cam.get_frame()
+        if frame is None:
+            continue
+
         frame = ui.orient_frame(frame, ORIENTATION)
 
         key = uih.update(frame)
@@ -59,7 +57,7 @@ if __name__ == '__main__':
 
         pan, tilt, zoom = ptz.get_position()
         print(pan, tilt, zoom)
-        
+
         if zoom_command == 'i':
             ptz.zoom_in_full()
         elif zoom_command == 'o':
@@ -75,7 +73,7 @@ if __name__ == '__main__':
             ptz.move(x_dir, y_dir)
 
         x_dir, y_dir, zoom_command = uih.read_mouse()
-        
+
         if x_dir == 0 and y_dir == 0:
             ptz.stop()
 

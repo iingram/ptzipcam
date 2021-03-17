@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 import time
@@ -19,10 +20,13 @@ from ptzipcam.io import ImageStreamRecorder
 import movement_functions
 import globalvars
 
+
+logging.basicConfig(level='INFO',
+                    format='[%(levelname)s] %(message)s (%(name)s)')
+            
+
 parser = argparse.ArgumentParser()
-parser.add_argument('-c',
-                    '--config',
-                    default='config.yaml',
+parser.add_argument('config_file_path',
                     help='Filename of configuration file')
 parser.add_argument('-i',
                     '--host_ip',
@@ -35,7 +39,7 @@ parser.add_argument('-p',
 
 args = parser.parse_args()
 
-CONFIG_FILE = args.config
+CONFIG_FILE = args.config_file_path
 
 ZOOM_POWER = 4.0
 
@@ -52,6 +56,7 @@ with open(CONFIG_FILE) as f:
 IP = configs['IP']
 USER = configs['USER']
 PASS = configs['PASS']
+STREAM = configs['STREAM']
 
 RECORD_FOLDER = configs['RECORD_FOLDER']
 TIMELAPSE_CONFIG_FILENAME = configs['TIMELAPSE_CONFIG_FILENAME']
@@ -110,7 +115,7 @@ if __name__ == '__main__':
     with open('/home/ian/timelapse.log', 'w') as f:
         f.write('[INFO] Just started.\n')
 
-    preamble = 'Movement function:'
+    preamble = '[INFO] Movement function:'
     if MODE == 'mow':
         print(preamble, 'Mow the lawn')
         movement_function = movement_functions.mow_the_lawn
@@ -129,7 +134,7 @@ if __name__ == '__main__':
     with open('/home/ian/timelapse.log', 'a') as f:
         f.write('[INFO] started movement control thread\n')
 
-    cam = Camera(ip=IP, user=USER, passwd=PASS)
+    cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
     width, height = cam.get_resolution()
 
     hostname = socket.gethostname()
@@ -168,7 +173,7 @@ if __name__ == '__main__':
 
             frame = cam.get_frame()
             if frame is None:
-                print('Frame is None.')
+                log.warning('Frame is None.')
 
             if globalvars.camera_still and frame is not None:
                 if latch:
@@ -186,7 +191,9 @@ if __name__ == '__main__':
 
                     recorder.record_image(frame,
                                           globalvars.pan_angle,
-                                          globalvars.tilt_angle)
+                                          globalvars.tilt_angle,
+                                          'N/A',
+                                          0.0)
 
                     # vid_writers[j].write(frame.astype(np.uint8))
                     # j += 1
@@ -206,7 +213,7 @@ if __name__ == '__main__':
         # for i in range(num_output_videos):
         #     vid_writers[i].release()
 
-        cam.release()
+        del cam
 
         if CLIENT_MODE:
             sender.close()

@@ -1,3 +1,4 @@
+import logging
 import os
 import argparse
 import sys
@@ -17,26 +18,31 @@ from dnntools import draw
 from dnntools import neuralnetwork as nn
 from viztools import visualization as viz
 
-JUMP_SCREENS = True
+logging.basicConfig(level='DEBUG',
+                    format='[%(levelname)s] %(message)s (%(name)s)')
 
-IMAGE_PATH = '/home/ian/Desktop/outreach_day/raw'
+log = logging.getLogger('main')
+
+JUMP_SCREENS = False
+
+# IMAGE_PATH = '/home/ian/Desktop/outreach_day/raw'
+IMAGE_PATH = '/home/ian/media/test'
 
 if os.path.exists(IMAGE_PATH):
-    print('Path exists.')
+    log.info('Path exists.')
 else:
-    print('Image path does not exist')
+    log.warning('Image path does not exist')
 
 parser = argparse.ArgumentParser(
     description="Spotter")
 
-parser.add_argument('-c',
-                    '--config',
+parser.add_argument('config',
                     default='config.yaml',
                     help='Path to config file.')
 
 parser.add_argument('-p',
                     '--port',
-                    default='6543',
+                    default='65432',
                     help='Port number to use.')
 
 args= parser.parse_args()
@@ -70,7 +76,7 @@ screen_width = screen_resolutions[0].width
 screen_height = screen_resolutions[0].height
 
 if JUMP_SCREENS:
-    print("[NOTICE] Expecting that a second screen is attached.")
+    log.info("Expecting that a second screen is attached.")
     main_screen_width = screen_resolutions[1].width
 
     cv2.moveWindow(window_name,
@@ -113,25 +119,25 @@ for root, dirs, files in os.walk(IMAGE_PATH):
             img = cv2.resize(img, (640, 480))
             images.append(img)
 
-print("Number of images from disk is: " + str(len(images)))
+log.info("Number of images from disk is: " + str(len(images)))
 count = 0
 
 def socket_function():
     global flypics, pics, images, count
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        print('Socket created')
 
+    header_format = '>Lff'
+    
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
-        print('Socket bound')
         s.listen(10)
-        print('Socket now listening on port', PORT)
+        log.info(f'Socket now listening on port {PORT}')
 
         conn, addr = s.accept()
-        print('Socket connection made')
+        log.info('Socket connection made')
 
         data = b""
-        header_size = struct.calcsize(">L")
-        print("header_size: {}".format(header_size))
+        header_size = struct.calcsize(header_format)
+        log.info("header_size: {}".format(header_size))
 
         spot = 0
         while True:
@@ -141,11 +147,11 @@ def socket_function():
             if len(data) == 0:
                 break
 
-            print("Done Recv: {}".format(len(data)))
+            log.info("Done Recv: {}".format(len(data)))
             header = data[:header_size]
             data = data[header_size:]
-            msg_size = struct.unpack(">L", header)[0]
-            print("msg_size: {}".format(msg_size))
+            msg_size, pan_angle, tilt_angle = struct.unpack(header_format, header)
+            log.info("msg_size: {}".format(msg_size))
             while len(data) < msg_size:
                 data += conn.recv(4096)
             frame_data = data[:msg_size]
@@ -154,14 +160,14 @@ def socket_function():
             frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
             frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
 
-            print(frame.shape)
+            log.info(frame.shape)
 
             def boxify(the_image):
                 outs, inferenceTime = network.infer(the_image)
-                lboxes = nn.ObjectDetectorHandler.filter_boxes(outs,
-                                                               the_image,
-                                                               confThreshold,
-                                                               nmsThreshold)
+                lboxes = network.filter_boxes(outs,
+                                              the_image,
+                                              confThreshold,
+                                              nmsThreshold)
 
                 for lbox in lboxes:
                     if CLASSES[lbox['class_id']] in TRACKED_CLASS:

@@ -14,8 +14,12 @@ def orient_frame(frame, ORIENTATION):
         frame = np.rot90(frame, 2)
     elif ORIENTATION == 'right':
         frame = np.rot90(frame, 3)
-        
-    return frame
+
+    # returning a copy solves a bug that keeps one from drawing on the
+    # resultant frame but might also allay other problems that spawn
+    # from the same source.  The underlying bug might be in the opencv
+    # library.
+    return frame.copy()
 
 
 # callback function for mouse ui

@@ -1,6 +1,7 @@
 RECORD_FOLDER: /home/ian/twitcher_recordings
 HEADLESS: False
-# person, giraffe, cup, cat, dog, horse, sheep, cow, elephant, bear, zebra
+
+# bird, person, giraffe, cup, cat, dog, horse, sheep, cow, elephant, bear, zebra
 TRACKED_CLASS: [giraffe, person]
 TIMELAPSE_CONFIG_FILENAME: /home/ian/lib/ptzipcam/config_timelapse.yaml
 # Stream: Main = 1, Sub = 2, Third = 3 
@@ -13,10 +14,18 @@ PID_GAINS: [-0.0016, 0.002]
 INIT_POS: [-110.0, 44.9, 4.0]  # pan (-180.0:180.0), tilt (-45.0:45.0), zoom (0.0:25.0)
 ORIENTATION: up  # left up down right
 
-IP: 192.168.1.64
+IP: 192.168.2.64  # cameras ship as 192.168.1.64
 PORT: 80
 USER: admin        
 PASS: NyalaChow22  
+
+CAM_TILT_MIN: -1.0
+CAM_TILT_MAX: 1.0
+CAM_PAN_MIN: -1.0
+CAM_PAN_MAX: 1.0
+CAM_ZOOM_MIN: 0.0
+CAM_ZOOM_MAX: 1.0
+INFINITE_PAN: True
 
 CONF_THRESHOLD: .5
 NMS_THRESHOLD: .9
