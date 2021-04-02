@@ -4,7 +4,9 @@ import logging
 import os
 import time
 import argparse
+from threading import Thread
 
+import cv2
 import yaml
 
 from ptzipcam.ptz_camera import PtzCam
@@ -80,14 +82,42 @@ def convert_commands(raw_command,
     return commands
 
 
-if __name__ == '__main__':
-    ptz = PtzCam(IP, PORT, USER, PASS)
-    cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
-    frame = cam.get_frame()
-    if frame is None:
-        log.warning('Frame is None.')
+class Capturer(Thread):
 
-    motor_controller = MotorController(PID_GAINS, ORIENTATION, frame)
+    def __init__(self, stop_flag):
+        super().__init__()
+        self.cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
+        self.frame = self.cam.get_frame()
+        if self.frame is None:
+            log.warning('Frame is None.')
+
+    def run(self):
+        while True:
+            self.frame = self.cam.get_frame()
+            if self.frame is None:
+                print('Frame is None.')
+                continue
+
+            # time.sleep(.03)
+
+            cv2.imshow('frame', self.frame)
+            k = cv2.waitKey(1)
+            if k == ord('q'):
+                stop_flag[0] = True
+                del self.cam
+                break
+                
+            
+if __name__ == '__main__':
+    stop_flag = [False]
+
+    capturer = Capturer(stop_flag)
+    capturer.setDaemon(True)
+    capturer.start()
+    
+    ptz = PtzCam(IP, PORT, USER, PASS)
+
+    # motor_controller = MotorController(PID_GAINS, ORIENTATION, frame)
 
     detector = nn.TargetDetector(MODEL_CONFIG,
                                  MODEL_WEIGHTS,
@@ -98,15 +128,14 @@ if __name__ == '__main__':
                                  CLASSES,
                                  TRACKED_CLASS)
 
-    window_name = 'Detect, Track, and Zoom'
+    # window_name = 'Detect, Track, and Zoom'
+    # if not HEADLESS:
+    #     uih = ui.UI_Handler(frame, window_name)
 
-    if not HEADLESS:
-        uih = ui.UI_Handler(frame, window_name)
+    log.info("Using: " + nn.__name__)
 
-    log.info("[INFO] Using: " + nn.__name__)
-
-    if RECORD:
-        recorder = ImageStreamRecorder('/home/ian/images_dtz')
+    # if RECORD:
+    #     recorder = ImageStreamRecorder('/home/ian/images_dtz')
 
     # initialize position of camera
     zoom_command = 0
@@ -125,14 +154,10 @@ if __name__ == '__main__':
 
     while True:
         # pan, tilt, zoom = ptz.get_position()
-        raw_frame = cam.get_frame()
-        if raw_frame is None:
-            print('Frame is None.')
-            continue
 
-        raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
-        frame = raw_frame.copy()
+        # raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
 
+        frame = capturer.frame.copy()
         # target_lbox = detector.detect(frame)
 
         # if target_lbox:
@@ -163,10 +188,10 @@ if __name__ == '__main__':
         #     #     if zoom_command <= -1.0:
         #     #         zoom_command = -1.0
 
-        if not HEADLESS:
-            key = uih.update(frame, hud=False)
-            if key == ord('q'):
-                break
+        # if not HEADLESS:
+        #     key = uih.update(frame, hud=False)
+        #     if key == ord('q'):
+        #         break
 
         # if RECORD:
         #     recorder.record_image(frame,
@@ -197,7 +222,6 @@ if __name__ == '__main__':
         time.sleep(3)
 
         
-    del cam
     ptz.stop()
-    if not HEADLESS:
-        uih.clean_up()
+    # if not HEADLESS:
+    #     uih.clean_up()
