@@ -143,84 +143,86 @@ if __name__ == '__main__':
     time.sleep(1)
     pan, tilt, zoom = ptz.get_position()
 
+    log.info('Moving to initial PTZ position')
     commands = convert_commands(INIT_POS,
                                 COMMAND_DIVISORS)
     ptz.absmove_w_zoom_waitfordone(commands['pan'],
                                    commands['tilt'],
                                    commands['zoom'],
                                    close_enough=.01)
+    log.info('Moved to initial PTZ position')
 
     frames_since_last_target = 0
 
     while True:
+        if stop_flag[0] is True:
+            break
         # pan, tilt, zoom = ptz.get_position()
 
         # raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
 
         frame = capturer.frame.copy()
-        # target_lbox = detector.detect(frame)
+        target_lbox = detector.detect(frame)
+
+        if target_lbox:
+            detected_class = detector.class_names[target_lbox['class_id']]
+            score = 100 * target_lbox['confidence']
+            print("[INFO] Detected: "
+                  + "{} with confidence {:.1f}".format(detected_class,
+                                                       score))
+
+            frames_since_last_target = 0
+            draw.labeled_box(frame, detector.class_names, target_lbox)
+
+            commands = convert_commands((100.0, 34.0, 0.0),
+                                        COMMAND_DIVISORS)
+            ptz.absmove_w_zoom_waitfordone(commands['pan'],
+                                           commands['tilt'],
+                                           commands['zoom'],
+                                           close_enough=.01)
+
+            
+        else:
+            detected_class = 'nothing detected'
+            score = 0.0
+
+            commands = convert_commands((-100.0, 34.0, 0.0),
+                                        COMMAND_DIVISORS)
+            ptz.absmove_w_zoom_waitfordone(commands['pan'],
+                                           commands['tilt'],
+                                           commands['zoom'],
+                                           close_enough=.01)
+
+
+            # frames_since_last_target += 1
+            # if frames_since_last_target > 10:
+            #     x_err = 0
+            #     y_err = 0
+
+            # if frames_since_last_target > 30:
+            #     # x_err = -300
+            #     x_err = 0
+
+            # if frames_since_last_target > 30:
+            #     zoom_command -= .05
+            #     if zoom_command <= -1.0:
+            #         zoom_command = -1.0
 
         # if target_lbox:
-        #     detected_class = detector.class_names[target_lbox['class_id']]
-        #     score = 100 * target_lbox['confidence']
-        #     print("[INFO] Detected: "
-        #           + "{} with confidence {:.1f}".format(detected_class,
-        #                                                score))
-
-        #     frames_since_last_target = 0
-        #     draw.labeled_box(frame, detector.class_names, target_lbox)
-
+        #     commands = convert_commands((100.0, 34.0, 0.0),
+        #                                 COMMAND_DIVISORS)
+        #     ptz.absmove_w_zoom_waitfordone(commands['pan'],
+        #                                    commands['tilt'],
+        #                                    commands['zoom'],
+        #                                    close_enough=.01)
         # else:
-        #     detected_class = 'nothing detected'
-        #     score = 0.0
-
-        #     # frames_since_last_target += 1
-        #     # if frames_since_last_target > 10:
-        #     #     x_err = 0
-        #     #     y_err = 0
-
-        #     # if frames_since_last_target > 30:
-        #     #     # x_err = -300
-        #     #     x_err = 0
-
-        #     # if frames_since_last_target > 30:
-        #     #     zoom_command -= .05
-        #     #     if zoom_command <= -1.0:
-        #     #         zoom_command = -1.0
-
-        # if not HEADLESS:
-        #     key = uih.update(frame, hud=False)
-        #     if key == ord('q'):
-        #         break
-
-        # if RECORD:
-        #     recorder.record_image(frame,
-        #                           pan,
-        #                           tilt,
-        #                           detected_class,
-        #                           score)
-
-        # # run position controller on ptz system
-        # x_velocity, y_velocity = motor_controller.run(x_err, y_err)
-        # if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
-        #     # print('stop action')
-        #     ptz.stop()
-
-        commands = convert_commands((100.0, 34.0, 0.0),
-                                    COMMAND_DIVISORS)
-        ptz.absmove_w_zoom_waitfordone(commands['pan'],
-                                       commands['tilt'],
-                                       commands['zoom'],
-                                       close_enough=.01)
-        time.sleep(3)
-        commands = convert_commands((-100.0, 34.0, 0.0),
-                                    COMMAND_DIVISORS)
-        ptz.absmove_w_zoom_waitfordone(commands['pan'],
-                                       commands['tilt'],
-                                       commands['zoom'],
-                                       close_enough=.01)
-        time.sleep(3)
-
+        #     commands = convert_commands((-100.0, 34.0, 0.0),
+        #                                 COMMAND_DIVISORS)
+        #     ptz.absmove_w_zoom_waitfordone(commands['pan'],
+        #                                    commands['tilt'],
+        #                                    commands['zoom'],
+        #                                    close_enough=.01)
+        #     time.sleep(5)
         
     ptz.stop()
     # if not HEADLESS:
