@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import time
 import logging
 import os
 import time
@@ -29,9 +29,12 @@ parser.add_argument('config',
 args = parser.parse_args()
 CONFIG_FILE = args.config
 
-# DILATION = True
 FRAME_RATE = 15
 FRAME_WINDOW = 30
+
+COMMAND_DIVISORS = {'pan': 180.0,
+                    'tilt': 45.0,
+                    'zoom': 25.0}
 
 with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
@@ -66,10 +69,19 @@ CLASSES = nn.read_classes_from_file(CLASSES_FILE)
 # GUI constants
 HEADLESS = configs['HEADLESS']
 
+
+def convert_commands(raw_command,
+                     divisors):
+    commands = {}
+    commands['pan'] = raw_command[0]/divisors['pan']
+    commands['tilt'] = raw_command[1]/divisors['tilt']
+    commands['zoom'] = raw_command[2]/divisors['zoom']
+    
+    return commands
+
+
 if __name__ == '__main__':
-    # construct core objects
     ptz = PtzCam(IP, PORT, USER, PASS)
-    # cam = Camera()
     cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
     frame = cam.get_frame()
     if frame is None:
@@ -96,49 +108,23 @@ if __name__ == '__main__':
     if RECORD:
         recorder = ImageStreamRecorder('/home/ian/images_dtz')
 
-        # codec = cv2.VideoWriter_fourcc(*'MJPG')
-        # filename = 'video_dtz'
-        # if 'neuralnetwork_coral' in nn.__name__:
-        #     filename = filename + '_coral'
-        # else:
-        #     filename = filename + '_dnn'
-
-        # if not DILATION:
-        #     filename = filename + '_lineartime' + '.avi'
-        #     vid_writer = cv2.VideoWriter(filename,
-        #                                  codec,
-        #                                  FRAME_RATE,
-        #                                  (frame_width, frame_height))
-        # else:
-        #     filename = filename + '_dilation' + '.avi'
-        #     dilation_vid_writer = DilationVideoWriter(filename,
-        #                                               codec,
-        #                                               FRAME_RATE,
-        #                                               (frame_width, frame_height),
-        #                                               FRAME_WINDOW)
-
     # initialize position of camera
     zoom_command = 0
     ptz.zoom_out_full()
     time.sleep(1)
     pan, tilt, zoom = ptz.get_position()
-    # ptz.absmove(INIT_POS[0], INIT_POS[1])
-    pan_init = INIT_POS[0]/180.0
-    tilt_init = INIT_POS[1]/45.0
-    zoom_init = INIT_POS[2]/25.0
 
-    ptz.absmove_w_zoom_waitfordone(pan_init,
-                                   tilt_init,
-                                   zoom_init,
+    commands = convert_commands(INIT_POS,
+                                COMMAND_DIVISORS)
+    ptz.absmove_w_zoom_waitfordone(commands['pan'],
+                                   commands['tilt'],
+                                   commands['zoom'],
                                    close_enough=.01)
-
-    x_err = 0
-    y_err = 0
 
     frames_since_last_target = 0
 
     while True:
-        pan, tilt, zoom = ptz.get_position()
+        # pan, tilt, zoom = ptz.get_position()
         raw_frame = cam.get_frame()
         if raw_frame is None:
             print('Frame is None.')
@@ -147,77 +133,70 @@ if __name__ == '__main__':
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
         frame = raw_frame.copy()
 
-        target_lbox = detector.detect(frame)
+        # target_lbox = detector.detect(frame)
 
-        if target_lbox:
-            detected_class = detector.class_names[target_lbox['class_id']]
-            score = 100 * target_lbox['confidence']
-            print("[INFO] Detected: "
-                  + "{} with confidence {:.1f}".format(detected_class,
-                                                       score))
+        # if target_lbox:
+        #     detected_class = detector.class_names[target_lbox['class_id']]
+        #     score = 100 * target_lbox['confidence']
+        #     print("[INFO] Detected: "
+        #           + "{} with confidence {:.1f}".format(detected_class,
+        #                                                score))
 
-            frames_since_last_target = 0
-            draw.labeled_box(frame, detector.class_names, target_lbox)
+        #     frames_since_last_target = 0
+        #     draw.labeled_box(frame, detector.class_names, target_lbox)
 
-            commands = motor_controller.calc_errors(target_lbox,
-                                                    zoom_command)
-            x_err, y_err, zoom_command = commands
-        else:
-            detected_class = 'nothing detected'
-            score = 0.0
-            zoom_command = 0
+        # else:
+        #     detected_class = 'nothing detected'
+        #     score = 0.0
 
-            frames_since_last_target += 1
-            if frames_since_last_target > 10:
-                x_err = 0
-                y_err = 0
+        #     # frames_since_last_target += 1
+        #     # if frames_since_last_target > 10:
+        #     #     x_err = 0
+        #     #     y_err = 0
 
-            if frames_since_last_target > 30:
-                # x_err = -300
-                x_err = 0
+        #     # if frames_since_last_target > 30:
+        #     #     # x_err = -300
+        #     #     x_err = 0
 
-            # # commenting this bit out because it doesn't always work
-            # # and may be source of wandering bug
-            # if frames_since_last_target > 30:
-            #     ptz.absmove(INIT_POS[0], INIT_POS[1])
-            if frames_since_last_target > 30:
-                zoom_command -= .05
-                if zoom_command <= -1.0:
-                    zoom_command = -1.0
-                # zoom_command = -1.0
-
-        # update ui and handle user input
+        #     # if frames_since_last_target > 30:
+        #     #     zoom_command -= .05
+        #     #     if zoom_command <= -1.0:
+        #     #         zoom_command = -1.0
 
         if not HEADLESS:
             key = uih.update(frame, hud=False)
             if key == ord('q'):
                 break
 
-        if RECORD:
-            recorder.record_image(frame,
-                                  pan,
-                                  tilt,
-                                  detected_class,
-                                  score)
+        # if RECORD:
+        #     recorder.record_image(frame,
+        #                           pan,
+        #                           tilt,
+        #                           detected_class,
+        #                           score)
 
-            # if not DILATION:
-            #     vid_writer.write(frame.astype(np.uint8))
-            # else:
-            #     dilation_vid_writer.update(frame, target_lbox is not None)
+        # # run position controller on ptz system
+        # x_velocity, y_velocity = motor_controller.run(x_err, y_err)
+        # if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
+        #     # print('stop action')
+        #     ptz.stop()
 
-        # run position controller on ptz system
-        x_velocity, y_velocity = motor_controller.run(x_err, y_err)
-        if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
-            # print('stop action')
-            ptz.stop()
+        commands = convert_commands((100.0, 34.0, 0.0),
+                                    COMMAND_DIVISORS)
+        ptz.absmove_w_zoom_waitfordone(commands['pan'],
+                                       commands['tilt'],
+                                       commands['zoom'],
+                                       close_enough=.01)
+        time.sleep(3)
+        commands = convert_commands((-100.0, 34.0, 0.0),
+                                    COMMAND_DIVISORS)
+        ptz.absmove_w_zoom_waitfordone(commands['pan'],
+                                       commands['tilt'],
+                                       commands['zoom'],
+                                       close_enough=.01)
+        time.sleep(3)
 
-        ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
-
-    # if RECORD:
-    #     if not DILATION:
-    #         vid_writer.release()
-    #     else:
-    #         dilation_vid_writer.release()
+        
     del cam
     ptz.stop()
     if not HEADLESS:
