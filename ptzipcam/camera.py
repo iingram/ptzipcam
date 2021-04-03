@@ -1,3 +1,4 @@
+import logging
 import threading
 import cv2
 
@@ -5,6 +6,7 @@ import cv2
 # latest_frame_return = None
 # lo = threading.Lock()
 
+log = logging.getLogger(__name__)
 
 def camera_thread_function(cap, frame):
     # global latest_frame, lo, latest_frame_return
@@ -67,5 +69,5 @@ class Camera():
     #     self.cap.release()
 
     def __del__(self):
-        print('[INFO] Camera object deletion')
+        log.info('Camera object deletion')
         self.cap.release()
