@@ -1,4 +1,4 @@
-#!/home/ian/.virtualenvs/ptzSpotter/bin/python
+#!/usr/bin/env python
 
 import logging
 import os
@@ -7,6 +7,7 @@ import argparse
 
 import yaml
 
+from ptzipcam import logs
 from ptzipcam.ptz_camera import PtzCam
 from ptzipcam.ptz_camera import MotorController
 from ptzipcam.camera import Camera
@@ -19,9 +20,7 @@ from dnntools import neuralnetwork as nn
 
 from dnntools import draw
 
-logging.basicConfig(level='INFO',
-                    format='[%(levelname)s] %(message)s (%(name)s)')
-log = getLogger('main')
+log = logs.prep_log()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config',
@@ -91,7 +90,7 @@ if __name__ == '__main__':
     if not HEADLESS:
         uih = ui.UI_Handler(frame, window_name)
 
-    log.info("[INFO] Using: " + nn.__name__)
+    log.info("Using: " + nn.__name__)
 
     if RECORD:
         recorder = ImageStreamRecorder('/home/ian/images_dtz')
