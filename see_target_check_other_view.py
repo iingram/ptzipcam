@@ -1,6 +1,9 @@
 #!/usr/bin/env python
-import time
 import logging
+logging.basicConfig(level='INFO',
+                    format='[%(levelname)s] %(message)s (%(name)s)')
+
+import time
 import os
 import time
 import argparse
@@ -10,10 +13,10 @@ import cv2
 import yaml
 
 from ptzipcam.ptz_camera import PtzCam
-from ptzipcam.ptz_camera import MotorController
+# from ptzipcam.ptz_camera import MotorController
 from ptzipcam.camera import Camera
-from ptzipcam import ui
-from ptzipcam.io import ImageStreamRecorder
+#from ptzipcam import ui
+#from ptzipcam.io import ImageStreamRecorder
 # from ptzipcam.video_writer import DilationVideoWriter
 
 from dnntools import neuralnetwork as nn
@@ -21,8 +24,6 @@ from dnntools import neuralnetwork as nn
 
 from dnntools import draw
 
-logging.basicConfig(level='INFO',
-                    format='[%(levelname)s] %(message)s (%(name)s)')
 log = logging.getLogger('main')
 
 parser = argparse.ArgumentParser()
@@ -128,10 +129,6 @@ if __name__ == '__main__':
                                  CLASSES,
                                  TRACKED_CLASS)
 
-    # window_name = 'Detect, Track, and Zoom'
-    # if not HEADLESS:
-    #     uih = ui.UI_Handler(frame, window_name)
-
     log.info("Using: " + nn.__name__)
 
     # if RECORD:
@@ -181,6 +178,7 @@ if __name__ == '__main__':
                                            commands['zoom'],
                                            close_enough=.01)
 
+            time.sleep(5)
             
         else:
             detected_class = 'nothing detected'
@@ -208,22 +206,4 @@ if __name__ == '__main__':
             #     if zoom_command <= -1.0:
             #         zoom_command = -1.0
 
-        # if target_lbox:
-        #     commands = convert_commands((100.0, 34.0, 0.0),
-        #                                 COMMAND_DIVISORS)
-        #     ptz.absmove_w_zoom_waitfordone(commands['pan'],
-        #                                    commands['tilt'],
-        #                                    commands['zoom'],
-        #                                    close_enough=.01)
-        # else:
-        #     commands = convert_commands((-100.0, 34.0, 0.0),
-        #                                 COMMAND_DIVISORS)
-        #     ptz.absmove_w_zoom_waitfordone(commands['pan'],
-        #                                    commands['tilt'],
-        #                                    commands['zoom'],
-        #                                    close_enough=.01)
-        #     time.sleep(5)
-        
     ptz.stop()
-    # if not HEADLESS:
-    #     uih.clean_up()
