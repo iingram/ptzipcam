@@ -126,10 +126,12 @@ if __name__ == '__main__':
     tilt_init = INIT_POS[1]/45.0
     zoom_init = INIT_POS[2]/25.0
 
+    log.info('Moving to initial position.')
     ptz.absmove_w_zoom_waitfordone(pan_init,
                                    tilt_init,
                                    zoom_init,
                                    close_enough=.01)
+    log.info('Completed move to initial position.')
 
     x_err = 0
     y_err = 0
@@ -205,7 +207,7 @@ if __name__ == '__main__':
             #     dilation_vid_writer.update(frame, target_lbox is not None)
 
         # run position controller on ptz system
-        x_velocity, y_velocity = motor_controller.run(x_err, y_err)
+        x_velocity, y_velocity = motor_controller.update(x_err, y_err)
         if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
             # print('stop action')
             ptz.stop()
