@@ -91,7 +91,8 @@ if __name__ == '__main__':
         uih = ui.UI_Handler(frame, window_name)
 
     log.info("Using: " + nn.__name__)
-
+    log.info("Frame shape: " + str(frame.shape[:2]))
+    
     if RECORD:
         recorder = ImageStreamRecorder('/home/ian/images_dtz')
 
@@ -133,8 +134,8 @@ if __name__ == '__main__':
                                    close_enough=.01)
     log.info('Completed move to initial position.')
 
-    x_err = 0
-    y_err = 0
+    x_err = 0.0
+    y_err = 0.0
 
     frames_since_last_target = 0
 
@@ -160,9 +161,8 @@ if __name__ == '__main__':
             frames_since_last_target = 0
             draw.labeled_box(frame, detector.class_names, target_lbox)
 
-            commands = motor_controller.calc_errors(target_lbox,
-                                                    zoom_command)
-            x_err, y_err, zoom_command = commands
+            errors = motor_controller.calc_errors(target_lbox)
+            x_err, y_err = errors
         else:
             detected_class = 'nothing detected'
             score = 0.0
@@ -174,8 +174,9 @@ if __name__ == '__main__':
                 y_err = 0
 
             if frames_since_last_target > 30:
-                # x_err = -300
-                x_err = 0
+                pass
+                # x_err = -0.2
+                # x_err = 0
 
             # # commenting this bit out because it doesn't always work
             # # and may be source of wandering bug
@@ -207,7 +208,12 @@ if __name__ == '__main__':
             #     dilation_vid_writer.update(frame, target_lbox is not None)
 
         # run position controller on ptz system
-        x_velocity, y_velocity = motor_controller.update(x_err, y_err)
+        commands = motor_controller.update(x_err,
+                                           y_err,
+                                           zoom_command)
+        x_velocity, y_velocity, zoom_command = commands
+        log.debug(f'x_err: {x_err:.2f} || y_err: {y_err:.2f}')
+        log.debug(f'x_vel: {x_velocity:.2f} || y_vel: {y_velocity:.2f}')
         if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
             # print('stop action')
             ptz.stop()

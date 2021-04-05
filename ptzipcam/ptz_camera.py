@@ -47,38 +47,57 @@ class MotorController():
         self.ZOOM_STOP_RATIO = .6
         
     def calc_errors(self,
-                    target_lbox,
-                    zoom_command):
+                    target_lbox):
         xc, yc = draw.box_to_coords(target_lbox['box'],
                                     return_kind='center')
         ret = draw.box_to_coords(target_lbox['box'])
-        x, y, box_width, box_height = ret
+        self.box_x, self.box_y, self.box_width, self.box_height = ret
         x_err = self.frame_width/2 - xc
         y_err = self.frame_height/2 - yc
 
-        # zoom command calculations
-        target_bb_pixels = box_width * box_height
+        # normalize errors
+        x_err = x_err/self.frame_width
+        y_err = y_err/self.frame_height
+        
+        return x_err, y_err
 
-        # if x_err < 50 and y_err < 50:
-        # if x_err != 0 and x_err < 50 and y_err < 50:
-        if (target_bb_pixels / self.total_frame_pixels) < .3:
-            zoom_command += .1
-            if zoom_command >= 1.0:
-                zoom_command = 1.0
-            # zoom_command = 1.0
-        else:
-            zoom_command = 0.0
+    def _calc_zoom_command(self, x_err, y_err, zoom_command):
+        """Calculate the zoom command give pan/tilt errors 
 
-        ratio = self.ZOOM_STOP_RATIO
-        filling_much_of_width = box_width >= ratio * self.frame_width
-        filling_much_of_height = box_height >= ratio * self.frame_height
-        if filling_much_of_width or filling_much_of_height:
-            zoom_command = 0.0
+        """
 
-        return x_err, y_err, zoom_command
+        if x_err != 0.0 and y_err != 0.0:
+            target_bb_pixels = self.box_width * self.box_height
 
+            # if x_err < 50 and y_err < 50:
+            # if x_err != 0 and x_err < 50 and y_err < 50:
+            if (target_bb_pixels / self.total_frame_pixels) < .3:
+                zoom_command += .1
+                if zoom_command >= 1.0:
+                    zoom_command = 1.0
+                # zoom_command = 1.0
+            else:
+                zoom_command = 0.0
+
+            ratio = self.ZOOM_STOP_RATIO
+            filling_much_of_width = self.box_width >= ratio * self.frame_width
+            filling_much_of_height = self.box_height >= ratio * self.frame_height
+            if filling_much_of_width or filling_much_of_height:
+                zoom_command = 0.0
+
+            margin = 30
+            if (self.box_y + self.box_height) >= (self.frame_height - margin):       
+                zoom_command = 0.0
+                
+        return zoom_command
+            
     def _calc_command(self, err, k):
-        command = k * err
+        #self.x_bound = 
+        if np.abs(err) < .1:
+            command = 0
+        else:
+            command = k * err
+        
         if command >= 1.0:
             command = 1.0
         if command <= -1.0:
@@ -89,15 +108,16 @@ class MotorController():
 
         return command
 
-    def update(self, x_err, y_err):
+    def update(self, x_err, y_err, zoom_command):
         if self.orientation == 'down':
             x_err = -x_err
             y_err = -y_err
 
         x_velocity = self._calc_command(x_err, self.pid_gains[0])
         y_velocity = self._calc_command(y_err, self.pid_gains[1])
-
-        return (x_velocity, y_velocity)
+        zoom_command = self._calc_zoom_command(x_err, y_err, zoom_command)
+        
+        return (x_velocity, y_velocity, zoom_command)
 
 
 class PtzCam():
