@@ -51,8 +51,8 @@ Y_DELTA = .05
 Y_DELTA_FINE = .001
 X_DELTA = .05
 X_DELTA_FINE = .001
-Z_DELTA = .01
-Z_DELTA_FINE = .004
+Z_DELTA = configs['CAM_ZOOM_STEP']
+Z_DELTA_FINE = Z_DELTA / 3
 F_TIME = 1
 F_TIME_FINE = .05
 
@@ -110,7 +110,7 @@ def main_ui_function(stdscr):
                 _ = cv2.waitKey(33)
             else:
                 time.sleep(.033)
-                
+
         # Initialization
         stdscr.clear()
         height, width = stdscr.getmaxyx()
@@ -195,8 +195,9 @@ def main_ui_function(stdscr):
             stdscr.addstr(9,
                           len(statusbarstr),
                           " " * (width - len(statusbarstr) - 1))
-        except:
-            print('error')
+        except Exception as e:
+            print('Exception')
+            print(e)
 
         stdscr.attroff(curses.color_pair(3))
 
