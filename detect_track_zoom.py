@@ -36,6 +36,8 @@ with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
 RECORD = configs['RECORD']
+RECORD_ONLY_DETECTIONS = configs['RECORD_ONLY_DETECTIONS']
+RECORD_FOLDER = configs['RECORD_FOLDER']
 
 # ptz camera networking constants
 IP = configs['IP']
@@ -94,7 +96,9 @@ if __name__ == '__main__':
     log.info("Frame shape: " + str(frame.shape[:2]))
     
     if RECORD:
-        recorder = ImageStreamRecorder('/home/ian/images_dtz')
+        log.info('Recording is turned ON')
+        log.info('Recordings will be stored in {}'.format(configs['RECORD_FOLDER']))
+        recorder = ImageStreamRecorder(configs['RECORD_FOLDER'])
 
         # codec = cv2.VideoWriter_fourcc(*'MJPG')
         # filename = 'video_dtz'
@@ -116,7 +120,12 @@ if __name__ == '__main__':
         #                                               FRAME_RATE,
         #                                               (frame_width, frame_height),
         #                                               FRAME_WINDOW)
+    else:
+        log.info('Recording is turned OFF')
 
+    if RECORD_ONLY_DETECTIONS:
+        log.info('Only recording detections')
+        
     # initialize position of camera
     zoom_command = 0
     ptz.zoom_out_full()
@@ -196,11 +205,14 @@ if __name__ == '__main__':
                 break
 
         if RECORD:
-            recorder.record_image(frame,
-                                  pan,
-                                  tilt,
-                                  detected_class,
-                                  score)
+            if((RECORD_ONLY_DETECTIONS and target_lbox)
+               or not RECORD_ONLY_DETECTIONS):
+                log.info('Recording frame.')
+                recorder.record_image(frame,
+                                      pan,
+                                      tilt,
+                                      detected_class,
+                                      score)
 
             # if not DILATION:
             #     vid_writer.write(frame.astype(np.uint8))
