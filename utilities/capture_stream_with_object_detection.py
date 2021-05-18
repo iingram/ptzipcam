@@ -109,8 +109,9 @@ if __name__ == '__main__':
                                       NMS_THRESHOLD)
 
         for lbox in lboxes:
-            # detected_class = CLASSES[lbox['class_id']]
-            # score = 100 * lbox['confidence']
+            detected_class = CLASSES[lbox['class_id']]
+            score = 100 * lbox['confidence']
+            print('Detected: {} with score {:.1f}'.format(detected_class, score)) 
             draw.labeled_box(frame, CLASSES, lbox)
 
         # update ui and handle user input
