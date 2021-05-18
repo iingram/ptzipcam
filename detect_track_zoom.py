@@ -1,6 +1,12 @@
 #!/usr/bin/env python
+"""Tracks targets detected via object detection using PTZ IP camera.
 
-import logging
+Attempts to detect, track, and zoom in on target classes (usually
+various animal species of interest) by running an object detector on
+frames captured from the camera and using their offset and size in the
+frame to run a control system around the PTZ attributes on the IP
+camera.
+"""
 import os
 import time
 import argparse
@@ -94,10 +100,11 @@ if __name__ == '__main__':
 
     log.info("Using: " + nn.__name__)
     log.info("Frame shape: " + str(frame.shape[:2]))
-    
+
     if RECORD:
         log.info('Recording is turned ON')
-        log.info('Recordings will be stored in {}'.format(configs['RECORD_FOLDER']))
+        strg = configs['RECORD_FOLDER']
+        log.info('Recordings will be stored in {}'.format(strg))
         recorder = ImageStreamRecorder(configs['RECORD_FOLDER'])
 
         # codec = cv2.VideoWriter_fourcc(*'MJPG')
@@ -118,19 +125,19 @@ if __name__ == '__main__':
         #     dilation_vid_writer = DilationVideoWriter(filename,
         #                                               codec,
         #                                               FRAME_RATE,
-        #                                               (frame_width, frame_height),
+        #                                               (frame_width,
+        #                                                frame_height),
         #                                               FRAME_WINDOW)
     else:
         log.info('Recording is turned OFF')
 
     if RECORD_ONLY_DETECTIONS:
         log.info('Only recording detections')
-        
+
     # initialize position of camera
     zoom_command = 0
     ptz.zoom_out_full()
     time.sleep(1)
-    pan, tilt, zoom = ptz.get_position()
     # ptz.absmove(INIT_POS[0], INIT_POS[1])
     pan_init = INIT_POS[0]/180.0
     tilt_init = INIT_POS[1]/45.0
@@ -142,6 +149,15 @@ if __name__ == '__main__':
                                    zoom_init,
                                    close_enough=.01)
     log.info('Completed move to initial position.')
+
+    pan, tilt, zoom = ptz.get_position()
+    if RECORD:
+        frame = ui.orient_frame(frame, ORIENTATION)
+        recorder.record_image(frame,
+                              pan,
+                              tilt,
+                              'n/a: start-up frame',
+                              0.0)
 
     x_err = 0.0
     y_err = 0.0
@@ -227,7 +243,7 @@ if __name__ == '__main__':
 
         # forget to commit this when it was written.  a little
         # uncertain what the goal was.  leaving it in as a timebomb.
-        if tilt >= 1.0 and y_velocity <=0:
+        if tilt >= 1.0 and y_velocity <= 0:
             y_velocity = 0.0
 
         # log.info(f'{pan}, {tilt}, {zoom}')
