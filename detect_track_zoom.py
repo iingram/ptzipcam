@@ -174,9 +174,9 @@ if __name__ == '__main__':
                 y_err = 0
 
             if frames_since_last_target > 30:
-                pass
+                # log.info('Since nothing detected, panning right.')
                 # x_err = -0.2
-                # x_err = 0
+                x_err = 0
 
             # # commenting this bit out because it doesn't always work
             # # and may be source of wandering bug
@@ -212,8 +212,16 @@ if __name__ == '__main__':
                                            y_err,
                                            zoom_command)
         x_velocity, y_velocity, zoom_command = commands
+
+        # forget to commit this when it was written.  a little
+        # uncertain what the goal was.  leaving it in as a timebomb.
+        if tilt >= 1.0 and y_velocity <=0:
+            y_velocity = 0.0
+
+        # log.info(f'{pan}, {tilt}, {zoom}')
         log.debug(f'x_err: {x_err:.2f} || y_err: {y_err:.2f}')
         log.debug(f'x_vel: {x_velocity:.2f} || y_vel: {y_velocity:.2f}')
+
         if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
             # print('stop action')
             ptz.stop()
