@@ -44,7 +44,7 @@ class MotorController():
 
         self.total_frame_pixels = self.frame_width * self.frame_height
 
-        self.ZOOM_STOP_RATIO = .6
+        self.ZOOM_STOP_RATIO = .7
         
     def calc_errors(self,
                     target_lbox):
@@ -72,7 +72,7 @@ class MotorController():
             # if x_err < 50 and y_err < 50:
             # if x_err != 0 and x_err < 50 and y_err < 50:
             if (target_bb_pixels / self.total_frame_pixels) < .3:
-                zoom_command += .1
+                zoom_command += .05
                 if zoom_command >= 1.0:
                     zoom_command = 1.0
                 # zoom_command = 1.0
@@ -85,8 +85,9 @@ class MotorController():
             if filling_much_of_width or filling_much_of_height:
                 zoom_command = 0.0
 
-            margin = 30
-            if (self.box_y + self.box_height) >= (self.frame_height - margin):       
+            margin = 100
+            if ((self.box_y + self.box_height) >= (self.frame_height - margin)
+                or (self.box_y <= margin)):       
                 zoom_command = 0.0
                 
         return zoom_command
