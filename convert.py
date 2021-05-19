@@ -1,3 +1,6 @@
+import logging
+
+
 def degrees_to_command(degrees, full_range):
     if degrees > full_range:
         logging.error('Angle higher than full range')
