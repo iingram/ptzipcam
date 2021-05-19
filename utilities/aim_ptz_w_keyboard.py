@@ -8,7 +8,7 @@ import cv2
 
 from ptzipcam.camera import Camera
 from ptzipcam.ptz_camera import PtzCam
-from ptzipcam import ui
+from ptzipcam import ui, convert
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config',
@@ -213,10 +213,16 @@ def main_ui_function(stdscr):
         # stdscr.addstr(3, 0, '-' * 31)
 
         # Write pan, tilt, zoom values
-        angle_str = "Pan: {:.3f}".format(pan_command)
+        pan_degrees = convert.command_to_degrees(pan_command, 360.0)
+        angle_str = "Pan: {:.3f} ({:.1f} degrees)".format(pan_command,
+                                                          pan_degrees)
         stdscr.addstr(4, 0, angle_str, curses.color_pair(1))
-        angle_str = "Tilt: {:.3f}".format(tilt_command)
+
+        tilt_degrees = convert.command_to_degrees(tilt_command, 90.0)
+        angle_str = "Tilt: {:.3f} ({:.1f} degrees)".format(tilt_command,
+                                                           tilt_degrees)
         stdscr.addstr(5, 0, angle_str, curses.color_pair(1))
+
         angle_str = "Zoom: {:.3f}".format(zoom_command)
         stdscr.addstr(6, 0, angle_str, curses.color_pair(1))
         angle_str = "Focus: Sorta unknown"

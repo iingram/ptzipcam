@@ -13,11 +13,9 @@ import argparse
 
 import yaml
 
-from ptzipcam import logs
-from ptzipcam.ptz_camera import PtzCam
-from ptzipcam.ptz_camera import MotorController
+from ptzipcam import logs, ui, convert
+from ptzipcam.ptz_camera import PtzCam, MotorController
 from ptzipcam.camera import Camera
-from ptzipcam import ui
 from ptzipcam.io import ImageStreamRecorder
 # from ptzipcam.video_writer import DilationVideoWriter
 
@@ -139,8 +137,8 @@ if __name__ == '__main__':
     ptz.zoom_out_full()
     time.sleep(1)
     # ptz.absmove(INIT_POS[0], INIT_POS[1])
-    pan_init = INIT_POS[0]/180.0
-    tilt_init = INIT_POS[1]/45.0
+    pan_init = convert.degrees_to_command(INIT_POS[0], 360.0)
+    tilt_init = convert.degrees_to_command(INIT_POS[1], 90.0)
     zoom_init = INIT_POS[2]/25.0
 
     log.info('Moving to initial position.')
