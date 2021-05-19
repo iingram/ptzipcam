@@ -98,6 +98,7 @@ if __name__ == '__main__':
 
     log.info("Using: " + nn.__name__)
     log.info("Frame shape: " + str(frame.shape[:2]))
+    log.info("Detection threshold: " + str(CONF_THRESHOLD))
 
     if RECORD:
         log.info('Recording is turned ON')
@@ -130,7 +131,7 @@ if __name__ == '__main__':
         log.info('Recording is turned OFF')
 
     if RECORD_ONLY_DETECTIONS:
-        log.info('Only recording detections')
+        log.info('Record only detections: True')
 
     # initialize position of camera
     zoom_command = 0
