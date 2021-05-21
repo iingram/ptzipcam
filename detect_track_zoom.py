@@ -99,6 +99,7 @@ if __name__ == '__main__':
     log.info("Using: " + nn.__name__)
     log.info("Frame shape: " + str(frame.shape[:2]))
     log.info("Detection threshold: " + str(CONF_THRESHOLD))
+    log.info('Tracked classes: ' + str(TRACKED_CLASS))
 
     if RECORD:
         log.info('Recording is turned ON')
