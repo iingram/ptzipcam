@@ -94,7 +94,7 @@ def mow_the_lawn(zoom_power, config_file):
                 print('Moving to {x_pos:.2f} degrees pan and {y_pos:.2f} degrees tilt.'.format(x_pos=x_pos_degrees, y_pos=y_pos_degrees))
 
                 ptz.absmove_w_zoom(x_pos, y_pos, zoom_command)
-                time.sleep(10)
+                time.sleep(9)
                 globalvars.pan_angle = x_pos_degrees
                 globalvars.tilt_angle = y_pos_degrees
                 globalvars.camera_still = True

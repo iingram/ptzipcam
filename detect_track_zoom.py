@@ -19,8 +19,8 @@ from ptzipcam.camera import Camera
 from ptzipcam.io import ImageStreamRecorder
 # from ptzipcam.video_writer import DilationVideoWriter
 
-from dnntools import neuralnetwork as nn
-# from dnntools import neuralnetwork_coral as nn
+# from dnntools import neuralnetwork as nn
+from dnntools import neuralnetwork_coral as nn
 
 from dnntools import draw
 
@@ -188,6 +188,7 @@ if __name__ == '__main__':
             errors = motor_controller.calc_errors(target_lbox)
             x_err, y_err = errors
         else:
+            time.sleep(.03)
             detected_class = 'nothing detected'
             score = 0.0
             zoom_command = 0

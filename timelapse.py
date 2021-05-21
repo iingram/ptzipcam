@@ -1,4 +1,7 @@
 import logging
+logging.basicConfig(level='INFO',
+                    format='[%(levelname)s] %(message)s (%(name)s)')
+
 import os
 import sys
 import time
@@ -21,8 +24,6 @@ import movement_functions
 import globalvars
 
 
-logging.basicConfig(level='INFO',
-                    format='[%(levelname)s] %(message)s (%(name)s)')
             
 
 parser = argparse.ArgumentParser()
