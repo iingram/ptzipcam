@@ -42,6 +42,6 @@ INPUT_HEIGHT: 416
 # CLASS_NAMES_FILE: coco.labels
 
 MODEL_PATH: /usr/share/edgetpu/examples/models/
-MODEL_CONFIG_FILE: mobilenet_ssd_v1_coco_quant_postprocess_edgetpu.tflite
+MODEL_CONFIG_FILE: ssd_mobilenet_v1_coco_quant_postprocess_edgetpu.tflite
 MODEL_WEIGHTS_FILE: N/A
 CLASS_NAMES_FILE: coco_labels.txt
