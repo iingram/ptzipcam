@@ -32,6 +32,8 @@ parser.add_argument('config',
 args = parser.parse_args()
 CONFIG_FILE = args.config
 
+ZOOM_X_POWER = 25.0
+
 # DILATION = True
 FRAME_RATE = 15
 FRAME_WINDOW = 30
@@ -141,7 +143,7 @@ if __name__ == '__main__':
     # ptz.absmove(INIT_POS[0], INIT_POS[1])
     pan_init = convert.degrees_to_command(INIT_POS[0], 360.0)
     tilt_init = convert.degrees_to_command(INIT_POS[1], 90.0)
-    zoom_init = INIT_POS[2]/25.0
+    zoom_init = INIT_POS[2]/ZOOM_X_POWER
 
     log.info('Moving to initial position.')
     ptz.absmove_w_zoom_waitfordone(pan_init,
@@ -247,7 +249,7 @@ if __name__ == '__main__':
         if tilt >= 1.0 and y_velocity <= 0:
             y_velocity = 0.0
 
-        # log.info(f'{pan}, {tilt}, {zoom}')
+        log.debug(f'{pan}, {tilt}, {zoom}')
         log.debug(f'x_err: {x_err:.2f} || y_err: {y_err:.2f}')
         log.debug(f'x_vel: {x_velocity:.2f} || y_vel: {y_velocity:.2f}')
 
