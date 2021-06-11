@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Utility to simply connect to a camera's video stream, display it,
 and record it.
 
@@ -13,6 +14,10 @@ from ptzipcam.io import ImageStreamRecorder
 parser = argparse.ArgumentParser()
 parser.add_argument('config',
                     help='Filename of configuration file')
+parser.add_argument('-s',
+                    '--stream',
+                    required=False,
+                    help='Camera stream')
 args = parser.parse_args()
 CONFIG_FILE = args.config
 
@@ -27,7 +32,10 @@ CAM_BRAND = configs['CAM_BRAND']
 USER = configs['USER']
 PASS = configs['PASS']
 if CAM_BRAND == 'hikvision':
-    STREAM = configs['STREAM']
+    if args.stream:
+        STREAM = args.stream
+    else:
+        STREAM = configs['STREAM']
 else:
     STREAM = None
 
