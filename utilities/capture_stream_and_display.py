@@ -12,7 +12,7 @@ from ptzipcam import ui
 from ptzipcam.io import ImageStreamRecorder
 
 logging.basicConfig(level=logging.INFO,
-                    format='[%(levelname)s %(message)s (%(name)s)')
+                    format='[%(levelname)s] %(message)s (%(name)s)')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config',
