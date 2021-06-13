@@ -3,13 +3,16 @@
 and record it.
 
 """
-
+import logging
 import argparse
 import yaml
 
 from ptzipcam.camera import Camera
 from ptzipcam import ui
 from ptzipcam.io import ImageStreamRecorder
+
+logging.basicConfig(level=logging.INFO,
+                    format='[%(levelname)s %(message)s (%(name)s)')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config',
@@ -66,19 +69,20 @@ if __name__ == '__main__':
     frame = cam.get_frame()
     frame_width = frame.shape[1]
     frame_height = frame.shape[0]
+    logging.info(f'Resolution {frame_width}x{frame_height}')
 
     total_pixels = frame_width * frame_height
 
     if RECORD:
-        print('[INFO] Recording is ON.')
+        logging.info('Recording is ON.')
         recorder = ImageStreamRecorder(RECORD_FOLDER)
     else:
-        print('[INFO] Recording is OFF.')
+        logging.info('Recording is OFF.')
 
     while True:
         raw_frame = cam.get_frame()
         if raw_frame is None:
-            print('Frame is None.')
+            logging.info('Frame is None.')
             continue
 
         raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
