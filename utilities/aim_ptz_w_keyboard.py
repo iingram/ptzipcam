@@ -46,6 +46,7 @@ CAM_PAN_MIN = configs['CAM_PAN_MIN']
 CAM_PAN_MAX = configs['CAM_PAN_MAX']
 CAM_ZOOM_MIN = configs['CAM_ZOOM_MIN']
 CAM_ZOOM_MAX = configs['CAM_ZOOM_MAX']
+CAM_ZOOM_POWER = configs['CAM_ZOOM_POWER']
 
 Y_DELTA = .05
 Y_DELTA_FINE = .001
@@ -223,7 +224,9 @@ def main_ui_function(stdscr):
                                                            tilt_degrees)
         stdscr.addstr(5, 0, angle_str, curses.color_pair(1))
 
-        angle_str = "Zoom: {:.3f}".format(zoom_command)
+        zoom_power = convert.zoom_to_power(zoom_command, CAM_ZOOM_POWER)
+        angle_str = "Zoom: {:.3f} ({:.2f} zoom)".format(zoom_command,
+                                                        zoom_power)
         stdscr.addstr(6, 0, angle_str, curses.color_pair(1))
         angle_str = "Focus: Sorta unknown"
         stdscr.addstr(7, 0, angle_str, curses.color_pair(1))
