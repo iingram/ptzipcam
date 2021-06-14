@@ -44,6 +44,7 @@ with open(CONFIG_FILE) as f:
 RECORD = configs['RECORD']
 RECORD_ONLY_DETECTIONS = configs['RECORD_ONLY_DETECTIONS']
 RECORD_FOLDER = configs['RECORD_FOLDER']
+DRAW_BOX = configs['DRAW_BOX']
 
 # ptz camera networking constants
 IP = configs['IP']
@@ -186,7 +187,8 @@ if __name__ == '__main__':
                                                        score))
 
             frames_since_last_target = 0
-            draw.labeled_box(frame, detector.class_names, target_lbox)
+            if DRAW_BOX:
+                draw.labeled_box(frame, detector.class_names, target_lbox)
 
             errors = motor_controller.calc_errors(target_lbox)
             x_err, y_err = errors

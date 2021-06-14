@@ -1,6 +1,7 @@
 RECORD: True
 RECORD_ONLY_DETECTIONS: True
 RECORD_FOLDER: /home/ian/twitcher_recordings
+DRAW_BOX: True
 
 # Stream: Main = 1, Sub = 2, Third = 3 
 STREAM: 3
