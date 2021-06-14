@@ -293,7 +293,9 @@ class PtzCam():
         while (pan >= pan_goal + close_enough
                or pan <= pan_goal - close_enough
                or tilt >= tilt_goal + close_enough
-               or tilt <= tilt_goal - close_enough):
+               or tilt <= tilt_goal - close_enough
+               or zoom >= zoom_goal + close_enough
+               or zoom <= zoom_goal - close_enough):
             time.sleep(.1)
             pan, tilt, zoom = self.get_position()
 
