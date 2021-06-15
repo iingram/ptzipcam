@@ -19,4 +19,4 @@ def command_to_degrees(command, full_range):
 
 
 def zoom_to_power(zoom, camera_zoom_power):
-    return zoom * camera_zoom_power
+    return (zoom * (camera_zoom_power - 1)) + 1
