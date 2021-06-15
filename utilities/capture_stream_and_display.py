@@ -3,6 +3,7 @@
 and record it.
 
 """
+import time
 import logging
 import argparse
 import yaml
@@ -49,6 +50,9 @@ RECORD_FOLDER = configs['RECORD_FOLDER']
 # GUI constants
 HEADLESS = configs['HEADLESS']
 
+FRAME_RATE = 12
+TIME_BETWEEN_FRAMES = 1/FRAME_RATE
+
 if __name__ == '__main__':
     # cam = Camera()
     cam = Camera(ip=IP,
@@ -79,6 +83,7 @@ if __name__ == '__main__':
     else:
         logging.info('Recording is OFF.')
 
+    start_time = time.time()
     while True:
         raw_frame = cam.get_frame()
         if raw_frame is None:
@@ -89,7 +94,6 @@ if __name__ == '__main__':
         frame = raw_frame.copy()
 
         # update ui and handle user input
-
         if not HEADLESS:
             key = uih.update(frame, hud=False)
             if key == ord('q'):
@@ -101,6 +105,17 @@ if __name__ == '__main__':
                                   0.0,
                                   'N/A',
                                   0.0)
+
+        elapsed = time.time() - start_time
+        remainder = TIME_BETWEEN_FRAMES - elapsed
+        logging.debug(f'Remainder is {remainder}')
+        if remainder > 0:
+            time.sleep(remainder)
+        else:
+            logging.debug('Too much time elapsed between frames.')
+            
+        start_time = time.time()
+
 
     # cam.release()
     del cam
