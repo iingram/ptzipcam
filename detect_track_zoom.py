@@ -32,8 +32,6 @@ parser.add_argument('config',
 args = parser.parse_args()
 CONFIG_FILE = args.config
 
-ZOOM_X_POWER = 25.0
-
 # DILATION = True
 FRAME_RATE = 15
 FRAME_WINDOW = 30
@@ -57,6 +55,8 @@ STREAM = configs['STREAM']
 INIT_POS = configs['INIT_POS']
 ORIENTATION = configs['ORIENTATION']
 PID_GAINS = configs['PID_GAINS']
+CAM_ZOOM_POWER = configs['CAM_ZOOM_POWER']
+
 
 # CV constants
 TRACKED_CLASS = configs['TRACKED_CLASS']
@@ -144,7 +144,7 @@ if __name__ == '__main__':
     # ptz.absmove(INIT_POS[0], INIT_POS[1])
     pan_init = convert.degrees_to_command(INIT_POS[0], 360.0)
     tilt_init = convert.degrees_to_command(INIT_POS[1], 90.0)
-    zoom_init = INIT_POS[2]/ZOOM_X_POWER
+    zoom_init = INIT_POS[2]/CAM_ZOOM_POWER
 
     log.info('Moving to initial position.')
     ptz.absmove_w_zoom_waitfordone(pan_init,
