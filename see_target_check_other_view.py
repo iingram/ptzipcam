@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import logging
 import time
 import os
 import argparse
@@ -11,7 +10,7 @@ import yaml
 from ptzipcam.ptz_camera import PtzCam
 # from ptzipcam.ptz_camera import MotorController
 from ptzipcam.camera import Camera
-from ptzipcam import convert  # ui
+from ptzipcam import convert, ui, logs
 # from ptzipcam.io import ImageStreamRecorder
 # from ptzipcam.video_writer import DilationVideoWriter
 
@@ -20,9 +19,11 @@ from dnntools import neuralnetwork as nn
 
 from dnntools import draw
 
-logging.basicConfig(level='INFO',
-                    format='[%(levelname)s] %(message)s (%(name)s)')
-log = logging.getLogger('main')
+# logging.basicConfig(level='INFO',
+#                     format='[%(levelname)s] %(message)s (%(name)s)')
+# log = logging.getLogger('main')
+
+log = logs.prep_log()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config',
@@ -75,7 +76,7 @@ def convert_commands(raw_command,
                      divisors):
     commands = {}
     commands['pan'] = convert.degrees_to_command(raw_command[0],
-                                                 divisors['tilt'])
+                                                 divisors['pan'])
     commands['tilt'] = convert.degrees_to_command(raw_command[1],
                                                   divisors['tilt'])
     commands['zoom'] = raw_command[2]/divisors['zoom']
@@ -100,6 +101,7 @@ class Capturer(Thread):
                 continue
 
             # time.sleep(.03)
+            self.frame = ui.orient_frame(self.frame, ORIENTATION)
 
             cv2.imshow('frame', self.frame)
             k = cv2.waitKey(1)
@@ -158,8 +160,6 @@ if __name__ == '__main__':
             break
         # pan, tilt, zoom = ptz.get_position()
 
-        # raw_frame = ui.orient_frame(raw_frame, ORIENTATION)
-
         frame = capturer.frame.copy()
         target_lbox = detector.detect(frame)
 
@@ -173,7 +173,7 @@ if __name__ == '__main__':
             frames_since_last_target = 0
             draw.labeled_box(frame, detector.class_names, target_lbox)
 
-            commands = convert_commands((100.0, 90.0, 2.0),
+            commands = convert_commands((360.0, 90.0, 2.0),
                                         COMMAND_DIVISORS)
             ptz.absmove_w_zoom_waitfordone(commands['pan'],
                                            commands['tilt'],
@@ -186,7 +186,7 @@ if __name__ == '__main__':
             detected_class = 'nothing detected'
             score = 0.0
 
-            commands = convert_commands((50.0, 90.0, 2.0),
+            commands = convert_commands((180.0, 90.0, 2.0),
                                         COMMAND_DIVISORS)
             ptz.absmove_w_zoom_waitfordone(commands['pan'],
                                            commands['tilt'],
