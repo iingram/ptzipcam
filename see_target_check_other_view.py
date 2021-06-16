@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 import logging
-logging.basicConfig(level='INFO',
-                    format='[%(levelname)s] %(message)s (%(name)s)')
-
 import time
 import os
-import time
 import argparse
 from threading import Thread
 
@@ -15,8 +11,8 @@ import yaml
 from ptzipcam.ptz_camera import PtzCam
 # from ptzipcam.ptz_camera import MotorController
 from ptzipcam.camera import Camera
-#from ptzipcam import ui
-#from ptzipcam.io import ImageStreamRecorder
+from ptzipcam import convert  # ui
+# from ptzipcam.io import ImageStreamRecorder
 # from ptzipcam.video_writer import DilationVideoWriter
 
 from dnntools import neuralnetwork as nn
@@ -24,6 +20,8 @@ from dnntools import neuralnetwork as nn
 
 from dnntools import draw
 
+logging.basicConfig(level='INFO',
+                    format='[%(levelname)s] %(message)s (%(name)s)')
 log = logging.getLogger('main')
 
 parser = argparse.ArgumentParser()
@@ -35,9 +33,9 @@ CONFIG_FILE = args.config
 FRAME_RATE = 15
 FRAME_WINDOW = 30
 
-COMMAND_DIVISORS = {'pan': 180.0,
-                    'tilt': 45.0,
-                    'zoom': 25.0}
+COMMAND_DIVISORS = {'pan': 360.0,
+                    'tilt': 90.0,
+                    'zoom': 4.0}
 
 with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
@@ -76,10 +74,12 @@ HEADLESS = configs['HEADLESS']
 def convert_commands(raw_command,
                      divisors):
     commands = {}
-    commands['pan'] = raw_command[0]/divisors['pan']
-    commands['tilt'] = raw_command[1]/divisors['tilt']
+    commands['pan'] = convert.degrees_to_command(raw_command[0],
+                                                 divisors['tilt'])
+    commands['tilt'] = convert.degrees_to_command(raw_command[1],
+                                                  divisors['tilt'])
     commands['zoom'] = raw_command[2]/divisors['zoom']
-    
+
     return commands
 
 
@@ -107,15 +107,15 @@ class Capturer(Thread):
                 stop_flag[0] = True
                 del self.cam
                 break
-                
-            
+
+
 if __name__ == '__main__':
     stop_flag = [False]
 
     capturer = Capturer(stop_flag)
     capturer.setDaemon(True)
     capturer.start()
-    
+
     ptz = PtzCam(IP, PORT, USER, PASS)
 
     # motor_controller = MotorController(PID_GAINS, ORIENTATION, frame)
@@ -143,10 +143,12 @@ if __name__ == '__main__':
     log.info('Moving to initial PTZ position')
     commands = convert_commands(INIT_POS,
                                 COMMAND_DIVISORS)
+
     ptz.absmove_w_zoom_waitfordone(commands['pan'],
                                    commands['tilt'],
                                    commands['zoom'],
                                    close_enough=.01)
+
     log.info('Moved to initial PTZ position')
 
     frames_since_last_target = 0
@@ -171,7 +173,7 @@ if __name__ == '__main__':
             frames_since_last_target = 0
             draw.labeled_box(frame, detector.class_names, target_lbox)
 
-            commands = convert_commands((100.0, 34.0, 0.0),
+            commands = convert_commands((100.0, 90.0, 2.0),
                                         COMMAND_DIVISORS)
             ptz.absmove_w_zoom_waitfordone(commands['pan'],
                                            commands['tilt'],
@@ -179,18 +181,17 @@ if __name__ == '__main__':
                                            close_enough=.01)
 
             time.sleep(5)
-            
+
         else:
             detected_class = 'nothing detected'
             score = 0.0
 
-            commands = convert_commands((-100.0, 34.0, 0.0),
+            commands = convert_commands((50.0, 90.0, 2.0),
                                         COMMAND_DIVISORS)
             ptz.absmove_w_zoom_waitfordone(commands['pan'],
                                            commands['tilt'],
                                            commands['zoom'],
                                            close_enough=.01)
-
 
             # frames_since_last_target += 1
             # if frames_since_last_target > 10:
