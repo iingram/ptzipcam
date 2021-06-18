@@ -146,7 +146,7 @@ if __name__ == '__main__':
     # ptz.absmove(INIT_POS[0], INIT_POS[1])
     pan_init = convert.degrees_to_command(INIT_POS[0], 360.0)
     tilt_init = convert.degrees_to_command(INIT_POS[1], 90.0)
-    zoom_init = INIT_POS[2]/CAM_ZOOM_POWER
+    zoom_init = convert.power_to_zoom(INIT_POS[2], CAM_ZOOM_POWER)
 
     log.info('Moving to initial position.')
     ptz.absmove_w_zoom_waitfordone(pan_init,
@@ -262,7 +262,7 @@ if __name__ == '__main__':
             ptz.stop()
 
         # only zoom out as far as the initial position
-        if zoom <= INIT_POS[2]:
+        if zoom_command < 0 and zoom < zoom_init:
             zoom_command = 0.0
 
         ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
