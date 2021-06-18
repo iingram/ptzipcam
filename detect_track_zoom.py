@@ -20,8 +20,13 @@ from ptzipcam.camera import Camera
 from ptzipcam.io import ImageStreamRecorder
 # from ptzipcam.video_writer import DilationVideoWriter
 
-# from dnntools import neuralnetwork as nn
-from dnntools import neuralnetwork_coral as nn
+# quick and dirty way to determine whether we are in an environment
+# where we are set up to (and therefore presumably want to) use a
+# coral or not
+try:
+    from dnntools import neuralnetwork_coral as nn
+except ImportError:
+    from dnntools import neuralnetwork as nn
 
 from dnntools import draw
 
