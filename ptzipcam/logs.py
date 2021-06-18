@@ -1,9 +1,9 @@
 import logging
 
 
-def prep_log():
+def prep_log(level):
     log = logging.getLogger()
-    log.setLevel(logging.INFO)
+    log.setLevel(level)
     if log.hasHandlers():
         log.handlers.clear()
     handler = logging.StreamHandler()

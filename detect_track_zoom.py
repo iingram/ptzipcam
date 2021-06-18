@@ -7,6 +7,7 @@ frames captured from the camera and using their offset and size in the
 frame to run a control system around the PTZ attributes on the IP
 camera.
 """
+import logging
 import os
 import time
 import argparse
@@ -24,7 +25,7 @@ from dnntools import neuralnetwork_coral as nn
 
 from dnntools import draw
 
-log = logs.prep_log()
+log = logs.prep_log(logging.INFO)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config',
