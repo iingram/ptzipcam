@@ -57,7 +57,6 @@ ORIENTATION = configs['ORIENTATION']
 PID_GAINS = configs['PID_GAINS']
 CAM_ZOOM_POWER = configs['CAM_ZOOM_POWER']
 
-
 # CV constants
 TRACKED_CLASS = configs['TRACKED_CLASS']
 CONF_THRESHOLD = configs['CONF_THRESHOLD']
@@ -103,6 +102,8 @@ if __name__ == '__main__':
     log.info("Frame shape: " + str(frame.shape[:2]))
     log.info("Detection threshold: " + str(CONF_THRESHOLD))
     log.info('Tracked classes: ' + str(TRACKED_CLASS))
+    ipan, itilt, izoom = INIT_POS
+    log.info(f'Initial position: {ipan} pan, {itilt} tilt, {izoom} zoom')
 
     if RECORD:
         log.info('Recording is turned ON')
@@ -258,6 +259,10 @@ if __name__ == '__main__':
         if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
             # print('stop action')
             ptz.stop()
+
+        # only zoom out as far as the initial position
+        if zoom <= INIT_POS[2]:
+            zoom_command = 0.0
 
         ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
 
