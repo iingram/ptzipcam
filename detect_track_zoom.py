@@ -167,7 +167,7 @@ if __name__ == '__main__':
                               pan,
                               tilt,
                               'n/a: start-up frame',
-                              0.0)
+                              None)
 
     x_err = 0.0
     y_err = 0.0
@@ -240,7 +240,7 @@ if __name__ == '__main__':
                                       pan,
                                       tilt,
                                       detected_class,
-                                      score)
+                                      target_lbox)
 
             # if not DILATION:
             #     vid_writer.write(frame.astype(np.uint8))
