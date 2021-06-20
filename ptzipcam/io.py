@@ -30,10 +30,12 @@ class ImageStreamRecorder():
 
     def record_image(self,
                      image,
-                     pan_angle,
-                     tilt_angle,
+                     ptz_state,
                      detected_class,
                      target_lbox):
+
+        pan_angle, tilt_angle, zoom = ptz_state
+
         front_bit = time.strftime(self.timestamp_format)
         # maybe you should avoid a call to time and datetime and just
         # get everything from datetime. later.
@@ -60,10 +62,11 @@ class ImageStreamRecorder():
             w = 0
             h = 0
 
-        strg = '{},{:.2f},{:.2f},{},{:.1f},{},{},{},{}\n'
+        strg = '{},{:.2f},{:.2f},{:.2f},{},{:.1f},{},{},{},{}\n'
         record_line = strg.format(image_filename,
                                   pan_angle,
                                   tilt_angle,
+                                  zoom,
                                   detected_class,
                                   score,
                                   x,

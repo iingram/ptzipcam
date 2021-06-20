@@ -153,6 +153,7 @@ if __name__ == '__main__':
     tilt_init = convert.degrees_to_command(INIT_POS[1], 90.0)
     zoom_init = convert.power_to_zoom(INIT_POS[2], CAM_ZOOM_POWER)
 
+    log.debug(f'Inits: {pan_init}, {tilt_init}, {zoom_init}')
     log.info('Moving to initial position.')
     ptz.absmove_w_zoom_waitfordone(pan_init,
                                    tilt_init,
@@ -164,8 +165,7 @@ if __name__ == '__main__':
     if RECORD:
         frame = ui.orient_frame(frame, ORIENTATION)
         recorder.record_image(frame,
-                              pan,
-                              tilt,
+                              (pan, tilt, zoom),
                               'n/a: start-up frame',
                               None)
 
@@ -225,6 +225,12 @@ if __name__ == '__main__':
                     zoom_command = -1.0
                 # zoom_command = -1.0
 
+            if frames_since_last_target > 200:
+                ptz.absmove_w_zoom_waitfordone(pan_init,
+                                               tilt_init,
+                                               zoom_init,
+                                               close_enough=.01)
+
         # update ui and handle user input
 
         if not HEADLESS:
@@ -237,8 +243,7 @@ if __name__ == '__main__':
                or not RECORD_ONLY_DETECTIONS):
                 log.info('Recording frame.')
                 recorder.record_image(frame,
-                                      pan,
-                                      tilt,
+                                      (pan, tilt, zoom),
                                       detected_class,
                                       target_lbox)
 
