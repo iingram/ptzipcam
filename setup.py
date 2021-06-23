@@ -21,12 +21,12 @@ DESC = "Package for controlling PTZ IP cameras that support ONVIF"
 setuptools.setup(
     name="ptzipcam",
     description=DESC,
-    license="MIT"
+    license="MIT",
     author="Ian Ingram",
     version="0.0.1",
     author_email="ianishidden@gmail.com",
-    packages=setuptools.find_packages(),
-    install_required=[
+    packages=['ptzipcam'],
+    install_requires=[
         'pyyaml',
         'opencv-python',
     ],
