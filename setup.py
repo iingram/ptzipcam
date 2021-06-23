@@ -23,16 +23,17 @@ setuptools.setup(
     description=DESC,
     license="MIT",
     author="Ian Ingram",
-    version="0.0.1",
-    author_email="ianishidden@gmail.com",
+    version=find_version(read('ptzipcam/__init__.py')),
     packages=['ptzipcam'],
     install_requires=[
         'pyyaml',
         'opencv-python',
+        'onvif-zeep',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
+        'Development Status :: 2 - Pre-Alpha',
         "Operating System :: OS Independent",
     ],
 )
