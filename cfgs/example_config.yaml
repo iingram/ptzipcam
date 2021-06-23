@@ -1,29 +1,30 @@
 RECORD: True
 RECORD_ONLY_DETECTIONS: True
-RECORD_FOLDER: /home/ian/twitcher_recordings
+RECORD_FOLDER: /home/ian/pinpoint_images
 DRAW_BOX: True
-
-# Stream: Main = 1, Sub = 2, Third = 3 
-STREAM: 3
-
 HEADLESS: False
 
 # bird, person, giraffe, cup, cat, dog, horse, sheep, cow, elephant, bear, zebra
 TRACKED_CLASS: [giraffe, person]
+
+# Stream: Main = 1, Sub = 2, Third = 3 
+STREAM: 3
+
 TIMELAPSE_CONFIG_FILENAME: /home/ian/lib/ptzipcam/config_timelapse.yaml
 
-# currently i think are dependent on camera type and current image resolution
 PID_GAINS: [-1.0, 1.0]
-# INIT_POS: [-0.5, 0.9, 0.1]  # pan (-1:1), tilt (-1:1), zoom (0:1); 
-INIT_POS: [90.0, 45, 4.0]  # for some cams: pan (0-360), tilt (0-90), zoom (0-25)
+
+INIT_POS: [90.0, 45, 4.0]  # for big hikvision: pan (0-360), tilt (0-90), zoom (1-25)
 ORIENTATION: up  # left up down right
 
 IP: 192.168.2.64  # cameras ship as 192.168.1.64
-PORT: 80
 USER: admin        
 PASS: NyalaChow22  
+PORT: 80
+RTSP_PORT: 554
 
 # Camera properties
+CAM_BRAND: hikvision
 CAM_TILT_MIN: -1.0
 CAM_TILT_MAX: 1.0
 CAM_PAN_MIN: -1.0
@@ -34,18 +35,18 @@ CAM_ZOOM_STEP: .1
 CAM_ZOOM_POWER: 25
 INFINITE_PAN: True
 
-
 CONF_THRESHOLD: .1
 NMS_THRESHOLD: .1
 INPUT_WIDTH: 416
 INPUT_HEIGHT: 416
 
-# MODEL_PATH: /home/ian/zooSpotter/models/
-# MODEL_CONFIG_FILE: yolov3-tiny.cfg
-# MODEL_WEIGHTS_FILE: yolov3-tiny.weights
-# CLASS_NAMES_FILE: coco.labels
+MODEL_PATH: /home/ian/models/yolo/
 
-MODEL_PATH: /usr/share/edgetpu/examples/models/
-MODEL_CONFIG_FILE: ssd_mobilenet_v1_coco_quant_postprocess_edgetpu.tflite
-MODEL_WEIGHTS_FILE: N/A
-CLASS_NAMES_FILE: coco_labels.txt
+MODEL_CONFIG_FILE: yolov3-tiny.cfg
+MODEL_WEIGHTS_FILE: yolov3-tiny.weights
+CLASS_NAMES_FILE: coco.labels
+
+# MODEL_PATH: /usr/share/edgetpu/examples/models/
+# MODEL_CONFIG_FILE: ssd_mobilenet_v1_coco_quant_postprocess_edgetpu.tflite
+# MODEL_WEIGHTS_FILE: N/A
+# CLASS_NAMES_FILE: coco_labels.txt
