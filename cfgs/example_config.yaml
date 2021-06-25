@@ -1,6 +1,7 @@
 RECORD: True
 RECORD_ONLY_DETECTIONS: True
 RECORD_FOLDER: /home/ian/pinpoint_images
+TIMELAPSE_DELAY: 60
 DRAW_BOX: True
 HEADLESS: False
 

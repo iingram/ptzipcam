@@ -12,6 +12,7 @@ import os
 import time
 import argparse
 
+from datetime import datetime
 import yaml
 
 from ptzipcam import logs, ui, convert
@@ -48,6 +49,7 @@ with open(CONFIG_FILE) as f:
 RECORD = configs['RECORD']
 RECORD_ONLY_DETECTIONS = configs['RECORD_ONLY_DETECTIONS']
 RECORD_FOLDER = configs['RECORD_FOLDER']
+TIMELAPSE_DELAY = configs['TIMELAPSE_DELAY']
 DRAW_BOX = configs['DRAW_BOX']
 
 # ptz camera networking constants
@@ -116,6 +118,7 @@ if __name__ == '__main__':
         strg = configs['RECORD_FOLDER']
         log.info('Recordings will be stored in {}'.format(strg))
         recorder = ImageStreamRecorder(configs['RECORD_FOLDER'])
+        log.info(f'{TIMELAPSE_DELAY} seconds between timelapse frames.')
 
         # codec = cv2.VideoWriter_fourcc(*'MJPG')
         # filename = 'video_dtz'
@@ -174,6 +177,7 @@ if __name__ == '__main__':
 
     frames_since_last_target = 0
 
+    start_time = time.time()
     while True:
         pan, tilt, zoom = ptz.get_position()
         raw_frame = cam.get_frame()
@@ -246,6 +250,15 @@ if __name__ == '__main__':
                                       (pan, tilt, zoom),
                                       detected_class,
                                       target_lbox)
+            elif (time.time() - start_time) > TIMELAPSE_DELAY:
+                now = datetime.now()
+                strng = now.strftime("%m/%d/%Y, %H:%M:%S")
+                log.info(f'Recording timelapse frame at {strng}')
+                recorder.record_image(frame,
+                                      (pan, tilt, zoom),
+                                      'n/a: timelapse frame',
+                                      None)
+                start_time = time.time()
 
             # if not DILATION:
             #     vid_writer.write(frame.astype(np.uint8))
