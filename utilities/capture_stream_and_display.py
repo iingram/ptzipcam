@@ -101,8 +101,7 @@ if __name__ == '__main__':
 
         if RECORD:
             recorder.record_image(frame,
-                                  0.0,
-                                  0.0,
+                                  (0.0, 0.0, 0.0),
                                   'N/A',
                                   0.0)
 
@@ -113,9 +112,8 @@ if __name__ == '__main__':
             time.sleep(remainder)
         else:
             logging.debug('Too much time elapsed between frames.')
-            
-        start_time = time.time()
 
+        start_time = time.time()
 
     # cam.release()
     del cam
