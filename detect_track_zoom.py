@@ -48,6 +48,7 @@ with open(CONFIG_FILE) as f:
 
 RECORD = configs['RECORD']
 RECORD_ONLY_DETECTIONS = configs['RECORD_ONLY_DETECTIONS']
+MIN_FRAMES_RECORD_PER_DETECT = configs['MIN_FRAMES_RECORD_PER_DETECT']
 RECORD_FOLDER = configs['RECORD_FOLDER']
 TIMELAPSE_DELAY = configs['TIMELAPSE_DELAY']
 DRAW_BOX = configs['DRAW_BOX']
@@ -175,7 +176,7 @@ if __name__ == '__main__':
     x_err = 0.0
     y_err = 0.0
 
-    frames_since_last_target = 0
+    frames_since_last_target = 10000
 
     start_time = time.time()
     while True:
@@ -244,7 +245,8 @@ if __name__ == '__main__':
 
         if RECORD:
             if((RECORD_ONLY_DETECTIONS and target_lbox)
-               or not RECORD_ONLY_DETECTIONS):
+               or not RECORD_ONLY_DETECTIONS
+               or frames_since_last_target < MIN_FRAMES_RECORD_PER_DETECT):
                 log.info('Recording frame.')
                 recorder.record_image(frame,
                                       (pan, tilt, zoom),
