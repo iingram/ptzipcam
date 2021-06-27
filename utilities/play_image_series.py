@@ -6,13 +6,14 @@ various tools in the ptzipcam package.
 
 Use second command line argument to "fast forward" by skipping that
 number of frames for every render.
-
 """
 import os
 import argparse
 
 import cv2
 import pandas as pd
+
+from dnntools import draw
 
 ap = argparse.ArgumentParser()
 
@@ -26,6 +27,10 @@ ap.add_argument('-r',
                 '--rate',
                 default=30,
                 help="Desired frames per second (program only approximates)")
+ap.add_argument('-b',
+                '--box',
+                action='store_true',
+                help="Toggle drawing boxes on frames")
 
 print("[INFO]: don't forget that you can set stride and fps on cli")
 
@@ -51,8 +56,25 @@ for index, row in df.iterrows():
         filename = os.path.join(base_path, row.IMAGE_FILE)
         # print(filename)
         img = cv2.imread(filename)
+        if(args.box
+           and row.CLASS != 'nothing detected'
+           and row.CLASS != 'n/a: start-up frame'):
+            lbox = {}
+            lbox['box'] = (int(row.X),
+                           int(row.Y),
+                           int(row.W),
+                           int(row.H))
+            lbox['class_name'] = row.CLASS
+            lbox['confidence'] = int(row.SCORE)
 
-        cv2.imshow('hoot', img)
+            draw.labeled_box(img,
+                             None,
+                             lbox,
+                             thickness=3,
+                             show_score=False,
+                             color=(229, 171, 4))
+
+        cv2.imshow('Playback', img)
         key = cv2.waitKey(msecs_per_frame)
         if key == ord('q'):
             break
