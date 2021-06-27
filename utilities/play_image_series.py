@@ -1,11 +1,13 @@
-"""Utility for playing back the frames in an image series created by
-various tools in this package.
+#!/usr/bin/env python
+"""Playback frames from a run
+
+Utility for playing back the frames in an image series created by
+various tools in the ptzipcam package.
 
 Use second command line argument to "fast forward" by skipping that
 number of frames for every render.
 
 """
-
 import os
 import argparse
 
