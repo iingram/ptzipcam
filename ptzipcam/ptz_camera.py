@@ -162,6 +162,19 @@ class PtzCam():
         self.tilt_bounds = [-1.0, 1.0]
         self.zoom_bounds = [0.0, 1.0]
 
+        vst = {'VideoSourceToken': self.video_source.token}
+        self.imaging_settings = self.imaging_service.GetImagingSettings(vst)
+
+        min_iris = self.imaging_settings.Exposure.MinIris,
+        max_iris = self.imaging_settings.Exposure.MaxIris,
+        self.iris_bounds = [min_iris,
+                            max_iris]
+
+        min_exposure_time = self.imaging_settings.Exposure.MinExposureTime
+        max_exposure_time = self.imaging_settings.Exposure.MaxExposureTime
+        self.exposure_time_bounds = [min_exposure_time,
+                                     max_exposure_time]
+        
         # self.moverequest = self.ptz.create_type('ContinuousMove')
         # self.moverequest.ProfileToken = media_profile.token
         # # if self.moverequest.Velocity is None:
@@ -174,6 +187,43 @@ class PtzCam():
     def __del__(self):
         print('[INFO] PtzCam object deletion.')
 
+    def get_exposure(self):
+        vst = {'VideoSourceToken': self.video_source.token}
+        self.imaging_settings = self.imaging_service.GetImagingSettings(vst)
+
+        time = self.imaging_settings.Exposure.ExposureTime
+        gain = self.imaging_settings.Exposure.Gain
+        iris = self.imaging_settings.Exposure.Iris
+
+        return time, gain, iris
+        
+    def _send_imaging_settings(self):
+        command_dict = {'VideoSourceToken': self.video_source.token,
+                        'ImagingSettings': self.imaging_settings}
+        self.imaging_service.SetImagingSettings(command_dict)
+
+    def set_exposure_to_auto(self):
+        self.imaging_settings.Exposure['Mode'] = 'AUTO'
+        self._send_imaging_settings()
+        
+    def set_exposure_time(self, exposure_time):
+        # need to implement bound checking using bounds gotten in constructor
+        self.imaging_settings.Exposure['Mode'] = 'MANUAL'
+        self.imaging_settings.Exposure['ExposureTime'] = exposure_time
+        self._send_imaging_settings()
+
+    def set_iris(self, iris):
+        # need to implement bound checking using bounds gotten in constructor
+        self.imaging_settings.Exposure['Mode'] = 'MANUAL'
+        self.imaging_settings.Exposure['Iris'] = iris
+        self._send_imaging_settings()
+
+    def set_gain(self, gain):
+        # need to implement bound checking using bounds
+        self.imaging_settings.Exposure['Mode'] = 'MANUAL'
+        self.imaging_settings.Exposure['Gain'] = gain
+        self._send_imaging_settings()
+        
     def focus_out(self):
         focus_request = self.imaging_service.create_type('Move')
         focus_request.VideoSourceToken = self.video_source.token

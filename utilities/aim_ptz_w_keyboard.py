@@ -54,6 +54,12 @@ X_DELTA = .05
 X_DELTA_FINE = .001
 Z_DELTA = configs['CAM_ZOOM_STEP']
 Z_DELTA_FINE = Z_DELTA / 3
+E_DELTA = 1000.0
+E_DELTA_FINE = 100.0
+G_DELTA = 5.0
+G_DELTA_FINE = 1.0
+I_DELTA = 5.0
+I_DELTA_FINE = 1.0
 F_TIME = 1
 F_TIME_FINE = .05
 
@@ -73,6 +79,15 @@ def main_ui_function(stdscr):
     pan_command = pan
     tilt_command = tilt
     zoom_command = zoom
+
+    exposure_control_on = False
+    # exptime, gain, iris = ptz.get_exposure()
+    # exp_command = exptime
+    # gain_command = gain
+    # iris_command = iris
+    exp_command = 15000.0
+    gain_command = 1.0
+    iris_command = 0.0
 
     # PREP UI ELEMENTS
     key = 0
@@ -95,7 +110,10 @@ def main_ui_function(stdscr):
     statusbarstr = ("Pan: j,l |"
                     "Tilt: i,k |"
                     "Zoom: z,x |"
-                    "Focus: f,g |"
+                    "Exp Time: t,y |"
+                    "Exp Gain: g,h |"
+                    "Exp Iris: b,n |"
+                    "Focus: a,s |"
                     "Shift: finer |"
                     "q to exit")
 
@@ -117,46 +135,45 @@ def main_ui_function(stdscr):
         height, width = stdscr.getmaxyx()
 
         # parse keyboard input
-        if key == ord('k'):
-            tilt_command += Y_DELTA
-        elif key == ord('K'):
-            tilt_command += Y_DELTA_FINE
-        elif key == ord('i'):
-            tilt_command -= Y_DELTA
-        elif key == ord('I'):
-            tilt_command -= Y_DELTA_FINE
+        def kchk(command, key, up_key, down_key, delta, delta_fine):
+            if key == ord(up_key):
+                command += delta
+            elif key == ord(up_key.upper()):
+                command += delta_fine
+            elif key == ord(down_key):
+                command -= delta
+            elif key == ord(down_key.upper()):
+                command -= delta_fine
 
-        elif key == ord('l'):
-            pan_command -= X_DELTA
-        elif key == ord('L'):
-            pan_command -= X_DELTA_FINE
-        elif key == ord('j'):
-            pan_command += X_DELTA
-        elif key == ord('J'):
-            pan_command += X_DELTA_FINE
+            return command
 
-        elif key == ord('z'):
-            zoom_command += Z_DELTA
-        elif key == ord('Z'):
-            zoom_command += Z_DELTA_FINE
-        elif key == ord('x'):
-            zoom_command -= Z_DELTA
-        elif key == ord('X'):
-            zoom_command -= Z_DELTA_FINE
+        tilt_command = kchk(tilt_command, key, 'k', 'i', Y_DELTA, Y_DELTA_FINE)
+        pan_command = kchk(pan_command, key, 'j', 'l', X_DELTA, X_DELTA_FINE)
+        zoom_command = kchk(zoom_command, key, 'z', 'x', Z_DELTA, Z_DELTA_FINE)
 
-        elif key == ord('f'):
+        exp_command = kchk(exp_command, key, 't', 'y', E_DELTA, E_DELTA_FINE)
+        gain_command = kchk(gain_command, key, 'g', 'h', G_DELTA, G_DELTA_FINE)
+        iris_command = kchk(iris_command, key, 'b', 'n', I_DELTA, I_DELTA_FINE)
+
+        if key == ord('e'):
+            exposure_control_on = not exposure_control_on
+
+            if not exposure_control_on:
+                ptz.set_exposure_to_auto()
+
+        if key == ord('a'):
             ptz.focus_in()
             time.sleep(F_TIME)
             ptz.focus_stop()
-        elif key == ord('F'):
+        elif key == ord('a'.upper()):
             ptz.focus_in()
             time.sleep(F_TIME_FINE)
             ptz.focus_stop()
-        elif key == ord('g'):
+        elif key == ord('s'):
             ptz.focus_out()
             time.sleep(F_TIME)
             ptz.focus_stop()
-        elif key == ord('G'):
+        elif key == ord('s'.upper()):
             ptz.focus_out()
             time.sleep(F_TIME_FINE)
             ptz.focus_stop()
@@ -186,14 +203,19 @@ def main_ui_function(stdscr):
                            tilt_command,
                            zoom_command)
 
+        if exposure_control_on:
+            ptz.set_exposure_time(exp_command)
+            ptz.set_gain(gain_command)
+            ptz.set_iris(iris_command)
+
         # Render status bar
         stdscr.attron(curses.color_pair(3))
         # doing the exception as it appears to prevent a crashing bug
         # brought about when the window is resized so the width is
         # less than the status bar string
         try:
-            stdscr.addstr(9, 0, statusbarstr)
-            stdscr.addstr(9,
+            stdscr.addstr(12, 0, statusbarstr)
+            stdscr.addstr(12,
                           len(statusbarstr),
                           " " * (width - len(statusbarstr) - 1))
         except Exception as e:
@@ -215,21 +237,32 @@ def main_ui_function(stdscr):
 
         # Write pan, tilt, zoom values
         pan_degrees = convert.command_to_degrees(pan_command, 360.0)
-        angle_str = "Pan: {:.3f} ({:.1f} degrees)".format(pan_command,
-                                                          pan_degrees)
-        stdscr.addstr(4, 0, angle_str, curses.color_pair(1))
+        strng = "Pan: {:.3f} ({:.1f} degrees)".format(pan_command,
+                                                      pan_degrees)
+        stdscr.addstr(4, 0, strng, curses.color_pair(1))
 
         tilt_degrees = convert.command_to_degrees(tilt_command, 90.0)
-        angle_str = "Tilt: {:.3f} ({:.1f} degrees)".format(tilt_command,
-                                                           tilt_degrees)
-        stdscr.addstr(5, 0, angle_str, curses.color_pair(1))
+        strng = "Tilt: {:.3f} ({:.1f} degrees)".format(tilt_command,
+                                                       tilt_degrees)
+        stdscr.addstr(5, 0, strng, curses.color_pair(1))
 
         zoom_power = convert.zoom_to_power(zoom_command, CAM_ZOOM_POWER)
-        angle_str = "Zoom: {:.3f} ({:.2f} zoom)".format(zoom_command,
-                                                        zoom_power)
-        stdscr.addstr(6, 0, angle_str, curses.color_pair(1))
-        angle_str = "Focus: Sorta unknown"
-        stdscr.addstr(7, 0, angle_str, curses.color_pair(1))
+        strng = "Zoom: {:.3f} ({:.2f} zoom)".format(zoom_command,
+                                                    zoom_power)
+        stdscr.addstr(6, 0, strng, curses.color_pair(1))
+
+        print(type(exp_command))
+        strng = "Exposure Time: {:.3f}".format(exp_command)
+        stdscr.addstr(7, 0, strng, curses.color_pair(1))
+
+        strng = "Exposure Gain: {:.3f}".format(gain_command)
+        stdscr.addstr(8, 0, strng, curses.color_pair(1))
+
+        strng = "Exposure Iris: {:.3f}".format(iris_command)
+        stdscr.addstr(9, 0, strng, curses.color_pair(1))
+
+        strng = "Focus: Sorta unknown"
+        stdscr.addstr(10, 0, strng, curses.color_pair(1))
 
         # hide cursor
         curses.curs_set(0)
