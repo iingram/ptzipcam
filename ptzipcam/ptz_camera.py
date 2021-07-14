@@ -45,7 +45,7 @@ class MotorController():
         self.total_frame_pixels = self.frame_width * self.frame_height
 
         self.ZOOM_STOP_RATIO = .7
-        
+
     def calc_errors(self,
                     target_lbox):
         xc, yc = draw.box_to_coords(target_lbox['box'],
@@ -58,11 +58,11 @@ class MotorController():
         # normalize errors
         x_err = x_err/self.frame_width
         y_err = y_err/self.frame_height
-        
+
         return x_err, y_err
 
     def _calc_zoom_command(self, x_err, y_err, zoom_command):
-        """Calculate the zoom command give pan/tilt errors 
+        """Calculate the zoom command give pan/tilt errors
 
         """
 
@@ -87,18 +87,17 @@ class MotorController():
 
             margin = 100
             if ((self.box_y + self.box_height) >= (self.frame_height - margin)
-                or (self.box_y <= margin)):       
+                or (self.box_y <= margin)):
                 zoom_command = 0.0
-                
+
         return zoom_command
-            
+
     def _calc_command(self, err, k):
-        #self.x_bound = 
         if np.abs(err) < .1:
             command = 0
         else:
             command = k * err
-        
+
         if command >= 1.0:
             command = 1.0
         if command <= -1.0:
@@ -117,7 +116,7 @@ class MotorController():
         x_velocity = self._calc_command(x_err, self.pid_gains[0])
         y_velocity = self._calc_command(y_err, self.pid_gains[1])
         zoom_command = self._calc_zoom_command(x_err, y_err, zoom_command)
-        
+
         return (x_velocity, y_velocity, zoom_command)
 
 
@@ -174,7 +173,7 @@ class PtzCam():
         max_exposure_time = self.imaging_settings.Exposure.MaxExposureTime
         self.exposure_time_bounds = [min_exposure_time,
                                      max_exposure_time]
-        
+
         # self.moverequest = self.ptz.create_type('ContinuousMove')
         # self.moverequest.ProfileToken = media_profile.token
         # # if self.moverequest.Velocity is None:
@@ -196,7 +195,7 @@ class PtzCam():
         iris = self.imaging_settings.Exposure.Iris
 
         return time, gain, iris
-        
+
     def _send_imaging_settings(self):
         command_dict = {'VideoSourceToken': self.video_source.token,
                         'ImagingSettings': self.imaging_settings}
@@ -205,7 +204,7 @@ class PtzCam():
     def set_exposure_to_auto(self):
         self.imaging_settings.Exposure['Mode'] = 'AUTO'
         self._send_imaging_settings()
-        
+
     def set_exposure_time(self, exposure_time):
         # need to implement bound checking using bounds gotten in constructor
         self.imaging_settings.Exposure['Mode'] = 'MANUAL'
@@ -223,7 +222,7 @@ class PtzCam():
         self.imaging_settings.Exposure['Mode'] = 'MANUAL'
         self.imaging_settings.Exposure['Gain'] = gain
         self._send_imaging_settings()
-        
+
     def focus_out(self):
         focus_request = self.imaging_service.create_type('Move')
         focus_request.VideoSourceToken = self.video_source.token
