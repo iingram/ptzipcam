@@ -1,11 +1,5 @@
 #!/usr/bin/env python
-"""Tracks targets detected via object detection using PTZ IP camera.
-
-Attempts to detect, track, and zoom in on target classes (usually
-various animal species of interest) by running an object detector on
-frames captured from the camera and using their offset and size in the
-frame to run a control system around the PTZ attributes on the IP
-camera.
+"""
 """
 import logging
 import os
@@ -19,11 +13,7 @@ from ptzipcam import logs, ui, convert
 from ptzipcam.ptz_camera import PtzCam, MotorController
 from ptzipcam.camera import Camera
 from ptzipcam.io import ImageStreamRecorder
-# from ptzipcam.video_writer import DilationVideoWriter
 
-# quick and dirty way to determine whether we are in an environment
-# where we are set up to (and therefore presumably want to) use a
-# coral or not:
 try:
     from dnntools import neuralnetwork_coral as nn
 except ImportError as e:
@@ -86,6 +76,11 @@ HEADLESS = configs['HEADLESS']
 if __name__ == '__main__':
     # construct core objects
     ptz = PtzCam(IP, PORT, USER, PASS)
+
+    bits = IP.split('.')
+    new_end = str(int(bits[-1] )- 1)
+    ip2 = '.'.join(bits[0:3] + [new_end])
+    ptz_top = PtzCam(ip2, PORT, USER, PASS)
     # cam = Camera()
     cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
     frame = cam.get_frame()
@@ -152,6 +147,7 @@ if __name__ == '__main__':
     # initialize position of camera
     zoom_command = 0
     ptz.zoom_out_full()
+    ptz_top.zoom_out_full()
     time.sleep(1)
     # ptz.absmove(INIT_POS[0], INIT_POS[1])
     pan_init = convert.degrees_to_command(INIT_POS[0], 360.0)
@@ -164,6 +160,10 @@ if __name__ == '__main__':
                                    tilt_init,
                                    zoom_init,
                                    close_enough=.01)
+    ptz_top.absmove_w_zoom_waitfordone(pan_init,
+                                       tilt_init,
+                                       zoom_init,
+                                       close_enough=.01)
     log.info('Completed move to initial position.')
 
     pan, tilt, zoom = ptz.get_position()
@@ -236,6 +236,10 @@ if __name__ == '__main__':
                                                tilt_init,
                                                zoom_init,
                                                close_enough=.01)
+                ptz_top.absmove_w_zoom_waitfordone(pan_init,
+                                                   tilt_init,
+                                                   zoom_init,
+                                                   close_enough=.01)
 
         # update ui and handle user input
 
@@ -286,12 +290,14 @@ if __name__ == '__main__':
         if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
             # print('stop action')
             ptz.stop()
+            ptz_top.stop()
 
         # only zoom out as far as the initial position
         if zoom_command < 0 and zoom < zoom_init:
             zoom_command = 0.0
 
         ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
+        ptz_top.move_w_zoom(x_velocity, y_velocity, zoom_command)
 
     # if RECORD:
     #     if not DILATION:
@@ -300,5 +306,6 @@ if __name__ == '__main__':
     #         dilation_vid_writer.release()
     del cam
     ptz.stop()
+    ptz_top.stop()
     if not HEADLESS:
         uih.clean_up()
