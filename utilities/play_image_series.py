@@ -31,6 +31,9 @@ ap.add_argument('-b',
                 '--box',
                 action='store_true',
                 help="Toggle drawing boxes on frames")
+ap.add_argument('-o',
+                '--output_path',
+                help="Path to store output frames")
 
 print("[INFO]: don't forget that you can set stride and fps on cli")
 
@@ -72,7 +75,12 @@ for index, row in df.iterrows():
                              lbox,
                              thickness=3,
                              show_score=False,
-                             color=(229, 171, 4))
+                             color=(4, 139, 229))  # 229, 171, 4
+
+        if args.output_path:
+            just_name = os.path.split(filename)[1]
+            filename = os.path.join(args.output_path, just_name)
+            cv2.imwrite(filename, img)
 
         cv2.imshow('Playback', img)
         key = cv2.waitKey(msecs_per_frame)
