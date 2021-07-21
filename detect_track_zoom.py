@@ -255,7 +255,7 @@ if __name__ == '__main__':
                or not RECORD_ONLY_DETECTIONS
                or frames_since_last_target < MIN_FRAMES_RECORD_PER_DETECT):
                 log.info('Recording frame.')
-                recorder.record_image(frame,
+                recorder.record_image(raw_frame,
                                       (pan, tilt, zoom),
                                       detected_class,
                                       target_lbox)
@@ -263,7 +263,7 @@ if __name__ == '__main__':
                 now = datetime.now()
                 strng = now.strftime("%m/%d/%Y, %H:%M:%S")
                 log.info(f'Recording timelapse frame at {strng}')
-                recorder.record_image(frame,
+                recorder.record_image(raw_frame,
                                       (pan, tilt, zoom),
                                       'n/a: timelapse frame',
                                       None)
