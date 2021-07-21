@@ -27,7 +27,7 @@ from ptzipcam.io import ImageStreamRecorder
 try:
     from dnntools import neuralnetwork_coral as nn
 except ImportError as e:
-    print(f'Unable to import neuralnetwork_coral. Error message: {e}') 
+    print(f'Unable to import neuralnetwork_coral. Error message: {e}')
     from dnntools import neuralnetwork as nn
 
 from dnntools import draw
@@ -195,9 +195,15 @@ if __name__ == '__main__':
         if target_lbox:
             detected_class = detector.class_names[target_lbox['class_id']]
             score = 100 * target_lbox['confidence']
-            print("[INFO] Detected: "
-                  + "{} with confidence {:.1f}".format(detected_class,
-                                                       score))
+
+            strng = ("[INFO] Detected: "
+                     + "{} with confidence {:.1f}"
+                     + " (P{:.1f}|T{:.1f}|Z{:.1f})")
+            print(strng.format(detected_class,
+                               score,
+                               convert.command_to_degrees(pan, 360),
+                               convert.command_to_degrees(tilt, 90),
+                               convert.zoom_to_power(zoom, CAM_ZOOM_POWER)))
 
             frames_since_last_target = 0
             if DRAW_BOX:
