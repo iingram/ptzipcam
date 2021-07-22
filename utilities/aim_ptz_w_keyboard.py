@@ -108,15 +108,20 @@ def main_ui_function(stdscr):
     title = "SageCam Test Tools Keyboard Control:"[:width-1]
     subtitle = "Aim PTZ IP Camera with Keyboard"[:width-1]
     usage_note = "(Only updates camera view once per keystroke)"[:width-1]
-    statusbarstr = ("Pan: j,l |"
-                    "Tilt: i,k |"
-                    "Zoom: z,x |"
-                    "Exp Time: t,y |"
-                    "Exp Gain: g,h |"
-                    "Exp Iris: b,n |"
-                    "Focus: a,s |"
-                    "Shift: finer |"
-                    "q to exit")
+    statusbarstr = ("PTZ: "
+                    "Pan:j,l | "
+                    "Tilt:i,k | "
+                    "Zoom:z,x")
+    statusbarstr2 = ("EXPOSURE: "
+                     "Toggle Autoexposure:e | "
+                     "Time:t,y | "
+                     "Gain:g,h | "
+                     "Iris:b,n")
+    statusbarstr3 = ("OTHER: "
+                     "Toggle Autofocus:f | "
+                     "Focus:a,s | "
+                     "Shift:finer | "
+                     "Exit:q")
 
     # MAIN LOOP
     while (key != ord('q')):
@@ -223,10 +228,15 @@ def main_ui_function(stdscr):
         # brought about when the window is resized so the width is
         # less than the status bar string
         try:
-            stdscr.addstr(12, 0, statusbarstr)
-            stdscr.addstr(12,
-                          len(statusbarstr),
-                          " " * (width - len(statusbarstr) - 1))
+            stdscr.addstr(11, 0, statusbarstr)
+            # stdscr.addstr(12,
+            #               len(statusbarstr),
+            #               " " * (width - len(statusbarstr) - 1))
+            stdscr.addstr(12, 0, statusbarstr2)
+            stdscr.addstr(13, 0, statusbarstr3)
+            # stdscr.addstr(13,
+            #               len(statusbarstr2),
+            #               " " * (width - len(statusbarstr2) - 1))
         except Exception as e:
             print('Exception')
             print(e)
