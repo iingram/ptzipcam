@@ -205,6 +205,14 @@ class PtzCam():
         self.imaging_settings.Exposure['Mode'] = 'AUTO'
         self._send_imaging_settings()
 
+    def set_focus_to_auto(self):
+        self.imaging_settings.Focus['AutoFocusMode'] = 'AUTO'
+        self._send_imaging_settings()
+
+    def set_focus_to_manual(self):
+        self.imaging_settings.Focus['AutoFocusMode'] = 'MANUAL'
+        self._send_imaging_settings()
+
     def set_exposure_time(self, exposure_time):
         # need to implement bound checking using bounds gotten in constructor
         self.imaging_settings.Exposure['Mode'] = 'MANUAL'

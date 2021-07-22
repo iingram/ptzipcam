@@ -81,6 +81,7 @@ def main_ui_function(stdscr):
     zoom_command = zoom
 
     exposure_control_on = False
+    focus_control_on = False
     # exptime, gain, iris = ptz.get_exposure()
     # exp_command = exptime
     # gain_command = gain
@@ -151,15 +152,23 @@ def main_ui_function(stdscr):
         pan_command = kchk(pan_command, key, 'j', 'l', X_DELTA, X_DELTA_FINE)
         zoom_command = kchk(zoom_command, key, 'z', 'x', Z_DELTA, Z_DELTA_FINE)
 
-        exp_command = kchk(exp_command, key, 't', 'y', E_DELTA, E_DELTA_FINE)
-        gain_command = kchk(gain_command, key, 'g', 'h', G_DELTA, G_DELTA_FINE)
-        iris_command = kchk(iris_command, key, 'b', 'n', I_DELTA, I_DELTA_FINE)
+        exp_command = kchk(exp_command, key, 'y', 't', E_DELTA, E_DELTA_FINE)
+        gain_command = kchk(gain_command, key, 'h', 'g', G_DELTA, G_DELTA_FINE)
+        iris_command = kchk(iris_command, key, 'n', 'b', I_DELTA, I_DELTA_FINE)
 
         if key == ord('e'):
             exposure_control_on = not exposure_control_on
 
             if not exposure_control_on:
                 ptz.set_exposure_to_auto()
+
+        if key == ord('f'):
+            focus_control_on = not focus_control_on
+
+            if not focus_control_on:
+                ptz.set_focus_to_auto()
+            else:
+                ptz.set_focus_to_manual()
 
         if key == ord('a'):
             ptz.focus_in()
