@@ -7,6 +7,7 @@ import time
 import yaml
 import argparse
 import cv2
+from threading import Thread
 
 from ptzipcam.camera import Camera
 from ptzipcam.ptz_camera import PtzCam
@@ -74,10 +75,25 @@ if ORIENTATION == 'down':
 ptz = PtzCam(IP, PORT, USER, PASS)
 
 
+class Display(Thread):
+
+    def run(self):
+        cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
+
+        while True:
+            # retrieve and display frame
+            frame = cam.get_frame()
+            if frame is not None:
+                frame = ui.orient_frame(frame, ORIENTATION)
+                if not HEADLESS:
+                    cv2.imshow('Control PTZ Camera', frame)
+                    _ = cv2.waitKey(33)
+                else:
+                    time.sleep(.033)
+
+
 def main_ui_function(stdscr):
-    # PREP CAMERA CONTROL
     global ptz
-    cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
 
     pan, tilt, zoom = ptz.get_position()
     pan_command = pan
@@ -129,16 +145,6 @@ def main_ui_function(stdscr):
 
     # MAIN LOOP
     while (key != ord('q')):
-        # retrieve and display frame
-        frame = None
-        frame = cam.get_frame()
-        if frame is not None:
-            frame = ui.orient_frame(frame, ORIENTATION)
-            if not HEADLESS:
-                cv2.imshow('Control PTZ Camera', frame)
-                _ = cv2.waitKey(33)
-            else:
-                time.sleep(.033)
 
         # Initialization
         stdscr.clear()
@@ -296,14 +302,13 @@ def main_ui_function(stdscr):
         # Wait for next input
         key = stdscr.getch()
 
-    if not HEADLESS:
-        cv2.destroyAllWindows()
-    # cam.release()
-    del cam
-
 
 def main():
     global ptz
+
+    display = Display()
+    display.setDaemon(True)
+    display.start()
 
     curses.wrapper(main_ui_function)
 
@@ -314,6 +319,9 @@ def main():
     zoom_power = convert.zoom_to_power(zoom, CAM_ZOOM_POWER)
 
     print(f'Pan: {pan_deg:.2f} Tilt: {tilt_deg:.2f}, Zoom: {zoom_power:.1f}')
+
+    if not HEADLESS:
+        cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
