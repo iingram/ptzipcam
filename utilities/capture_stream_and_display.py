@@ -22,6 +22,10 @@ parser.add_argument('-s',
                     '--stream',
                     required=False,
                     help='Camera stream')
+parser.add_argument('-n',
+                    '--no_record',
+                    action='store_true',
+                    help='Override recording.')
 args = parser.parse_args()
 CONFIG_FILE = args.config
 
@@ -45,6 +49,8 @@ else:
 
 ORIENTATION = configs['ORIENTATION']
 RECORD = configs['RECORD']
+if args.no_record:
+    RECORD = False
 RECORD_FOLDER = configs['RECORD_FOLDER']
 
 # GUI constants
