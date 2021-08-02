@@ -1,5 +1,7 @@
 #!/usr/bin/env python
+"""Aim PTZ camera using a curses keyboard interface
 
+"""
 import curses
 import time
 import yaml
@@ -69,10 +71,12 @@ if ORIENTATION == 'down':
     X_DELTA = -X_DELTA
     X_DELTA_FINE = -X_DELTA_FINE
 
+ptz = PtzCam(IP, PORT, USER, PASS)
+
 
 def main_ui_function(stdscr):
     # PREP CAMERA CONTROL
-    ptz = PtzCam(IP, PORT, USER, PASS)
+    global ptz
     cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
 
     pan, tilt, zoom = ptz.get_position()
@@ -91,7 +95,7 @@ def main_ui_function(stdscr):
     iris_command = 0.0
 
     # PREP UI ELEMENTS
-    key = 0
+    key = '0'
     height, width = stdscr.getmaxyx()
 
     # Clear and refresh the screen for a blank canvas
@@ -296,11 +300,20 @@ def main_ui_function(stdscr):
         cv2.destroyAllWindows()
     # cam.release()
     del cam
-    del ptz
 
 
 def main():
+    global ptz
+
     curses.wrapper(main_ui_function)
+
+    # after curses closed print out PTZ values on CLI
+    pan, tilt, zoom = ptz.get_position()
+    pan_deg = convert.command_to_degrees(pan, 360.0)
+    tilt_deg = convert.command_to_degrees(tilt, 90.0)
+    zoom_power = convert.zoom_to_power(zoom, CAM_ZOOM_POWER)
+
+    print(f'Pan: {pan_deg:.2f} Tilt: {tilt_deg:.2f}, Zoom: {zoom_power:.1f}')
 
 
 if __name__ == "__main__":
