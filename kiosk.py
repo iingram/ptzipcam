@@ -1,7 +1,6 @@
 import logging
 import os
 import argparse
-import sys
 import threading
 import socket
 import struct
@@ -10,7 +9,6 @@ import cv2
 
 import yaml
 import screeninfo
-import imutils
 
 import numpy as np
 
@@ -45,13 +43,13 @@ parser.add_argument('-p',
                     default='65432',
                     help='Port number to use.')
 
-args= parser.parse_args()
+args = parser.parse_args()
 
 with open(args.config) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
 TRACKED_CLASS = configs['TRACKED_CLASS']
-    
+
 confThreshold = configs['CONF_THRESHOLD']
 nmsThreshold = configs['NMS_THRESHOLD']
 input_width = configs['INPUT_WIDTH']
@@ -112,7 +110,7 @@ network = nn.ObjectDetectorHandler(os.path.join(model_path, model_config),
 images = []
 for root, dirs, files in os.walk(IMAGE_PATH):
     for filename in files:
-        endings = (".jpg",'.JPG', '.jpeg', '.png', '.JPEG')
+        endings = (".jpg", '.JPG', '.jpeg', '.png', '.JPEG')
         if filename.endswith(endings):
             img = cv2.imread(os.path.join(root, filename))
             # img = imutils.resize(img, width=640)
@@ -122,11 +120,12 @@ for root, dirs, files in os.walk(IMAGE_PATH):
 log.info("Number of images from disk is: " + str(len(images)))
 count = 0
 
+
 def socket_function():
     global flypics, pics, images, count
 
     header_format = '>Lff'
-    
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
         s.listen(10)
@@ -150,14 +149,17 @@ def socket_function():
             log.info("Done Recv: {}".format(len(data)))
             header = data[:header_size]
             data = data[header_size:]
-            msg_size, pan_angle, tilt_angle = struct.unpack(header_format, header)
+            msg_size, pan_angle, tilt_angle = struct.unpack(header_format,
+                                                            header)
             log.info("msg_size: {}".format(msg_size))
             while len(data) < msg_size:
                 data += conn.recv(4096)
             frame_data = data[:msg_size]
             data = data[msg_size:]
 
-            frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
+            frame = pickle.loads(frame_data,
+                                 fix_imports=True,
+                                 encoding="bytes")
             frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
 
             log.info(frame.shape)
@@ -172,9 +174,9 @@ def socket_function():
                 for lbox in lboxes:
                     if CLASSES[lbox['class_id']] in TRACKED_CLASS:
                         draw.labeled_box(the_image, CLASSES, lbox, thickness=2)
-                        
+
             boxify(frame)
-                        
+
             flypics.append(viz.FlyingPicBox(frame,
                                             np.array(((10 + 640)*spot, 0)),
                                             np.array(((10 + 640)*spot, 70))))
@@ -185,18 +187,17 @@ def socket_function():
                 count = 0
 
             boxify(img)
-                
+
             flypics.append(viz.FlyingPicBox(img,
                                             np.array(((10 + 640)*spot, 1000)),
                                             np.array(((10 + 640)*spot, 650))))
 
-            
             pics[spot].append(frame)
             spot += 1
             if spot >= num_spots:
                 spot = 0
-            
-            
+
+
 socket_thread = threading.Thread(target=socket_function,
                                  daemon=True)
 socket_thread.start()
@@ -208,26 +209,20 @@ counts = []
 for i in range(num_spots):
     counts.append(0)
 
-
-
 while True:
     canvas = np.zeros((screen_height, screen_width, 3), np.uint8)
 
-
-    
     for pic in flypics:
         pic.update()
         pic.display(canvas)
 
-
     if len(flypics) > 10:
         flypics = flypics[1:]
-        
+
     for i in range(num_spots):
         counts[i] += 1
         if counts[i] > len(pics[i]) - 1:
             counts[i] = 0
-
 
     cv2.imshow(window_name, canvas)
     key = cv2.waitKey(30)
