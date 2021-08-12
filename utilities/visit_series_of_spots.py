@@ -42,7 +42,6 @@ PASS = configs['PASS']
 STREAM = configs['STREAM']
 
 # ptz camera setup constants
-INIT_POS = configs['INIT_POS']
 ORIENTATION = configs['ORIENTATION']
 PID_GAINS = configs['PID_GAINS']
 CAM_ZOOM_POWER = configs['CAM_ZOOM_POWER']
@@ -50,13 +49,27 @@ CAM_ZOOM_POWER = configs['CAM_ZOOM_POWER']
 # GUI constants
 HEADLESS = configs['HEADLESS']
 
-SPOTS = [[180, 90, 5],
-         [270, 45, 25],
-         [30, 10, 1],
-         [330, 80, 20],
-         [220, 75, 15]]
+SPOTS = [[34.4, 85.5, 25, 1.5],
+         [64.3, 82.7, 13.24, 3.5],
+         # [39.2, 83, 25, .5],
+         # [70.9, 87.2, 25, 3]]
+         # [39.2, 87.8, 25, 3]]
+         # [34.4, 85.5, 25],
+         [355.9, 80.4, 15, 6]]
 spot_cycle = cycle(SPOTS)
-TIME_AT_EACH_SPOT = 1
+
+
+def get_command_from_spot(spot):
+    pan_command = spot[0]
+    tilt_command = spot[1]
+    zoom_command = spot[2]
+
+    pan_command = convert.degrees_to_command(pan_command, 360)
+    tilt_command = convert.degrees_to_command(tilt_command, 90)
+    zoom_command = convert.power_to_zoom(zoom_command, CAM_ZOOM_POWER)
+
+    return pan_command, tilt_command, zoom_command
+
 
 if __name__ == '__main__':
     ptz = PtzCam(IP, PORT, USER, PASS)
@@ -71,8 +84,6 @@ if __name__ == '__main__':
         uih = ui.UI_Handler(frame, window_name)
 
     log.info("Frame shape: " + str(frame.shape[:2]))
-    ipan, itilt, izoom = INIT_POS
-    log.info(f'Initial position: {ipan} pan, {itilt} tilt, {izoom} zoom')
 
     if RECORD:
         log.info('Recording is turned ON')
@@ -86,16 +97,14 @@ if __name__ == '__main__':
     zoom_command = 0
     ptz.zoom_out_full()
     time.sleep(1)
-    # ptz.absmove(INIT_POS[0], INIT_POS[1])
-    pan_init = convert.degrees_to_command(INIT_POS[0], 360.0)
-    tilt_init = convert.degrees_to_command(INIT_POS[1], 90.0)
-    zoom_init = convert.power_to_zoom(INIT_POS[2], CAM_ZOOM_POWER)
 
-    log.debug(f'Inits: {pan_init}, {tilt_init}, {zoom_init}')
     log.info('Moving to initial position.')
-    ptz.absmove_w_zoom_waitfordone(pan_init,
-                                   tilt_init,
-                                   zoom_init,
+    spot = next(spot_cycle)
+    ipan, itilt, izoom = get_command_from_spot(spot)
+    time_to_wait = spot[3]
+    ptz.absmove_w_zoom_waitfordone(ipan,
+                                   itilt,
+                                   izoom,
                                    close_enough=.01)
     log.info('Completed move to initial position.')
 
@@ -124,21 +133,16 @@ if __name__ == '__main__':
                                   'N/A',
                                   None)
 
-        if time.time() - start_time >= TIME_AT_EACH_SPOT:
+        if time.time() - start_time >= time_to_wait:
             start_time = time.time()
 
             spot = next(spot_cycle)
-            pan_command = spot[0]
-            tilt_command = spot[1]
-            zoom_command = spot[2]
+            pan_com, tilt_com, zoom_com = get_command_from_spot(spot)
+            time_to_wait = spot[3]
 
-            pan_command = convert.degrees_to_command(pan_command, 360)
-            tilt_command = convert.degrees_to_command(tilt_command, 90)
-            zoom_command = convert.power_to_zoom(zoom_command, CAM_ZOOM_POWER)
-
-            ptz.absmove_w_zoom(pan_command,
-                               tilt_command,
-                               zoom_command)
+            ptz.absmove_w_zoom(pan_com,
+                               tilt_com,
+                               zoom_com)
 
         if not HEADLESS:
             key = uih.update(frame, hud=False)
