@@ -50,6 +50,7 @@ with open(CONFIG_FILE) as f:
 RECORD = configs['RECORD']
 RECORD_ONLY_DETECTIONS = configs['RECORD_ONLY_DETECTIONS']
 MIN_FRAMES_RECORD_PER_DETECT = configs['MIN_FRAMES_RECORD_PER_DETECT']
+FRAMES_BEFORE_RETURN_TO_HOME = configs['FRAMES_BEFORE_RETURN_TO_HOME']
 RECORD_FOLDER = configs['RECORD_FOLDER']
 TIMELAPSE_DELAY = configs['TIMELAPSE_DELAY']
 DRAW_BOX = configs['DRAW_BOX']
@@ -237,7 +238,7 @@ if __name__ == '__main__':
                     zoom_command = -1.0
                 # zoom_command = -1.0
 
-            if frames_since_last_target > 200:
+            if frames_since_last_target > FRAMES_BEFORE_RETURN_TO_HOME:
                 ptz.absmove_w_zoom_waitfordone(pan_init,
                                                tilt_init,
                                                zoom_init,
