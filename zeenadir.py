@@ -8,6 +8,7 @@ import argparse
 
 from datetime import datetime
 import yaml
+import numpy as np
 
 from ptzipcam import logs, ui, convert
 from ptzipcam.ptz_camera import PtzCam, MotorController
@@ -17,7 +18,7 @@ from ptzipcam.io import ImageStreamRecorder
 try:
     from dnntools import neuralnetwork_coral as nn
 except ImportError as e:
-    print(f'Unable to import neuralnetwork_coral. Error message: {e}') 
+    print(f'Unable to import neuralnetwork_coral. Error message: {e}')
     from dnntools import neuralnetwork as nn
 
 from dnntools import draw
@@ -33,6 +34,8 @@ CONFIG_FILE = args.config
 # DILATION = True
 FRAME_RATE = 15
 FRAME_WINDOW = 30
+
+TOP_BOTTOM_OFFSET = 180
 
 with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
@@ -73,16 +76,24 @@ CLASSES = nn.read_classes_from_file(CLASSES_FILE)
 # GUI constants
 HEADLESS = configs['HEADLESS']
 
+
+def assemble_diptych(cam_top, frame):
+    top_frame = cam_top.get_frame()
+    assembled = np.concatenate((top_frame, frame))
+    return assembled
+
+
 if __name__ == '__main__':
     # construct core objects
     ptz = PtzCam(IP, PORT, USER, PASS)
 
     bits = IP.split('.')
-    new_end = str(int(bits[-1] )- 1)
+    new_end = str(int(bits[-1]) - 1)
     ip2 = '.'.join(bits[0:3] + [new_end])
     ptz_top = PtzCam(ip2, PORT, USER, PASS)
     # cam = Camera()
     cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
+    cam_top = Camera(ip=ip2, user=USER, passwd=PASS, stream=STREAM)
     frame = cam.get_frame()
     if frame is None:
         log.warning('Frame is None.')
@@ -151,6 +162,14 @@ if __name__ == '__main__':
     time.sleep(1)
     # ptz.absmove(INIT_POS[0], INIT_POS[1])
     pan_init = convert.degrees_to_command(INIT_POS[0], 360.0)
+
+    TOP_PAN = INIT_POS[0] + TOP_BOTTOM_OFFSET
+    if TOP_PAN >= 360:
+        TOP_PAN -= 360
+    if TOP_PAN < 0:
+        TOP_PAN = 360 + TOP_PAN
+
+    top_pan_init = convert.degrees_to_command(TOP_PAN, 360.0)
     tilt_init = convert.degrees_to_command(INIT_POS[1], 90.0)
     zoom_init = convert.power_to_zoom(INIT_POS[2], CAM_ZOOM_POWER)
 
@@ -160,7 +179,7 @@ if __name__ == '__main__':
                                    tilt_init,
                                    zoom_init,
                                    close_enough=.01)
-    ptz_top.absmove_w_zoom_waitfordone(pan_init,
+    ptz_top.absmove_w_zoom_waitfordone(top_pan_init,
                                        tilt_init,
                                        zoom_init,
                                        close_enough=.01)
@@ -169,7 +188,8 @@ if __name__ == '__main__':
     pan, tilt, zoom = ptz.get_position()
     if RECORD:
         frame = ui.orient_frame(frame, ORIENTATION)
-        recorder.record_image(frame,
+        put_together = assemble_diptych(cam_top, frame)
+        recorder.record_image(put_together,
                               (pan, tilt, zoom),
                               'n/a: start-up frame',
                               None)
@@ -236,7 +256,7 @@ if __name__ == '__main__':
                                                tilt_init,
                                                zoom_init,
                                                close_enough=.01)
-                ptz_top.absmove_w_zoom_waitfordone(pan_init,
+                ptz_top.absmove_w_zoom_waitfordone(top_pan_init,
                                                    tilt_init,
                                                    zoom_init,
                                                    close_enough=.01)
@@ -253,7 +273,8 @@ if __name__ == '__main__':
                or not RECORD_ONLY_DETECTIONS
                or frames_since_last_target < MIN_FRAMES_RECORD_PER_DETECT):
                 log.info('Recording frame.')
-                recorder.record_image(frame,
+                put_together = assemble_diptych(cam_top, raw_frame)
+                recorder.record_image(put_together,
                                       (pan, tilt, zoom),
                                       detected_class,
                                       target_lbox)
@@ -261,7 +282,8 @@ if __name__ == '__main__':
                 now = datetime.now()
                 strng = now.strftime("%m/%d/%Y, %H:%M:%S")
                 log.info(f'Recording timelapse frame at {strng}')
-                recorder.record_image(frame,
+                put_together = assemble_diptych(cam_top, raw_frame)
+                recorder.record_image(put_together,
                                       (pan, tilt, zoom),
                                       'n/a: timelapse frame',
                                       None)
@@ -297,7 +319,7 @@ if __name__ == '__main__':
             zoom_command = 0.0
 
         ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
-        ptz_top.move_w_zoom(x_velocity, y_velocity, zoom_command)
+        ptz_top.move_w_zoom(-x_velocity, y_velocity, zoom_command)
 
     # if RECORD:
     #     if not DILATION:
