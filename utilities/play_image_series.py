@@ -19,6 +19,14 @@ ap = argparse.ArgumentParser()
 
 ap.add_argument('filename',
                 help='CSV file of image series.')
+ap.add_argument('-j',
+                '--jump',
+                default=0,
+                help='Jump to this frame.')
+ap.add_argument('-t',
+                '--threshold',
+                default=0,
+                help='Threshold on confidence score.')
 ap.add_argument('-s',
                 '--stride',
                 default=1,
@@ -40,6 +48,7 @@ print("[INFO]: don't forget that you can set stride and fps on cli")
 args = ap.parse_args()
 
 csv_filename = args.filename
+SCORE_THRESH = int(args.threshold)
 stride = int(args.stride)
 msecs_per_frame = int(1000 * (1.0/int(args.rate)))
 print('[INFO] FPS results in '
@@ -53,6 +62,8 @@ base_path = os.path.join(base_path, main_timestamp + '_images')
 
 count = -1
 for index, row in df.iterrows():
+    if index < int(args.jump):
+        continue
     count += 1
     if count % stride == 0:
         count = 0
@@ -61,6 +72,7 @@ for index, row in df.iterrows():
         img = cv2.imread(filename)
         if(args.box
            and row.CLASS != 'nothing detected'
+           and row.CLASS != 'n/a: timelapse frame'
            and row.CLASS != 'n/a: start-up frame'):
             lbox = {}
             lbox['box'] = (int(row.X),
@@ -70,12 +82,14 @@ for index, row in df.iterrows():
             lbox['class_name'] = row.CLASS
             lbox['confidence'] = int(row.SCORE)
 
-            draw.labeled_box(img,
-                             None,
-                             lbox,
-                             thickness=3,
-                             show_score=False,
-                             color=(4, 139, 229))  # 229, 171, 4
+            if row.SCORE > SCORE_THRESH:
+                draw.labeled_box(img,
+                                 None,
+                                 lbox,
+                                 thickness=3,
+                                 # font_size=3,
+                                 show_score=False,
+                                 color=(235, 234, 206))  # 229, 171, 4
 
         if args.output_path:
             just_name = os.path.split(filename)[1]
