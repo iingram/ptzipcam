@@ -17,6 +17,7 @@ import yaml
 from ptzipcam.ptz_camera import PtzCam
 from ptzipcam.camera import Camera
 from ptzipcam import convert, ui, logs
+from ptzipcam.io import ImageStreamRecorder
 
 from dnntools import neuralnetwork as nn
 from dnntools import draw
@@ -133,6 +134,12 @@ if __name__ == '__main__':
                                  TRACKED_CLASS)
 
     log.info("Using: " + nn.__name__)
+    frame = capturer.frame.copy()
+    log.info("Frame shape: " + str(frame.shape[:2]))
+    logs.log_configuration(log, configs)
+
+    if RECORD:
+        recorder = ImageStreamRecorder(configs['RECORD_FOLDER'])
 
     # initialize position of camera
     zoom_command = 0
@@ -189,5 +196,11 @@ if __name__ == '__main__':
                                            commands['tilt'],
                                            commands['zoom'],
                                            close_enough=.05)
+
+        if RECORD:
+            recorder.record_image(frame,
+                                  (0, 0, 0),
+                                  detected_class,
+                                  target_lbox)
 
     ptz.stop()
