@@ -29,6 +29,8 @@ setuptools.setup(
         'pyyaml',
         'opencv-python',
         'onvif-zeep',
+        'screeninfo',
+        'imutils',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
