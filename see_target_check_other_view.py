@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+"""If see target, moves to second position momentarily
+
+If a target class is detected while in the home position, the camera
+is commanded to second position momentarily to watch what is happening
+there.
+"""
+import logging
 import time
 import os
 import argparse
@@ -8,28 +15,24 @@ import cv2
 import yaml
 
 from ptzipcam.ptz_camera import PtzCam
-# from ptzipcam.ptz_camera import MotorController
 from ptzipcam.camera import Camera
 from ptzipcam import convert, ui, logs
-# from ptzipcam.io import ImageStreamRecorder
-# from ptzipcam.video_writer import DilationVideoWriter
 
 from dnntools import neuralnetwork as nn
-# from dnntools import neuralnetwork_coral as nn
-
 from dnntools import draw
 
-# logging.basicConfig(level='INFO',
-#                     format='[%(levelname)s] %(message)s (%(name)s)')
-# log = logging.getLogger('main')
-
-log = logs.prep_log()
+log = logs.prep_log(logging.INFO)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config',
                     help='Filename of configuration file')
+parser.add_argument('-w',
+                    '--wait',
+                    required=True,
+                    help='Time to wait at non-home position')
 args = parser.parse_args()
 CONFIG_FILE = args.config
+TIME_AT_NONHOME = int(args.wait)
 
 FRAME_RATE = 15
 FRAME_WINDOW = 30
@@ -120,8 +123,6 @@ if __name__ == '__main__':
 
     ptz = PtzCam(IP, PORT, USER, PASS)
 
-    # motor_controller = MotorController(PID_GAINS, ORIENTATION, frame)
-
     detector = nn.TargetDetector(MODEL_CONFIG,
                                  MODEL_WEIGHTS,
                                  INPUT_WIDTH,
@@ -132,9 +133,6 @@ if __name__ == '__main__':
                                  TRACKED_CLASS)
 
     log.info("Using: " + nn.__name__)
-
-    # if RECORD:
-    #     recorder = ImageStreamRecorder('/home/ian/images_dtz')
 
     # initialize position of camera
     zoom_command = 0
@@ -149,7 +147,7 @@ if __name__ == '__main__':
     ptz.absmove_w_zoom_waitfordone(commands['pan'],
                                    commands['tilt'],
                                    commands['zoom'],
-                                   close_enough=.01)
+                                   close_enough=.05)
 
     log.info('Moved to initial PTZ position')
 
@@ -158,7 +156,6 @@ if __name__ == '__main__':
     while True:
         if stop_flag[0] is True:
             break
-        # pan, tilt, zoom = ptz.get_position()
 
         frame = capturer.frame.copy()
         target_lbox = detector.detect(frame)
@@ -173,38 +170,24 @@ if __name__ == '__main__':
             frames_since_last_target = 0
             draw.labeled_box(frame, detector.class_names, target_lbox)
 
-            commands = convert_commands((360.0, 90.0, 2.0),
+            commands = convert_commands((270.0, 45.0, 2.0),
                                         COMMAND_DIVISORS)
             ptz.absmove_w_zoom_waitfordone(commands['pan'],
                                            commands['tilt'],
                                            commands['zoom'],
-                                           close_enough=.01)
+                                           close_enough=.05)
 
-            time.sleep(5)
+            time.sleep(TIME_AT_NONHOME)
 
         else:
             detected_class = 'nothing detected'
             score = 0.0
 
-            commands = convert_commands((180.0, 90.0, 2.0),
+            commands = convert_commands(INIT_POS,
                                         COMMAND_DIVISORS)
             ptz.absmove_w_zoom_waitfordone(commands['pan'],
                                            commands['tilt'],
                                            commands['zoom'],
-                                           close_enough=.01)
-
-            # frames_since_last_target += 1
-            # if frames_since_last_target > 10:
-            #     x_err = 0
-            #     y_err = 0
-
-            # if frames_since_last_target > 30:
-            #     # x_err = -300
-            #     x_err = 0
-
-            # if frames_since_last_target > 30:
-            #     zoom_command -= .05
-            #     if zoom_command <= -1.0:
-            #         zoom_command = -1.0
+                                           close_enough=.05)
 
     ptz.stop()
