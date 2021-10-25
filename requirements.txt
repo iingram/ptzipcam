@@ -1,7 +1,0 @@
-imutils
-numpy
-onvif-zeep
-opencv-python
-PyYAML
-screeninfo
-zeep
