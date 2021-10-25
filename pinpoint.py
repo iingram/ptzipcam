@@ -113,17 +113,10 @@ if __name__ == '__main__':
 
     log.info("Using: " + nn.__name__)
     log.info("Frame shape: " + str(frame.shape[:2]))
-    log.info("Detection threshold: " + str(CONF_THRESHOLD))
-    log.info('Tracked classes: ' + str(TRACKED_CLASS))
-    ipan, itilt, izoom = INIT_POS
-    log.info(f'Initial position: {ipan} pan, {itilt} tilt, {izoom} zoom')
+    logs.log_configuration(log, configs)
 
     if RECORD:
-        log.info('Recording is turned ON')
-        strg = configs['RECORD_FOLDER']
-        log.info('Recordings will be stored in {}'.format(strg))
         recorder = ImageStreamRecorder(configs['RECORD_FOLDER'])
-        log.info(f'{TIMELAPSE_DELAY} seconds between timelapse frames.')
 
         # codec = cv2.VideoWriter_fourcc(*'MJPG')
         # filename = 'video_dtz'
@@ -146,11 +139,6 @@ if __name__ == '__main__':
         #                                               (frame_width,
         #                                                frame_height),
         #                                               FRAME_WINDOW)
-    else:
-        log.info('Recording is turned OFF')
-
-    if RECORD_ONLY_DETECTIONS:
-        log.info('Record only detections: True')
 
     # initialize position of camera
     zoom_command = 0
