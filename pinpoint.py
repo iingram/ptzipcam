@@ -43,6 +43,8 @@ CONFIG_FILE = args.config
 # DILATION = True
 FRAME_RATE = 15
 FRAME_WINDOW = 30
+CLOSE_ENUF_ON_INIT = .05
+
 
 with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
@@ -164,7 +166,7 @@ if __name__ == '__main__':
     ptz.absmove_w_zoom_waitfordone(pan_init,
                                    tilt_init,
                                    zoom_init,
-                                   close_enough=.01)
+                                   close_enough=CLOSE_ENUF_ON_INIT)
     log.info('Completed move to initial position.')
 
     pan, tilt, zoom = ptz.get_position()
@@ -242,7 +244,7 @@ if __name__ == '__main__':
                 ptz.absmove_w_zoom_waitfordone(pan_init,
                                                tilt_init,
                                                zoom_init,
-                                               close_enough=.01)
+                                               close_enough=CLOSE_ENUF_ON_INIT)
 
         # update ui and handle user input
 
