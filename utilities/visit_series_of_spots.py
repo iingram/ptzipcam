@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 """Visits a series of PTZ locations in series
 
-Gets a series of PTZ locations from a YAML file and then visits each
-one after the other while stopping for a set amount at each.
+Gets a series of PTZ locations from a YAML file (currently locations
+are hardcoded in this code) and then visits each one after the other
+while stopping for a set amount at each.
 
 """
 import logging
@@ -109,32 +110,28 @@ if __name__ == '__main__':
     log.info('Completed move to initial position.')
 
     pan, tilt, zoom = ptz.get_position()
-    if RECORD:
-        frame = ui.orient_frame(frame, ORIENTATION)
-        recorder.record_image(frame,
-                              (pan, tilt, zoom),
-                              'n/a: start-up frame',
-                              None)
 
     frames_since_last_target = 10000
 
-    start_time = time.time()
+    spot_start_time = time.time()
     while True:
-        pan, tilt, zoom = ptz.get_position()
+        cycle_start_time = time.time()
+
         frame = cam.get_frame()
         if frame is None:
             print('Frame is None.')
             continue
 
         frame = ui.orient_frame(frame, ORIENTATION)
+
         if RECORD:
             recorder.record_image(frame,
-                                  (pan, tilt, zoom),
+                                  (0, 0, 0),
                                   'N/A',
                                   None)
-
-        if time.time() - start_time >= time_to_wait:
-            start_time = time.time()
+            
+        if time.time() - spot_start_time >= time_to_wait:
+            spot_start_time = time.time()
 
             spot = next(spot_cycle)
             pan_com, tilt_com, zoom_com = get_command_from_spot(spot)
@@ -148,6 +145,10 @@ if __name__ == '__main__':
             key = uih.update(frame, hud=False)
             if key == ord('q'):
                 break
+
+        cycle_time = time.time() - cycle_start_time
+        print(f'Cycle time: {cycle_time}')
+
 
     del cam
     ptz.stop()
