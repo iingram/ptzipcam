@@ -35,10 +35,15 @@ it is makes it less close by placing it at the edge of that window.
 
 class MotorController():
 
-    def __init__(self, pid_gains, orientation, example_frame):
+    def __init__(self,
+                 pid_gains,
+                 orientation,
+                 example_frame,
+                 zoom_pickup=.01):
         self.pid_gains = pid_gains
         self.orientation = orientation
-
+        self.zoom_pickup = zoom_pickup
+        
         self.frame_width = example_frame.shape[1]
         self.frame_height = example_frame.shape[0]
 
@@ -72,7 +77,7 @@ class MotorController():
             # if x_err < 50 and y_err < 50:
             # if x_err != 0 and x_err < 50 and y_err < 50:
             if (target_bb_pixels / self.total_frame_pixels) < .3:
-                zoom_command += .05
+                zoom_command += self.zoom_pickup
                 if zoom_command >= 1.0:
                     zoom_command = 1.0
                 # zoom_command = 1.0
