@@ -92,6 +92,8 @@ for index, row in df.iterrows():
                                  color=(235, 234, 206))  # 229, 171, 4
 
         if args.output_path:
+            if not os.path.isdir(args.output_path):
+                os.mkdir(args.output_path)
             just_name = os.path.split(filename)[1]
             filename = os.path.join(args.output_path, just_name)
             cv2.imwrite(filename, img)
