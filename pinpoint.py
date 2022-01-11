@@ -25,7 +25,7 @@ from ptzipcam.io import ImageStreamRecorder
 # where we are set up to (and therefore presumably want to) use a
 # coral or not:
 try:
-    from dnntools import neuralnetwork_coral as nn
+    from camml import coral as nn
 except ImportError as e:
     print(f'Unable to import neuralnetwork_coral. Error message: {e}')
     from dnntools import neuralnetwork as nn
