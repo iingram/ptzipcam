@@ -19,7 +19,6 @@ from ptzipcam import logs, ui, convert
 from ptzipcam.ptz_camera import PtzCam, MotorController
 from ptzipcam.camera import Camera
 from ptzipcam.io import ImageStreamRecorder
-# from ptzipcam.video_writer import DilationVideoWriter
 
 # quick and dirty way to determine whether we are in an environment
 # where we are set up to (and therefore presumably want to) use a
@@ -40,7 +39,6 @@ parser.add_argument('config',
 args = parser.parse_args()
 CONFIG_FILE = args.config
 
-# DILATION = True
 FRAME_RATE = 15
 FRAME_WINDOW = 30
 CLOSE_ENUF_ON_INIT = .05
@@ -89,7 +87,6 @@ HEADLESS = configs['HEADLESS']
 if __name__ == '__main__':
     # construct core objects
     ptz = PtzCam(IP, PORT, USER, PASS)
-    # cam = Camera()
     cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
     frame = cam.get_frame()
     if frame is None:
@@ -118,33 +115,11 @@ if __name__ == '__main__':
     if RECORD:
         recorder = ImageStreamRecorder(configs['RECORD_FOLDER'])
 
-        # codec = cv2.VideoWriter_fourcc(*'MJPG')
-        # filename = 'video_dtz'
-        # if 'neuralnetwork_coral' in nn.__name__:
-        #     filename = filename + '_coral'
-        # else:
-        #     filename = filename + '_dnn'
-
-        # if not DILATION:
-        #     filename = filename + '_lineartime' + '.avi'
-        #     vid_writer = cv2.VideoWriter(filename,
-        #                                  codec,
-        #                                  FRAME_RATE,
-        #                                  (frame_width, frame_height))
-        # else:
-        #     filename = filename + '_dilation' + '.avi'
-        #     dilation_vid_writer = DilationVideoWriter(filename,
-        #                                               codec,
-        #                                               FRAME_RATE,
-        #                                               (frame_width,
-        #                                                frame_height),
-        #                                               FRAME_WINDOW)
-
     # initialize position of camera
     zoom_command = 0
     ptz.zoom_out_full()
     time.sleep(1)
-    # ptz.absmove(INIT_POS[0], INIT_POS[1])
+
     pan_init = convert.degrees_to_command(INIT_POS[0], 360.0)
     tilt_init = convert.degrees_to_command(INIT_POS[1], 90.0)
     zoom_init = convert.power_to_zoom(INIT_POS[2], CAM_ZOOM_POWER)
@@ -214,8 +189,6 @@ if __name__ == '__main__':
                 y_err = 0
 
             if frames_since_last_target > 30:
-                # log.info('Since nothing detected, panning right.')
-                # x_err = -0.2
                 x_err = 0
 
             # # commenting this bit out because it doesn't always work
@@ -260,19 +233,15 @@ if __name__ == '__main__':
                                       None)
                 start_time = time.time()
 
-            # if not DILATION:
-            #     vid_writer.write(frame.astype(np.uint8))
-            # else:
-            #     dilation_vid_writer.update(frame, target_lbox is not None)
-
         # run position controller on ptz system
         commands = motor_controller.update(x_err,
                                            y_err,
                                            zoom_command)
         x_velocity, y_velocity, zoom_command = commands
 
-        # forget to commit this when it was written.  a little
-        # uncertain what the goal was.  leaving it in as a timebomb.
+        # forgot to commit this when it was written.  a little
+        # uncertain what the goal was.  leaving it in as a timebomb to
+        # take me by surprise at some critical moment
         if tilt >= 1.0 and y_velocity <= 0:
             y_velocity = 0.0
 
@@ -281,7 +250,6 @@ if __name__ == '__main__':
         log.debug(f'x_vel: {x_velocity:.2f} || y_vel: {y_velocity:.2f}')
 
         if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
-            # print('stop action')
             ptz.stop()
 
         # only zoom out as far as the initial position
@@ -290,11 +258,6 @@ if __name__ == '__main__':
 
         ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
 
-    # if RECORD:
-    #     if not DILATION:
-    #         vid_writer.release()
-    #     else:
-    #         dilation_vid_writer.release()
     del cam
     ptz.stop()
     if not HEADLESS:
