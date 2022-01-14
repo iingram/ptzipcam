@@ -116,7 +116,7 @@ def main():
                 # to keep within bottom half
                 tilt_d = TILT_RANGE * (random.random() * 0.5 + 0.5)
 
-                pan_command = convert.degrees_to_command(pan_d, 360.0)
+                pan_command = convert.degrees_to_command(pan_d, PAN_RANGE)
                 tilt_command = convert.degrees_to_command(tilt_d, TILT_RANGE)
                 zoom_command = random.random()
 
