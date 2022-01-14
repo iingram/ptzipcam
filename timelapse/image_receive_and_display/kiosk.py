@@ -1,3 +1,10 @@
+"""Live detection demo on images from disk and sent by PTZ cam
+
+Demonstrates real-time object detector applied to images sent from a
+run of timelapse.py beside same applied to images from directory on
+system.
+
+"""
 import logging
 import os
 import argparse
