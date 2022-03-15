@@ -31,6 +31,7 @@ setuptools.setup(
         'onvif-zeep',
         'screeninfo',
         'imutils',
+        'camml',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
