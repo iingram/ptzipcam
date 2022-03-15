@@ -16,6 +16,24 @@ def degrees_to_command(degrees, full_range):
 
 
 def command_to_degrees(command, full_range):
+    """Convert ptz camera command to degrees
+    
+    Parameters
+    ----------
+
+    command : float
+        PTZ camera axis command, usually in the range of -1.0 to 1.0
+        (if not this function probably breaks)
+    
+    full_range : float
+        Full range of that axis in degrees
+
+    Returns
+    -------
+
+    The converted value (now in degrees)
+
+    """
     half_range = full_range/2.0
     return command * half_range + half_range
 
