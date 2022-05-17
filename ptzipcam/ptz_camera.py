@@ -39,10 +39,10 @@ class MotorController():
                  pid_gains,
                  orientation,
                  example_frame):
-        
+
         self.pid_gains = pid_gains
         self.orientation = orientation
-        
+
         self.frame_width = example_frame.shape[1]
         self.frame_height = example_frame.shape[0]
 
@@ -92,7 +92,7 @@ class CalmMotorController(MotorController):
         super().__init__(pid_gains,
                          orientation,
                          example_frame)
-        
+
         self.zoom_pickup = zoom_pickup
         self.ZOOM_STOP_RATIO = .7
 
@@ -121,8 +121,8 @@ class CalmMotorController(MotorController):
                 zoom_command = 0.0
 
             margin = 100
-            if ((self.box_y + self.box_height) >= (self.frame_height - margin)
-                or (self.box_y <= margin)):
+            if((self.box_y + self.box_height) >= (self.frame_height - margin)
+               or (self.box_y <= margin)):
                 zoom_command = 0.0
 
         return zoom_command
