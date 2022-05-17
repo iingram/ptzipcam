@@ -38,18 +38,15 @@ class MotorController():
     def __init__(self,
                  pid_gains,
                  orientation,
-                 example_frame,
-                 zoom_pickup=.01):
+                 example_frame):
+        
         self.pid_gains = pid_gains
         self.orientation = orientation
-        self.zoom_pickup = zoom_pickup
         
         self.frame_width = example_frame.shape[1]
         self.frame_height = example_frame.shape[0]
 
         self.total_frame_pixels = self.frame_width * self.frame_height
-
-        self.ZOOM_STOP_RATIO = .7
 
     def calc_errors(self,
                     target_lbox):
@@ -65,6 +62,39 @@ class MotorController():
         y_err = y_err/self.frame_height
 
         return x_err, y_err
+
+    def update(self, x_err, y_err, zoom_command):
+        if self.orientation == 'down':
+            x_err = -x_err
+            y_err = -y_err
+
+        x_velocity = self._calc_command(x_err, self.pid_gains[0])
+        y_velocity = self._calc_command(y_err, self.pid_gains[1])
+        zoom_command = self._calc_zoom_command(x_err, y_err, zoom_command)
+
+        return (x_velocity, y_velocity, zoom_command)
+
+    def _calc_command(self, err, k):
+        raise NotImplementedError
+
+    def _calc_zoom_command(self, x_err, y_err, zoom_command):
+        raise NotImplementedError
+
+
+class CalmMotorController(MotorController):
+
+    def __init__(self,
+                 pid_gains,
+                 orientation,
+                 example_frame,
+                 zoom_pickup=.01):
+
+        super().__init__(pid_gains,
+                         orientation,
+                         example_frame)
+        
+        self.zoom_pickup = zoom_pickup
+        self.ZOOM_STOP_RATIO = .7
 
     def _calc_zoom_command(self, x_err, y_err, zoom_command):
         """Calculate the zoom command give pan/tilt errors
@@ -112,17 +142,6 @@ class MotorController():
         #     command = 0.0
 
         return command
-
-    def update(self, x_err, y_err, zoom_command):
-        if self.orientation == 'down':
-            x_err = -x_err
-            y_err = -y_err
-
-        x_velocity = self._calc_command(x_err, self.pid_gains[0])
-        y_velocity = self._calc_command(y_err, self.pid_gains[1])
-        zoom_command = self._calc_zoom_command(x_err, y_err, zoom_command)
-
-        return (x_velocity, y_velocity, zoom_command)
 
 
 class PtzCam():
