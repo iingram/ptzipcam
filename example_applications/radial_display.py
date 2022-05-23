@@ -8,8 +8,10 @@ import time
 import argparse
 
 import yaml
+import cv2
+import numpy as np
 
-from ptzipcam import logs, ui, convert
+from ptzipcam import logs, convert
 from ptzipcam.ptz_camera import PtzCam
 from ptzipcam.camera import Camera
 
@@ -44,8 +46,39 @@ ORIENTATION = configs['ORIENTATION']
 PID_GAINS = configs['PID_GAINS']
 CAM_ZOOM_POWER = configs['CAM_ZOOM_POWER']
 
-# GUI constants
-HEADLESS = configs['HEADLESS']
+
+def basic_rotate_image(image, angle):
+    image_center = tuple(np.array(image.shape[1::-1]) / 2)
+    rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
+    result = cv2.warpAffine(image,
+                            rot_mat,
+                            image.shape[1::-1],
+                            flags=cv2.INTER_LINEAR)
+    return result
+
+
+def position_view_on_canvas(image, pan, tilt):
+    """Positions image based on pan and tilt on a large canvas
+
+    Pan and tilt are in degrees
+
+    """
+
+    width = image.shape[1]
+    pivot_point = (width/2, tilt*30)
+
+    rotation_mat = cv2.getRotationMatrix2D(pivot_point, pan, 1.)
+
+    # size of canvas
+    bound_w = 6000
+    bound_h = 6000
+
+    rotation_mat[0, 2] += bound_w/2 - pivot_point[0]
+    rotation_mat[1, 2] += bound_h/2 - pivot_point[1]
+
+    # rotate image with the new bounds and translated rotation matrix
+    rotated_image = cv2.warpAffine(image, rotation_mat, (bound_w, bound_h))
+    return rotated_image
 
 
 def main():
@@ -56,10 +89,11 @@ def main():
     if frame is None:
         log.warning('Frame is None.')
 
-    window_name = 'Look around randomly'
-
-    if not HEADLESS:
-        uih = ui.UI_Handler(frame, window_name)
+    window_name = 'Radial display'
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(window_name,
+                     1000,
+                     1000)
 
     log.info("Frame shape: " + str(frame.shape[:2]))
     logs.log_configuration(log, configs)
@@ -98,13 +132,16 @@ def main():
             print('Frame is None.')
             continue
 
-        frame = ui.orient_frame(frame, ORIENTATION)
+        frame = cv2.flip(frame, 0)
 
-        # update ui and handle user input
-        if not HEADLESS:
-            key = uih.update(frame, hud=False)
-            if key == ord('q'):
-                break
+        pan_degrees = convert.command_to_degrees(pan, 360.0)
+        tilt_degrees = convert.command_to_degrees(tilt, 90.0)
+        frame = position_view_on_canvas(frame, pan_degrees, tilt_degrees)
+
+        cv2.imshow(window_name, frame)
+        key = cv2.waitKey(10)
+        if key == ord('q'):
+            break
 
         log.debug(f'{pan}, {tilt}, {zoom}')
 
@@ -123,20 +160,19 @@ def main():
                 ptz.absmove_w_zoom(pan_command,
                                    tilt_command,
                                    zoom_command)
-                wait_time = random.uniform(4, 10)
+                wait_time = random.uniform(1, 2)
             else:
                 log.info('returning from look')
                 ptz.absmove_w_zoom_waitfordone(pan_command,
                                                tilt_command,
                                                0.0)
-                wait_time = random.uniform(3, 6)
+                wait_time = random.uniform(1, 2)
             start_time = time.time()
             returning_from_look = not returning_from_look
 
     del cam
     ptz.stop()
-    if not HEADLESS:
-        uih.clean_up()
+    cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
