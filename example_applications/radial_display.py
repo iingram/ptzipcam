@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-"""Goes to random PTZ positions, pausing at each
+"""Moves around randomly, displaying in a "radial" way
+
+Viewport shows view from camera positioned in a radial way so that
+tilt drives the distance from the origin of the viewport (in the
+center) and pan drives the angle that the view is rotated around the
+center.
 
 """
 import random
