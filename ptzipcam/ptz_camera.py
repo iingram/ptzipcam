@@ -167,6 +167,54 @@ class CalmMotorController(MotorController):
         return zoom_command
 
 
+class TwitchyMotorController(MotorController):
+
+    def __init__(self,
+                 pid_gains,
+                 orientation,
+                 example_frame,
+                 zoom_pickup=.01):
+
+        super().__init__(pid_gains,
+                         orientation,
+                         example_frame)
+
+        self.zoom_pickup = zoom_pickup
+        self.ZOOM_STOP_RATIO = .7
+
+    def _calc_zoom_command(self, x_err, y_err, zoom_command):
+        """Calculate the zoom command give pan/tilt errors
+
+        """
+
+        # NOTE: THIS WHOLE METHOD IS PRESENTLY COPIED VERBATIM FROM
+        # CalmMotorController
+        
+        if x_err != 0.0 and y_err != 0.0:
+            target_bb_pixels = self.box_width * self.box_height
+
+            if (target_bb_pixels / self.total_frame_pixels) < .3:
+                zoom_command += self.zoom_pickup
+                if zoom_command >= 1.0:
+                    zoom_command = 1.0
+            else:
+                zoom_command = 0.0
+
+            ratio = self.ZOOM_STOP_RATIO
+            filling_much_of_width = self.box_width >= ratio * self.frame_width
+            filling_much_of_height = self.box_height >= ratio * self.frame_height
+            if filling_much_of_width or filling_much_of_height:
+                zoom_command = 0.0
+
+            margin = 100
+            if((self.box_y + self.box_height) >= (self.frame_height - margin)
+               or (self.box_y <= margin)):
+                zoom_command = 0.0
+
+        return zoom_command
+
+
+
 class PtzCam():
     """Class to control PTZ on ONVIF-compliant PTZ IP Camera
 
