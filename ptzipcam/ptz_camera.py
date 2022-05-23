@@ -74,8 +74,27 @@ class MotorController():
 
         return (x_velocity, y_velocity, zoom_command)
 
+    def _ensure_command_in_bounds(self, command):
+        if command >= 1.0:
+            command = 1.0
+        if command <= -1.0:
+            command = -1.0
+
+        return command
+            
     def _calc_command(self, err, k):
-        raise NotImplementedError
+        """Implements actual controller math
+
+        This basic implementation in the base class is a mere
+        proportional controller.  If need PI, PID, or such, this
+        method should be replaced in the child class.  It is not
+        currently imagined that controllers outside the PID space will
+        be pursued.
+
+        """
+        command = k * err
+        command = self._ensure_command_in_bounds(command)    
+        return command
 
     def _calc_zoom_command(self, x_err, y_err, zoom_command):
         raise NotImplementedError
@@ -95,7 +114,27 @@ class CalmMotorController(MotorController):
 
         self.zoom_pickup = zoom_pickup
         self.ZOOM_STOP_RATIO = .7
+        self.STOP_RANGE  = .1
 
+    def _calc_command(self, err, k):
+        """Override controller command method
+
+        The meat here is that the controller stops moving axis under
+        control if error is inside of some range.  This range is
+        currently hardcoded but maybe should be given as an argument
+        to the constructor.
+
+        """
+
+        if np.abs(err) < self.STOP_RANGE:
+            command = 0
+        else:
+            command = k * err
+
+        command = self._ensure_command_in_bounds(command)    
+
+        return command
+        
     def _calc_zoom_command(self, x_err, y_err, zoom_command):
         """Calculate the zoom command give pan/tilt errors
 
@@ -126,22 +165,6 @@ class CalmMotorController(MotorController):
                 zoom_command = 0.0
 
         return zoom_command
-
-    def _calc_command(self, err, k):
-        if np.abs(err) < .1:
-            command = 0
-        else:
-            command = k * err
-
-        if command >= 1.0:
-            command = 1.0
-        if command <= -1.0:
-            command = -1.0
-
-        # if command > -0.1 and command < 0.1:
-        #     command = 0.0
-
-        return command
 
 
 class PtzCam():
