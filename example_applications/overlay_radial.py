@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-"""Goes to random PTZ positions, pausing at each
+"""Move through pan and tilt and lay out an "eye" "grid"
 
 """
-import random
 import logging
 import time
 import argparse
@@ -57,7 +56,7 @@ def basic_rotate_image(image, angle):
     return result
 
 
-def position_view_on_canvas(image, pan, tilt):
+def position_view_on_canvas(canvas, image, pan, tilt):
     """Positions image based on pan and tilt on a large canvas
 
     Pan and tilt are in degrees
@@ -69,16 +68,30 @@ def position_view_on_canvas(image, pan, tilt):
 
     rotation_mat = cv2.getRotationMatrix2D(pivot_point, pan, 1.)
 
-    # size of canvas
-    bound_w = 6000
-    bound_h = 6000
+    bound_w = canvas.shape[0]
+    bound_h = canvas.shape[1]
 
     rotation_mat[0, 2] += bound_w/2 - pivot_point[0]
     rotation_mat[1, 2] += bound_h/2 - pivot_point[1]
 
     # rotate image with the new bounds and translated rotation matrix
     rotated_image = cv2.warpAffine(image, rotation_mat, (bound_w, bound_h))
-    return rotated_image
+
+    alpha = np.sum(rotated_image, axis=-1) > 0
+
+    alpha = alpha.astype(float)
+
+    alpha = np.dstack((alpha, alpha, alpha))
+
+    rotated_image = rotated_image.astype(float)
+    canvas = canvas.astype(float)
+
+    foreground = cv2.multiply(alpha, rotated_image)
+    canvas = cv2.multiply(1.0 - alpha, canvas)
+
+    canvas = cv2.add(foreground, canvas)
+
+    return canvas
 
 
 def main():
@@ -118,12 +131,16 @@ def main():
     pan, tilt, zoom = ptz.get_position()
 
     start_time = time.time()
-    returning_from_look = False
     pan_command = pan_init
     tilt_command = tilt_init
     zoom_command = zoom_init
 
     wait_time = 1.0
+
+    canvas = np.zeros((6000, 6000, 3), dtype=np.uint8)
+
+    pan_d = 0.1
+    tilt_d = 90
 
     while True:
         pan, tilt, zoom = ptz.get_position()
@@ -136,9 +153,12 @@ def main():
 
         pan_degrees = convert.command_to_degrees(pan, 360.0)
         tilt_degrees = convert.command_to_degrees(tilt, 90.0)
-        frame = position_view_on_canvas(frame, pan_degrees, tilt_degrees)
+        canvas = position_view_on_canvas(canvas,
+                                         frame,
+                                         pan_degrees,
+                                         tilt_degrees)
 
-        cv2.imshow(window_name, frame)
+        cv2.imshow(window_name, canvas/255)
         key = cv2.waitKey(10)
         if key == ord('q'):
             break
@@ -146,29 +166,24 @@ def main():
         log.debug(f'{pan}, {tilt}, {zoom}')
 
         if time.time() - start_time > wait_time:
-            if not returning_from_look:
-                log.info('go to look.')
-                pan_d = PAN_RANGE * random.random()
-                # tilt_d = TILT_RANGE * (random.random())
-                # to keep within bottom half
-                tilt_d = TILT_RANGE * (random.random() * 0.5 + 0.5)
+            if pan_d >= 360:
+                tilt_d -= 15
+                pan_d = 1
 
-                pan_command = convert.degrees_to_command(pan_d, PAN_RANGE)
-                tilt_command = convert.degrees_to_command(tilt_d, TILT_RANGE)
-                zoom_command = random.random()
+                if tilt_d <= 16:
+                    tilt_d = 90
+            pan_d += 30
+            log.info(f'Pan: {pan_d}, Tilt: {tilt_d}')
 
-                ptz.absmove_w_zoom(pan_command,
-                                   tilt_command,
-                                   zoom_command)
-                wait_time = random.uniform(1, 2)
-            else:
-                log.info('returning from look')
-                ptz.absmove_w_zoom_waitfordone(pan_command,
-                                               tilt_command,
-                                               0.0)
-                wait_time = random.uniform(1, 2)
+            pan_command = convert.degrees_to_command(pan_d, PAN_RANGE)
+            tilt_command = convert.degrees_to_command(tilt_d, TILT_RANGE)
+            zoom_command = 0.0
+
+            ptz.absmove_w_zoom(pan_command,
+                               tilt_command,
+                               zoom_command)
+            wait_time = .1
             start_time = time.time()
-            returning_from_look = not returning_from_look
 
     del cam
     ptz.stop()
