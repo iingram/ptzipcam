@@ -95,6 +95,28 @@ def position_view_on_canvas(canvas, image, pan, tilt):
     return canvas
 
 
+def fill_spots_original():
+    # if pan_d >= 360:
+    #     tilt_d -= 15
+    #     pan_d = 1
+
+    #     if tilt_d <= 16:
+    #         tilt_d = 90
+    # pan_d += 30
+
+    spots = []
+    pans = np.arange(0, 360, 30)
+    tilts = np.arange(90, 30, -15)
+
+    for tilt in tilts:
+        for pan in pans:
+            spots.append([pan, tilt])
+
+    spots = cycle(spots)
+
+    return spots
+
+
 def main():
     # construct core objects
     ptz = PtzCam(IP, PORT, USER, PASS)
@@ -139,30 +161,6 @@ def main():
     wait_time = 1.0
 
     canvas = np.zeros((6000, 6000, 3), dtype=np.uint8)
-
-    pan_d = 0.1
-    tilt_d = 90
-
-    def fill_spots_original():
-        # if pan_d >= 360:
-        #     tilt_d -= 15
-        #     pan_d = 1
-            
-        #     if tilt_d <= 16:
-        #         tilt_d = 90
-        # pan_d += 30
-
-        spots = []
-        pans = np.arange(0, 360, 30)
-        tilts = np.arange(90, 30, -15)
-
-        for tilt in tilts:
-            for pan in pans:
-                spots.append([pan, tilt])
-
-        spots = cycle(spots)
-        
-        return spots
 
     spots = fill_spots_original()
 
