@@ -5,6 +5,7 @@
 import logging
 import time
 import argparse
+from itertools import cycle
 
 import yaml
 import cv2
@@ -142,6 +143,29 @@ def main():
     pan_d = 0.1
     tilt_d = 90
 
+    def fill_spots_original():
+        # if pan_d >= 360:
+        #     tilt_d -= 15
+        #     pan_d = 1
+            
+        #     if tilt_d <= 16:
+        #         tilt_d = 90
+        # pan_d += 30
+
+        spots = []
+        pans = np.arange(0, 360, 30)
+        tilts = np.arange(90, 30, -15)
+
+        for tilt in tilts:
+            for pan in pans:
+                spots.append([pan, tilt])
+
+        spots = cycle(spots)
+        
+        return spots
+
+    spots = fill_spots_original()
+
     while True:
         pan, tilt, zoom = ptz.get_position()
         frame = cam.get_frame()
@@ -166,13 +190,8 @@ def main():
         log.debug(f'{pan}, {tilt}, {zoom}')
 
         if time.time() - start_time > wait_time:
-            if pan_d >= 360:
-                tilt_d -= 15
-                pan_d = 1
+            pan_d, tilt_d = next(spots)
 
-                if tilt_d <= 16:
-                    tilt_d = 90
-            pan_d += 30
             log.info(f'Pan: {pan_d}, Tilt: {tilt_d}')
 
             pan_command = convert.degrees_to_command(pan_d, PAN_RANGE)
