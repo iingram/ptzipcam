@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Utility to simply connect to a camera's video stream, display it,
 record it, and run an object detector on it
 
