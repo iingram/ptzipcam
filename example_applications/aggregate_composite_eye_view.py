@@ -30,6 +30,9 @@ CLOSE_ENUF_ON_INIT = .05
 PAN_RANGE = 360.0
 TILT_RANGE = 90.0
 
+WAIT_TIME = 0.1
+TIME_TO_MOVE = 3.0
+
 with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
@@ -38,6 +41,7 @@ IP = configs['IP']
 PORT = configs['PORT']
 USER = configs['USER']
 PASS = configs['PASS']
+RTSP_PASS = PASS
 STREAM = configs['STREAM']
 
 # ptz camera setup constants
@@ -65,7 +69,7 @@ def position_view_on_canvas(canvas, image, pan, tilt):
     """
 
     width = image.shape[1]
-    pivot_point = (width/2, tilt*30)
+    pivot_point = (width/2, tilt*50)
 
     rotation_mat = cv2.getRotationMatrix2D(pivot_point, pan, 1.)
 
@@ -117,10 +121,29 @@ def fill_spots_original():
     return spots
 
 
+def fill_spots_spaced():
+    spots = []
+    circles = [[4, 28],
+               [9, 53],
+               [13, 78]]
+
+    
+    for circle in circles:
+        pans = np.linspace(0, 360, circle[0])
+        for pan in pans:
+            spots.append([pan, circle[1]])
+
+    print(spots)
+                
+    spots = cycle(spots)
+
+    return spots
+
+
 def main():
     # construct core objects
     ptz = PtzCam(IP, PORT, USER, PASS)
-    cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
+    cam = Camera(ip=IP, user=USER, passwd=RTSP_PASS, stream=STREAM)
     frame = cam.get_frame()
     if frame is None:
         log.warning('Frame is None.')
@@ -128,8 +151,8 @@ def main():
     window_name = 'Radial display'
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(window_name,
-                     1000,
-                     1000)
+                     2000,
+                     2000)
 
     log.info("Frame shape: " + str(frame.shape[:2]))
     logs.log_configuration(log, configs)
@@ -158,36 +181,16 @@ def main():
     tilt_command = tilt_init
     zoom_command = zoom_init
 
-    wait_time = 1.0
+    canvas = np.zeros((8000, 8000, 3), dtype=np.uint8)
 
-    canvas = np.zeros((6000, 6000, 3), dtype=np.uint8)
+    # spots = fill_spots_original()
+    spots = fill_spots_spaced()
 
-    spots = fill_spots_original()
-
+    state = 0
+    
     while True:
-        pan, tilt, zoom = ptz.get_position()
-        frame = cam.get_frame()
-        if frame is None:
-            print('Frame is None.')
-            continue
-
-        frame = cv2.flip(frame, 0)
-
-        pan_degrees = convert.command_to_degrees(pan, 360.0)
-        tilt_degrees = convert.command_to_degrees(tilt, 90.0)
-        canvas = position_view_on_canvas(canvas,
-                                         frame,
-                                         pan_degrees,
-                                         tilt_degrees)
-
-        cv2.imshow(window_name, canvas/255)
-        key = cv2.waitKey(10)
-        if key == ord('q'):
-            break
-
-        log.debug(f'{pan}, {tilt}, {zoom}')
-
-        if time.time() - start_time > wait_time:
+        if state == 0 and time.time() - start_time > WAIT_TIME:
+            # move to next spot
             pan_d, tilt_d = next(spots)
 
             log.info(f'Pan: {pan_d}, Tilt: {tilt_d}')
@@ -199,8 +202,36 @@ def main():
             ptz.absmove_w_zoom(pan_command,
                                tilt_command,
                                zoom_command)
-            wait_time = .1
+            state = 1
             start_time = time.time()
+
+        if state== 1 and time.time() - start_time > TIME_TO_MOVE:
+            # capture and display photo
+            pan, tilt, zoom = ptz.get_position()
+            frame = cam.get_frame()
+            if frame is None:
+                print('Frame is None.')
+                continue
+
+            frame = cv2.flip(frame, 0)
+
+            pan_degrees = convert.command_to_degrees(pan, 360.0)
+            tilt_degrees = convert.command_to_degrees(tilt, 90.0)
+            canvas = position_view_on_canvas(canvas,
+                                             frame,
+                                             pan_degrees,
+                                             tilt_degrees)
+            state = 0
+            start_time = time.time()
+
+
+        cv2.imshow(window_name, canvas/255)
+        key = cv2.waitKey(10)
+        if key == ord('q'):
+            break
+
+        log.debug(f'{pan}, {tilt}, {zoom}')
+
 
     del cam
     ptz.stop()
