@@ -186,33 +186,67 @@ class TwitchyMotorController(MotorController):
         """Calculate the zoom command give pan/tilt errors
 
         """
-
-        # NOTE: THIS WHOLE METHOD IS PRESENTLY COPIED VERBATIM FROM
-        # CalmMotorController
-        
         if x_err != 0.0 and y_err != 0.0:
             target_bb_pixels = self.box_width * self.box_height
 
-            if (target_bb_pixels / self.total_frame_pixels) < .3:
-                zoom_command += self.zoom_pickup
-                if zoom_command >= 1.0:
-                    zoom_command = 1.0
-            else:
-                zoom_command = 0.0
+            # ratio of bb pixels over whole frame pixels is below a
+            # threshold then zoom
+            ratio = target_bb_pixels / self.total_frame_pixels
+            error = 1 - ratio
+            zoom_command = 0.05 * error
 
-            ratio = self.ZOOM_STOP_RATIO
-            filling_much_of_width = self.box_width >= ratio * self.frame_width
-            filling_much_of_height = self.box_height >= ratio * self.frame_height
+            # stop zoom if either dimension of bounding box is 
+            length_ratio = self.ZOOM_STOP_RATIO
+            filling_much_of_width = self.box_width >= length_ratio * self.frame_width
+            filling_much_of_height = self.box_height >= length_ratio * self.frame_height
             if filling_much_of_width or filling_much_of_height:
-                zoom_command = 0.0
+                zoom_command = -0.1
 
-            margin = 100
-            if((self.box_y + self.box_height) >= (self.frame_height - margin)
-               or (self.box_y <= margin)):
-                zoom_command = 0.0
+            # margin = 100
+            # if((self.box_y + self.box_height) >= (self.frame_height - margin)
+            #    or (self.box_y <= margin)):
+            #     zoom_command = 0.0
+        else:
+            zoom_command = 0.0
 
         return zoom_command
 
+
+class BouncyZoomMotorController(MotorController):
+
+    def __init__(self,
+                 pid_gains,
+                 orientation,
+                 example_frame,
+                 zoom_pickup=.01):
+
+        super().__init__(pid_gains,
+                         orientation,
+                         example_frame)
+
+        self.zoom_pickup = zoom_pickup
+        self.ZOOM_STOP_RATIO = .7
+
+    def _calc_zoom_command(self, x_err, y_err, zoom_command):
+        """Calculate the zoom command give pan/tilt errors
+
+        """
+        if x_err != 0.0 and y_err != 0.0:
+            target_bb_pixels = self.box_width * self.box_height
+
+            # ratio of bb pixels over whole frame pixels is below a
+            # threshold then zoom
+            ratio = target_bb_pixels / self.total_frame_pixels
+            if ratio < .1:
+                zoom_command = 0.01
+            elif ratio > .3:
+                zoom_command = -0.01
+            else:
+                zoom_command = 0.0
+        else:
+            zoom_command = 0.0
+            
+        return zoom_command
 
 
 class PtzCam():
