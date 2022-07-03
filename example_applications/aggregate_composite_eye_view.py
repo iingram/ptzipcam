@@ -133,7 +133,7 @@ def fill_spots_spaced():
                [8, 44],
                [13, 65],
                [17, 86]]
-    
+
     for circle in circles:
         pans = np.linspace(0, 360, circle[0])
         pans = pans[:-1]
@@ -141,7 +141,7 @@ def fill_spots_spaced():
             spots.append([pan, circle[1]])
 
     print(spots)
-                
+
     spots = cycle(spots)
 
     return spots
@@ -189,7 +189,7 @@ def main():
     spots = fill_spots_spaced()
 
     state = 0
-    
+
     while True:
         if state == 0 and time.time() - start_time > WAIT_TIME:
             # move to next spot
@@ -206,7 +206,7 @@ def main():
             state = 1
             start_time = time.time()
 
-        if state== 1 and time.time() - start_time > TIME_TO_MOVE:
+        if state == 1 and time.time() - start_time > TIME_TO_MOVE:
             # capture and display photo
             pan, tilt, zoom = ptz.get_position()
             frame = cam.get_frame()
@@ -225,14 +225,12 @@ def main():
             state = 0
             start_time = time.time()
 
-
         cv2.imshow(window_name, canvas/255)
         key = cv2.waitKey(10)
         if key == ord('q'):
             break
 
         log.debug(f'{pan}, {tilt}, {zoom}')
-
 
     del cam
     ptz.stop()
