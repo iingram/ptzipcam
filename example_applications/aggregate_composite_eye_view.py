@@ -123,13 +123,20 @@ def fill_spots_original():
 
 def fill_spots_spaced():
     spots = []
-    circles = [[4, 28],
-               [9, 53],
-               [13, 78]]
+    # 1280x960
+    # circles = [[4, 28],
+    #            [9, 53],
+    #            [13, 78]]
 
+    # 1280x720
+    circles = [[4, 23],
+               [8, 44],
+               [13, 65],
+               [17, 86]]
     
     for circle in circles:
         pans = np.linspace(0, 360, circle[0])
+        pans = pans[:-1]
         for pan in pans:
             spots.append([pan, circle[1]])
 
@@ -156,11 +163,6 @@ def main():
 
     log.info("Frame shape: " + str(frame.shape[:2]))
     logs.log_configuration(log, configs)
-
-    # initialize position of camera
-    zoom_command = 0
-    ptz.zoom_out_full()
-    time.sleep(1)
 
     pan_init = convert.degrees_to_command(INIT_POS[0], 360.0)
     tilt_init = convert.degrees_to_command(INIT_POS[1], 90.0)
@@ -197,7 +199,6 @@ def main():
 
             pan_command = convert.degrees_to_command(pan_d, PAN_RANGE)
             tilt_command = convert.degrees_to_command(tilt_d, TILT_RANGE)
-            zoom_command = 0.0
 
             ptz.absmove_w_zoom(pan_command,
                                tilt_command,
