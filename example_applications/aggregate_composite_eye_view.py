@@ -73,8 +73,8 @@ def position_view_on_canvas(canvas, image, pan, tilt):
 
     rotation_mat = cv2.getRotationMatrix2D(pivot_point, pan, 1.)
 
-    bound_w = canvas.shape[0]
-    bound_h = canvas.shape[1]
+    bound_h = canvas.shape[0]
+    bound_w = canvas.shape[1]
 
     rotation_mat[0, 2] += bound_w/2 - pivot_point[0]
     rotation_mat[1, 2] += bound_h/2 - pivot_point[1]
@@ -183,7 +183,8 @@ def main():
     tilt_command = tilt_init
     zoom_command = zoom_init
 
-    canvas = np.zeros((8000, 8000, 3), dtype=np.uint8)
+    # canvas = np.zeros((2160, 3840, 3), dtype=np.uint8)
+    canvas = np.zeros((8000, 10000, 3), dtype=np.uint8)
 
     # spots = fill_spots_original()
     spots = fill_spots_spaced()
