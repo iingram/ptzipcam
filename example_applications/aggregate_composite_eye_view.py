@@ -10,6 +10,7 @@ from itertools import cycle
 import yaml
 import cv2
 import numpy as np
+import imutils
 
 from ptzipcam import logs, convert
 from ptzipcam.ptz_camera import PtzCam
@@ -68,8 +69,10 @@ def position_view_on_canvas(canvas, image, pan, tilt):
 
     """
 
+    tilt_multiplier = 12.5
+    
     width = image.shape[1]
-    pivot_point = (width/2, tilt*50)
+    pivot_point = (width/2, tilt * tilt_multiplier)
 
     rotation_mat = cv2.getRotationMatrix2D(pivot_point, pan, 1.)
 
@@ -183,8 +186,8 @@ def main():
     tilt_command = tilt_init
     zoom_command = zoom_init
 
-    # canvas = np.zeros((2160, 3840, 3), dtype=np.uint8)
-    canvas = np.zeros((8000, 10000, 3), dtype=np.uint8)
+    canvas = np.zeros((2160, 3840, 3), dtype=np.uint8)
+    # canvas = np.zeros((8000, 10000, 3), dtype=np.uint8)
 
     # spots = fill_spots_original()
     spots = fill_spots_spaced()
@@ -219,6 +222,9 @@ def main():
 
             pan_degrees = convert.command_to_degrees(pan, 360.0)
             tilt_degrees = convert.command_to_degrees(tilt, 90.0)
+
+            frame = imutils.resize(frame, width=320)
+            
             canvas = position_view_on_canvas(canvas,
                                              frame,
                                              pan_degrees,
