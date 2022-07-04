@@ -70,7 +70,7 @@ def position_view_on_canvas(canvas, image, pan, tilt):
     """
 
     tilt_multiplier = 12.5
-    
+
     width = image.shape[1]
     pivot_point = (width/2, tilt * tilt_multiplier)
 
@@ -224,7 +224,7 @@ def main():
             tilt_degrees = convert.command_to_degrees(tilt, 90.0)
 
             frame = imutils.resize(frame, width=320)
-            
+
             canvas = position_view_on_canvas(canvas,
                                              frame,
                                              pan_degrees,
