@@ -74,16 +74,18 @@ def position_view_on_canvas(canvas, image, pan, tilt):
     width = image.shape[1]
     pivot_point = (width/2, tilt * tilt_multiplier)
 
-    rotation_mat = cv2.getRotationMatrix2D(pivot_point, pan, 1.)
+    rotation_mat = cv2.getRotationMatrix2D(pivot_point, -pan, 1.)
 
-    bound_h = canvas.shape[0]
-    bound_w = canvas.shape[1]
+    canvas_height = canvas.shape[0]
+    canvas_width = canvas.shape[1]
 
-    rotation_mat[0, 2] += bound_w/2 - pivot_point[0]
-    rotation_mat[1, 2] += bound_h/2 - pivot_point[1]
+    rotation_mat[0, 2] += canvas_width/2 - pivot_point[0]
+    rotation_mat[1, 2] += canvas_height/2 - pivot_point[1]
 
     # rotate image with the new bounds and translated rotation matrix
-    rotated_image = cv2.warpAffine(image, rotation_mat, (bound_w, bound_h))
+    rotated_image = cv2.warpAffine(image,
+                                   rotation_mat,
+                                   (canvas_width, canvas_height))
 
     alpha = np.sum(rotated_image, axis=-1) > 0
 
@@ -219,6 +221,7 @@ def main():
                 continue
 
             frame = cv2.flip(frame, 0)
+            frame = cv2.flip(frame, 1)
 
             pan_degrees = convert.command_to_degrees(pan, 360.0)
             tilt_degrees = convert.command_to_degrees(tilt, 90.0)
