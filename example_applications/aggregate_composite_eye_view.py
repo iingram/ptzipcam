@@ -140,8 +140,7 @@ def fill_spots_spaced():
                [17, 86]]
 
     for circle in circles:
-        pans = np.linspace(0, 360, circle[0])
-        pans = pans[:-1]
+        pans = np.linspace(0, 360, circle[0], False)
         for pan in pans:
             spots.append([pan, circle[1]])
 
