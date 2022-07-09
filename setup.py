@@ -6,8 +6,8 @@ import setuptools
 
 def read(filename):
     path = os.path.join(os.path.abspath(os.path.dirname(__file__)), filename)
-    with open(path , 'r') as f:
-      return f.read()
+    with open(path, 'r') as f:
+        return f.read()
 
 
 def find_version(text):
