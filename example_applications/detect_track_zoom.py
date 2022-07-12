@@ -6,6 +6,7 @@ various animal species of interest) by running an object detector on
 frames captured from the camera and using their offset and size in the
 frame to run a control system around the PTZ attributes on the IP
 camera.
+
 """
 import logging
 import os
@@ -16,20 +17,18 @@ from datetime import datetime
 import yaml
 
 from ptzipcam import logs, ui, convert
-from ptzipcam.ptz_camera import PtzCam, MotorController
+from ptzipcam.ptz_camera import PtzCam
+import ptzipcam.ptz_camera as ctlrs
 from ptzipcam.camera import Camera
 from ptzipcam.io import ImageStreamRecorder
+from camml import draw
 
-# quick and dirty way to determine whether we are in an environment
-# where we are set up to (and therefore presumably want to) use a
-# coral or not:
-try:
+# quick and dirty way to detect if on Pi (and thus likely using coral
+# for inference) or on something else and relying on CPU
+if os.uname()[4].startswith("arm"):
     from camml import coral as nn
-except ImportError as e:
-    print(f'Unable to import neuralnetwork_coral. Error message: {e}')
-    from dnntools import neuralnetwork as nn
-
-from dnntools import draw
+else:
+    from camml import cv2dnn as nn
 
 log = logs.prep_log(logging.INFO)
 
@@ -42,7 +41,6 @@ CONFIG_FILE = args.config
 FRAME_RATE = 15
 FRAME_WINDOW = 30
 CLOSE_ENUF_ON_INIT = .05
-
 
 with open(CONFIG_FILE) as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
@@ -60,6 +58,8 @@ IP = configs['IP']
 PORT = configs['PORT']
 USER = configs['USER']
 PASS = configs['PASS']
+FFMPEG_PASS = PASS
+
 STREAM = configs['STREAM']
 
 # ptz camera setup constants
@@ -85,14 +85,16 @@ CLASSES = nn.read_classes_from_file(CLASSES_FILE)
 HEADLESS = configs['HEADLESS']
 
 if __name__ == '__main__':
-    # construct core objects
     ptz = PtzCam(IP, PORT, USER, PASS)
-    cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
+    cam = Camera(ip=IP, user=USER, passwd=FFMPEG_PASS, stream=STREAM)
     frame = cam.get_frame()
     if frame is None:
         log.warning('Frame is None.')
 
-    motor_controller = MotorController(PID_GAINS, ORIENTATION, frame)
+    motor_controller = ctlrs.TwitchyMotorController(PID_GAINS,
+                                                    ORIENTATION,
+                                                    frame,
+                                                    zoom_pickup=.001)
 
     detector = nn.TargetDetector(MODEL_CONFIG,
                                  MODEL_WEIGHTS,
@@ -103,7 +105,7 @@ if __name__ == '__main__':
                                  CLASSES,
                                  TRACKED_CLASS)
 
-    window_name = 'Detect, Track, and Zoom'
+    window_name = 'Detect, Track, Zoom'
 
     if not HEADLESS:
         uih = ui.UI_Handler(frame, window_name)
@@ -144,9 +146,19 @@ if __name__ == '__main__':
     y_err = 0.0
 
     frames_since_last_target = 10000
+    frames_since_last_return = 10000
 
     start_time = time.time()
+    timelapse_delay_start_time = time.time()
+
     while True:
+        frames_since_last_return += 1
+
+        tic = time.perf_counter()
+        elapsed_time = (time.time() - start_time) * 1000
+        start_time = time.time()
+        log.info(f'     Loop time: {elapsed_time:.1f} milliseconds')
+        
         pan, tilt, zoom = ptz.get_position()
         raw_frame = cam.get_frame()
         if raw_frame is None:
@@ -157,7 +169,7 @@ if __name__ == '__main__':
         frame = raw_frame.copy()
 
         target_lbox = detector.detect(frame)
-
+        
         if target_lbox:
             detected_class = detector.class_names[target_lbox['class_id']]
             score = 100 * target_lbox['confidence']
@@ -173,15 +185,18 @@ if __name__ == '__main__':
 
             frames_since_last_target = 0
             if DRAW_BOX:
-                draw.labeled_box(frame, detector.class_names, target_lbox)
+                draw.labeled_box(frame,
+                                 detector.class_names,
+                                 target_lbox,
+                                 thickness=2,
+                                 draw_label=False)
 
             errors = motor_controller.calc_errors(target_lbox)
             x_err, y_err = errors
-        else:
-            time.sleep(.03)
+        else: # no target_lbox
+            # time.sleep(.03)
             detected_class = 'nothing detected'
             score = 0.0
-            zoom_command = 0
 
             frames_since_last_target += 1
             if frames_since_last_target > 10:
@@ -195,13 +210,10 @@ if __name__ == '__main__':
             # # and may be source of wandering bug
             # if frames_since_last_target > 30:
             #     ptz.absmove(INIT_POS[0], INIT_POS[1])
-            if frames_since_last_target > 30:
-                zoom_command -= .05
-                if zoom_command <= -1.0:
-                    zoom_command = -1.0
-                # zoom_command = -1.0
 
-            if frames_since_last_target > FRAMES_BEFORE_RETURN_TO_HOME:
+            if(frames_since_last_target > FRAMES_BEFORE_RETURN_TO_HOME
+               and frames_since_last_return > FRAMES_BEFORE_RETURN_TO_HOME):
+                frames_since_last_return = 0
                 ptz.absmove_w_zoom_waitfordone(pan_init,
                                                tilt_init,
                                                zoom_init,
@@ -214,16 +226,18 @@ if __name__ == '__main__':
             if key == ord('q'):
                 break
 
+            
+                    
         if RECORD:
             if((RECORD_ONLY_DETECTIONS and target_lbox)
                or not RECORD_ONLY_DETECTIONS
                or frames_since_last_target < MIN_FRAMES_RECORD_PER_DETECT):
-                log.info('Recording frame.')
+                log.info('Recording activity frame.')
                 recorder.record_image(raw_frame,
                                       (pan, tilt, zoom),
                                       detected_class,
                                       target_lbox)
-            elif (time.time() - start_time) > TIMELAPSE_DELAY:
+            elif (time.time() - timelapse_delay_start_time) > TIMELAPSE_DELAY:
                 now = datetime.now()
                 strng = now.strftime("%m/%d/%Y, %H:%M:%S")
                 log.info(f'Recording timelapse frame at {strng}')
@@ -231,7 +245,7 @@ if __name__ == '__main__':
                                       (pan, tilt, zoom),
                                       'n/a: timelapse frame',
                                       None)
-                start_time = time.time()
+                timelapse_delay_start_time = time.time()
 
         # run position controller on ptz system
         commands = motor_controller.update(x_err,
@@ -239,9 +253,16 @@ if __name__ == '__main__':
                                            zoom_command)
         x_velocity, y_velocity, zoom_command = commands
 
+        if frames_since_last_target > 30:
+            zoom_command = -1.0
+
+        # only zoom out as far as the initial position
+        if zoom_command < 0 and zoom < zoom_init:
+            zoom_command = 0.0
+            
         # forgot to commit this when it was written.  a little
         # uncertain what the goal was.  leaving it in as a timebomb to
-        # take me by surprise at some critical moment
+        # take us by surprise at some critical moment
         if tilt >= 1.0 and y_velocity <= 0:
             y_velocity = 0.0
 
@@ -252,12 +273,12 @@ if __name__ == '__main__':
         if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
             ptz.stop()
 
-        # only zoom out as far as the initial position
-        if zoom_command < 0 and zoom < zoom_init:
-            zoom_command = 0.0
-
         ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
 
+        toc = time.perf_counter()
+        log.info(f"This bit: {(toc - tic)*1000:0.4f} milliseconds")
+
+        
     del cam
     ptz.stop()
     if not HEADLESS:
