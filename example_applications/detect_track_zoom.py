@@ -158,7 +158,7 @@ if __name__ == '__main__':
         elapsed_time = (time.time() - start_time) * 1000
         start_time = time.time()
         log.info(f'     Loop time: {elapsed_time:.1f} milliseconds')
-        
+
         pan, tilt, zoom = ptz.get_position()
         raw_frame = cam.get_frame()
         if raw_frame is None:
@@ -169,7 +169,7 @@ if __name__ == '__main__':
         frame = raw_frame.copy()
 
         target_lbox = detector.detect(frame)
-        
+
         if target_lbox:
             detected_class = detector.class_names[target_lbox['class_id']]
             score = 100 * target_lbox['confidence']
@@ -193,7 +193,7 @@ if __name__ == '__main__':
 
             errors = motor_controller.calc_errors(target_lbox)
             x_err, y_err = errors
-        else: # no target_lbox
+        else:  # no target_lbox
             # time.sleep(.03)
             detected_class = 'nothing detected'
             score = 0.0
@@ -226,8 +226,6 @@ if __name__ == '__main__':
             if key == ord('q'):
                 break
 
-            
-                    
         if RECORD:
             if((RECORD_ONLY_DETECTIONS and target_lbox)
                or not RECORD_ONLY_DETECTIONS
@@ -259,7 +257,7 @@ if __name__ == '__main__':
         # only zoom out as far as the initial position
         if zoom_command < 0 and zoom < zoom_init:
             zoom_command = 0.0
-            
+
         # forgot to commit this when it was written.  a little
         # uncertain what the goal was.  leaving it in as a timebomb to
         # take us by surprise at some critical moment
@@ -278,7 +276,6 @@ if __name__ == '__main__':
         toc = time.perf_counter()
         log.info(f"This bit: {(toc - tic)*1000:0.4f} milliseconds")
 
-        
     del cam
     ptz.stop()
     if not HEADLESS:
