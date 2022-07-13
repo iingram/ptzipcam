@@ -3,7 +3,7 @@ import time
 import numpy as np
 from onvif import ONVIFCamera
 
-from dnntools import draw
+from camml import draw
 
 
 def _checkZeroness(number):
