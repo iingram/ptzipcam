@@ -16,15 +16,19 @@ def find_version(text):
     return match.group(1)
 
 
+AUTHOR = "Ian Ingram"
 DESC = "Package for controlling PTZ IP cameras that support ONVIF"
 
 setuptools.setup(
     name="ptzipcam",
     description=DESC,
+    long_description=read('README.md'),
+    long_description_content_type="text/markdown",
     license="MIT",
-    author="Ian Ingram",
     version=find_version(read('ptzipcam/__init__.py')),
+    author=AUTHOR,
     packages=['ptzipcam'],
+    include_package_data=True,
     install_requires=[
         'pyyaml',
         'opencv-python',
@@ -37,6 +41,10 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         'Development Status :: 2 - Pre-Alpha',
-        "Operating System :: OS Independent",
+        'Operating System :: POSIX :: Linux',
     ],
+    # would like to add this as a CLI tool but currently needs config file...
+    # entry_points = {
+    #     'console_scripts': ['aim_ptz_w_keyboard=ptzipcam.utils.aim_ptz_w_keyboard:main']
+    },
 )
