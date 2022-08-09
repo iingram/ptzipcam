@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Goes to random PTZ positions, pausing at each
+"""Demo of script for camera on side with angle correction
 
 """
 import random
@@ -8,6 +8,8 @@ import time
 import argparse
 
 import yaml
+import numpy as np
+from scipy import ndimage
 
 from ptzipcam import logs, ui, convert
 from ptzipcam.ptz_camera import PtzCam
@@ -58,8 +60,9 @@ def main():
 
     window_name = 'Look around randomly'
 
+    canvas = np.zeros((2000, 2000, 3), dtype=np.uint8)
     if not HEADLESS:
-        uih = ui.UI_Handler(frame, window_name)
+        uih = ui.UI_Handler(canvas, window_name)
 
     log.info("Frame shape: " + str(frame.shape[:2]))
     logs.log_configuration(log, configs)
@@ -102,7 +105,18 @@ def main():
 
         # update ui and handle user input
         if not HEADLESS:
-            key = uih.update(frame, hud=False)
+            canvas = np.zeros((2000, 2000, 3), dtype=np.uint8)
+            angle = convert.command_to_degrees(pan, PAN_RANGE)
+            rotated_frame = ndimage.rotate(frame, angle)
+            h, w, _ = rotated_frame.shape
+            ch, cw, _ = canvas.shape
+            left = int(ch/2 - h/2)
+            right = int(ch/2 + h/2)
+            top = int(cw/2 - w/2)
+            bottom = int(cw/2 + w/2)
+            canvas[left:right, top:bottom, :] = rotated_frame
+            
+            key = uih.update(canvas, hud=False)
             if key == ord('q'):
                 break
 
