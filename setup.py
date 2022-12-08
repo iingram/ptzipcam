@@ -30,7 +30,7 @@ setuptools.setup(
     packages=['ptzipcam'],
     include_package_data=True,
     install_requires=[
-        'numpy==1.18.3'
+        'numpy==1.18.3',
         'pyyaml',
         'opencv-python==3.4.2.16',
         'onvif-zeep',
