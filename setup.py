@@ -47,5 +47,5 @@ setuptools.setup(
     # would like to add this as a CLI tool but currently needs config file...
     # entry_points = {
     #     'console_scripts': ['aim_ptz_w_keyboard=ptzipcam.utils.aim_ptz_w_keyboard:main']
-    },
+    #},
 )
