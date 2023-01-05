@@ -2,27 +2,27 @@ RECORD: True
 RECORD_ONLY_DETECTIONS: True
 MIN_FRAMES_RECORD_PER_DETECT: 200
 FRAMES_BEFORE_RETURN_TO_HOME: 150
-RECORD_FOLDER: /home/ian/recorded_images
+RECORD_FOLDER: PATH_TO_RECORD_TO
 TIMELAPSE_DELAY: 60
 DRAW_BOX: True
 HEADLESS: False
 
-# bird, person, giraffe, cup, cat, dog, horse, sheep, cow, elephant, bear, zebra
-TRACKED_CLASS: [giraffe, person]
+# class(es) you want to track; must be a label from ML model labels being used
+TRACKED_CLASS: [cup, person]
 
 # Stream: Main = 1, Sub = 2, Third = 3 
 STREAM: 3
 
-TIMELAPSE_CONFIG_FILENAME: /home/ian/lib/ptzipcam/config_timelapse.yaml
+TIMELAPSE_CONFIG_FILENAME: PATH_TO_TIMELAPSE_CONFIG_FILE
 
 PID_GAINS: [-1.0, 1.0]
 
-INIT_POS: [90.0, 45, 4.0]  # for big hikvision: pan (0-360), tilt (0-90), zoom (1-25)
+INIT_POS: [90.0, 45, 4.0]  # e.g. (depending on camera): pan (0-360), tilt (0-90), zoom (1-25)
 ORIENTATION: up  # left up down right
 
-IP: 192.168.2.64  # cameras ship as 192.168.1.64
-USER: admin        
-PASS: PASSWORD  
+IP: IP_ADDRESS_OF_CAMERA
+USER: USERNAME_ON_CAMERA        
+PASS: PASSWORD_FOR_THAT_USERNAME  
 PORT: 80
 RTSP_PORT: 554
 
@@ -43,13 +43,14 @@ NMS_THRESHOLD: .1
 INPUT_WIDTH: 416
 INPUT_HEIGHT: 416
 
-MODEL_PATH: /home/ian/models/yolo/
+MODEL_PATH: PATH_WHERE_MODELS_ARE_STORED
 
 MODEL_CONFIG_FILE: yolov3-tiny.cfg
 MODEL_WEIGHTS_FILE: yolov3-tiny.weights
 CLASS_NAMES_FILE: coco.labels
 
-# MODEL_PATH: /usr/share/edgetpu/examples/models/
+# If using google coral examples from package, they are stored here:
+# MODEL_PATH: /usr/share/pycoral/examples/models/
 # MODEL_CONFIG_FILE: ssd_mobilenet_v1_coco_quant_postprocess_edgetpu.tflite
 # MODEL_WEIGHTS_FILE: N/A
 # CLASS_NAMES_FILE: coco_labels.txt
