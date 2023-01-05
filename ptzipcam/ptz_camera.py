@@ -257,10 +257,10 @@ class PtzCam():
 
     """
     def __init__(self,
-                 ip='192.168.1.64',
+                 ip=None,
                  port='80',
-                 user='admin',
-                 pword='NyalaChow22'):
+                 user=None,
+                 pword=None):
         """ PtzCam constructor
 
         Parameters

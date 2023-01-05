@@ -20,9 +20,9 @@ class Camera():
 
     # def __init__(self, address='udp://127.0.0.1:5000'):
     def __init__(self,
-                 ip='192.168.1.64',
-                 user='admin',
-                 passwd='NyalaChow22',
+                 ip,
+                 user,
+                 passwd,
                  stream=3,
                  rtsp_port=554,
                  cam_brand='hikvision'):
