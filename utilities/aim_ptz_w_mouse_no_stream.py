@@ -4,7 +4,7 @@ Doesn't display stream (which often is a good thing)
 
 NOTE: if you want to display stream, can run separately something like:
 
-ffplay -i rtsp://admin:NyalaChow22@192.168.0.64:554/Streaming/Channels/103
+ffplay -i rtsp://USERNAME:PASSWORD@CAMERA_IP:554/Streaming/Channels/103
 """
 
 import argparse

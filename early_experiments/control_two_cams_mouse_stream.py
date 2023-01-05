@@ -1,7 +1,7 @@
 #!/home/ian/.virtualenvs/ptzSpotter/bin/python
 
 # Need to do something in the realm of this first:
-# ffmpeg -rtsp_transport tcp -i rtsp://admin:NyalaChow22@192.168.1.64:554/Streaming/Channels/103 -b 1900k -f mpegts udp://127.0.0.1:5000
+# ffmpeg -rtsp_transport tcp -i rtsp://USERNAME:PASSWORD@192.168.1.64:554/Streaming/Channels/103 -b 1900k -f mpegts udp://127.0.0.1:5000
 
 import ui
 import yaml
@@ -22,8 +22,8 @@ args = ap.parse_args()
 
 IP = "192.168.1." + args.num  # Camera IP address
 PORT = 80           # Port
-USER = "admin"         # Username
-PASS = "NyalaChow22"        # Password
+USER = "username"         # Username
+PASS = "password"        # Password
 
 with open('configs.yaml') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)

@@ -3,8 +3,8 @@ from onvif import ONVIFCamera
 
 IP="192.168.1.64"   # Camera IP address
 PORT=80           # Port
-USER="admin"         # Username
-PASS="NyalaChow22"        # Password
+USER="username"         # Username
+PASS="password"        # Password
 
 
 XMAX = 1

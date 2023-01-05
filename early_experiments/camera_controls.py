@@ -20,14 +20,14 @@ def connectCam(ip='192.168.1.168',
     """
     # camera = ONVIFCamera('192.168.1.64',
     #                      80,
-    #                      'admin',
-    #                      'NyalaChow22',
+    #                      'username',
+    #                      'password',
     #                      '/etc/onvif/wsdl/')
 
     camera = ONVIFCamera(ip,
                          port,
-                         'admin',
-                         'NyalaChow22',
+                         'username',
+                         'password',
                          '/etc/onvif/wsdl/')
 
     return camera
