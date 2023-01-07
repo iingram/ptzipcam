@@ -1,7 +1,26 @@
 import logging
 
 
-def prep_log(level):
+def prep_log(level, suppress_verbose_loggers=True):
+    """Prepare logging
+
+    Parameters
+    ----------
+
+    level :
+
+    suppress_verbose_loggers : bool
+
+        A lot of this code's dependencies have very verbose debug
+        logging that is often not wanted when debugging more local
+        issues.  This flag allows toggling suppression of those.
+
+    Returns
+    -------
+
+    log :
+
+    """
     log = logging.getLogger()
     log.setLevel(level)
     if log.hasHandlers():
@@ -12,6 +31,13 @@ def prep_log(level):
     handler.setFormatter(formatter)
     log.addHandler(handler)
 
+    if suppress_verbose_loggers:
+        dont_log_list = ['zeep.xsd.schema', 'zeep', 'zeep.transports',
+                         'urllib3.connectionpool', 'zeep.wsdl.wsdl',
+                         'zeep.xsd.visitor']
+        for blisted in dont_log_list:
+            logging.getLogger(blisted).disabled = True
+
     return log
 
 
@@ -21,7 +47,7 @@ def log_configuration(log, configs):
     log.info('Tracked classes: ' + str(configs['TRACKED_CLASS']))
     ipan, itilt, izoom = configs['INIT_POS']
     log.info(f'Initial position: {ipan} pan, {itilt} tilt, {izoom} zoom')
-    
+
     if configs['RECORD']:
         log.info('Recording is turned ON')
         strg = configs['RECORD_FOLDER']
