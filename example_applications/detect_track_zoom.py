@@ -30,7 +30,7 @@ if os.uname()[4].startswith("arm"):
 else:
     from camml import cv2dnn as nn
 
-log = logs.prep_log(logging.INFO)
+log = logs.prep_log(logging.INFO, suppress_verbose_loggers=True)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config',
@@ -157,7 +157,7 @@ if __name__ == '__main__':
         tic = time.perf_counter()
         elapsed_time = (time.time() - start_time) * 1000
         start_time = time.time()
-        log.info(f'     Loop time: {elapsed_time:.1f} milliseconds')
+        log.debug(f'     Loop time: {elapsed_time:.1f} milliseconds')
 
         pan, tilt, zoom = ptz.get_position()
         raw_frame = cam.get_frame()
@@ -274,7 +274,7 @@ if __name__ == '__main__':
         ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
 
         toc = time.perf_counter()
-        log.info(f"This bit: {(toc - tic)*1000:0.4f} milliseconds")
+        log.debug(f"This bit: {(toc - tic)*1000:0.4f} milliseconds")
 
     del cam
     ptz.stop()
