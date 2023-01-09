@@ -31,13 +31,17 @@ setuptools.setup(
     include_package_data=True,
     install_requires=[
         'numpy==1.18.3',
-        'pyyaml',
         'opencv-python==3.4.2.16',
         'onvif-zeep',
-        'screeninfo',
-        'imutils',
         'camml',
     ],
+    extra_require={
+        'examples': [
+            'pyyaml',
+            'imutils',
+            'screeninfo',
+        ],
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
