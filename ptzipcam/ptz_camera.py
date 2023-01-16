@@ -1,3 +1,7 @@
+"""Tools for control of pan-tilt-zoom functionality of the camera
+
+"""
+
 import time
 
 import numpy as np
@@ -7,8 +11,11 @@ from camml import draw
 
 
 def _checkZeroness(number):
-    """Checks if a number is very close to zero (within a window) and if
-it is makes it less close by placing it at the edge of that window.
+    """Almost-zero check
+
+    Checks if a number is very close to zero (within a window) and if
+    it is makes it less close by placing it at the edge of that
+    window.
 
     Parameters
     ----------
@@ -81,7 +88,7 @@ class MotorController():
             command = -1.0
 
         return command
-            
+
     def _calc_command(self, err, k):
         """Implements actual controller math
 
@@ -93,7 +100,7 @@ class MotorController():
 
         """
         command = k * err
-        command = self._ensure_command_in_bounds(command)    
+        command = self._ensure_command_in_bounds(command)
         return command
 
     def _calc_zoom_command(self, x_err, y_err, zoom_command):
@@ -131,10 +138,10 @@ class CalmMotorController(MotorController):
         else:
             command = k * err
 
-        command = self._ensure_command_in_bounds(command)    
+        command = self._ensure_command_in_bounds(command)
 
         return command
-        
+
     def _calc_zoom_command(self, x_err, y_err, zoom_command):
         """Calculate the zoom command give pan/tilt errors
 
@@ -195,7 +202,7 @@ class TwitchyMotorController(MotorController):
             error = 1 - ratio
             zoom_command = 0.05 * error
 
-            # stop zoom if either dimension of bounding box is 
+            # stop zoom if either dimension of bounding box is
             length_ratio = self.ZOOM_STOP_RATIO
             filling_much_of_width = self.box_width >= length_ratio * self.frame_width
             filling_much_of_height = self.box_height >= length_ratio * self.frame_height
@@ -245,7 +252,7 @@ class BouncyZoomMotorController(MotorController):
                 zoom_command = 0.0
         else:
             zoom_command = 0.0
-            
+
         return zoom_command
 
 
