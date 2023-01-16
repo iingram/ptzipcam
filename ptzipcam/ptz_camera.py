@@ -10,7 +10,7 @@ from onvif import ONVIFCamera
 from camml import draw
 
 
-def _checkZeroness(number):
+def _check_zeroness(number):
     """Almost-zero check
 
     Checks if a number is very close to zero (within a window) and if
@@ -390,9 +390,9 @@ class PtzCam():
         self.ptz_service.ContinuousMove(move_request)
 
     def move_w_zoom(self, x_velocity, y_velocity, zoom_command):
-        x_velocity = float(_checkZeroness(x_velocity))
-        y_velocity = float(_checkZeroness(y_velocity))
-        zoom_command = _checkZeroness(zoom_command)
+        x_velocity = float(_check_zeroness(x_velocity))
+        y_velocity = float(_check_zeroness(y_velocity))
+        zoom_command = _check_zeroness(zoom_command)
 
         move_request = self.ptz_service.create_type('ContinuousMove')
         move_request.ProfileToken = self.media_profile.token
@@ -468,9 +468,9 @@ class PtzCam():
         None
 
         """
-        zoom_pos = _checkZeroness(zoom_pos)
-        pan_pos = _checkZeroness(pan_pos)
-        tilt_pos = _checkZeroness(tilt_pos)
+        zoom_pos = _check_zeroness(zoom_pos)
+        pan_pos = _check_zeroness(pan_pos)
+        tilt_pos = _check_zeroness(tilt_pos)
 
         move_request = self._prep_abs_move()
         move_request.Position.PanTilt.x = pan_pos
@@ -511,7 +511,7 @@ class PtzCam():
         self.ptz_service.AbsoluteMove(move_request)
 
     def zoom(self, zoom_command):
-        zoom_command = _checkZeroness(zoom_command)
+        zoom_command = _check_zeroness(zoom_command)
 
         move_request = self._prep_abs_move()
         move_request.Position.Zoom.x = zoom_command
