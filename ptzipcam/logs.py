@@ -1,3 +1,7 @@
+"""Logging configuration, customization, and helpers.
+
+"""
+
 import logging
 
 
@@ -42,6 +46,9 @@ def prep_log(level, suppress_verbose_loggers=True):
 
 
 def log_configuration(log, configs):
+    """Logs some of the configuration parameters for current run
+
+    """
     log.info('-----------------------------------')
     log.info("Detection threshold: " + str(configs['CONF_THRESHOLD']))
     log.info('Tracked classes: ' + str(configs['TRACKED_CLASS']))
@@ -51,7 +58,7 @@ def log_configuration(log, configs):
     if configs['RECORD']:
         log.info('Recording is turned ON')
         strg = configs['RECORD_FOLDER']
-        log.info('Recordings will be stored in {}'.format(strg))
+        log.info(f'Recordings will be stored in {strg}')
         strg = configs['TIMELAPSE_DELAY']
         log.info(f'{strg} seconds between timelapse frames.')
     else:
