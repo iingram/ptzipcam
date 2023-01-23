@@ -1,5 +1,10 @@
-import cv2
+"""Tools for creating a simple UI for apps using package
 
+Mostly for use in included examples and related utilities.
+
+"""
+
+import cv2
 import numpy as np
 
 mouseX = 250
@@ -7,23 +12,34 @@ mouseY = 250
 zoom_command = None
 
 
-def orient_frame(frame, ORIENTATION):
-    if ORIENTATION == 'left':
+def orient_frame(frame, orientation):
+    """Rotates the image frame based on orientation string
+
+    Helper function to quickly re-orient the image frame from the
+    camera based on the camera's orientation. 'up' is the default. The
+    orientation is usually provided in the user config yaml file as
+    the orientation is assumed to be fixed for any given run.
+
+    """
+    if orientation == 'left':
         frame = np.rot90(frame)
-    elif ORIENTATION == 'down':
+    elif orientation == 'down':
         frame = np.rot90(frame, 2)
-    elif ORIENTATION == 'right':
+    elif orientation == 'right':
         frame = np.rot90(frame, 3)
 
-    # returning a copy solves a bug that keeps one from drawing on the
-    # resultant frame but might also allay other problems that spawn
-    # from the same source.  The underlying bug might be in the opencv
-    # library.
+    # Returning a copy (as implemented below) solves a bug that keeps
+    # one from drawing on the resultant frame but might also allay
+    # other problems that spawn from the same source.  The underlying
+    # bug might be in the opencv library.
     return frame.copy()
 
 
-# callback function for mouse ui
 def mouse_callback(event, x, y, flags, param):
+    """Callback function for mouse interface
+
+    """
+
     global mouseX
     global mouseY
     global zoom_command
@@ -41,6 +57,9 @@ def mouse_callback(event, x, y, flags, param):
 
 
 class UI_Handler():
+    """Presents a simple UI for applications
+
+    """
 
     def __init__(self, frame, window_name, scale_display=1.0):
         self.window_name = window_name
@@ -77,16 +96,16 @@ class UI_Handler():
 
     def read_mouse(self):
 
-        if(mouseX < self.zone['start'][0]):
+        if mouseX < self.zone['start'][0]:
             x_dir = -1
-        elif(mouseX > self.zone['end'][0]):
+        elif mouseX > self.zone['end'][0]:
             x_dir = 1
         else:
             x_dir = 0
 
-        if(mouseY < self.zone['start'][1]):
+        if mouseY < self.zone['start'][1]:
             y_dir = 1
-        elif(mouseY > self.zone['end'][1]):
+        elif mouseY > self.zone['end'][1]:
             y_dir = -1
         else:
             y_dir = 0

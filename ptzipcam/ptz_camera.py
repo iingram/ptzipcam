@@ -121,7 +121,7 @@ class CalmMotorController(MotorController):
 
         self.zoom_pickup = zoom_pickup
         self.ZOOM_STOP_RATIO = .7
-        self.STOP_RANGE  = .1
+        self.STOP_RANGE = .1
 
     def _calc_command(self, err, k):
         """Override controller command method

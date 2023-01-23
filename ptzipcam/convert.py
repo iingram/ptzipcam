@@ -1,3 +1,10 @@
+"""Functions for converting between different quantities
+
+Most of these are for converting with PTZ quantities (angles in
+degrees, zoom in "power") and the associated range of the cameras.
+
+"""
+
 import logging
 
 log = logging.getLogger(__name__)
@@ -17,14 +24,14 @@ def degrees_to_command(degrees, full_range):
 
 def command_to_degrees(command, full_range):
     """Convert ptz camera command to degrees
-    
+
     Parameters
     ----------
 
     command : float
         PTZ camera axis command, usually in the range of -1.0 to 1.0
         (if not this function probably breaks)
-    
+
     full_range : float
         Full range of that axis in degrees
 
