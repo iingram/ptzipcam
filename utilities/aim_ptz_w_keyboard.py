@@ -4,10 +4,11 @@
 """
 import curses
 import time
-import yaml
 import argparse
-import cv2
 from threading import Thread
+
+import yaml
+import cv2
 
 from ptzipcam.camera import Camera
 from ptzipcam.ptz_camera import PtzCam
@@ -23,7 +24,7 @@ parser.add_argument('-s',
 args = parser.parse_args()
 CONFIG_FILE = args.config
 
-with open(CONFIG_FILE) as f:
+with open(CONFIG_FILE, encoding="utf-8") as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
 # ptz camera networking constants
@@ -75,7 +76,10 @@ if ORIENTATION == 'down':
 ptz = PtzCam(IP, PORT, USER, PASS)
 
 
-class Display(Thread):
+class CameraStreamDisplayer(Thread):
+    """Handles capturing image from camera and display
+
+    """
 
     def run(self):
         cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
@@ -85,14 +89,17 @@ class Display(Thread):
             frame = cam.get_frame()
             if frame is not None:
                 frame = ui.orient_frame(frame, ORIENTATION)
-                if not HEADLESS:
-                    cv2.imshow('Control PTZ Camera', frame)
-                    _ = cv2.waitKey(33)
-                else:
-                    time.sleep(.033)
+                cv2.imshow('Control PTZ Camera', frame)
+                _ = cv2.waitKey(33)
 
 
 def main_ui_function(stdscr):
+    """Main curses UI function
+
+    Renders all the UI elements for seeing state of the camera and
+    commands for changing camera state.
+
+    """
     global ptz
 
     pan, tilt, zoom = ptz.get_position()
@@ -112,7 +119,7 @@ def main_ui_function(stdscr):
 
     # PREP UI ELEMENTS
     key = '0'
-    height, width = stdscr.getmaxyx()
+    _, width = stdscr.getmaxyx()
 
     # Clear and refresh the screen for a blank canvas
     stdscr.clear()
@@ -144,11 +151,11 @@ def main_ui_function(stdscr):
                      "Exit:q")
 
     # MAIN LOOP
-    while (key != ord('q')):
+    while key != ord('q'):
 
         # Initialization
         stdscr.clear()
-        height, width = stdscr.getmaxyx()
+        _, width = stdscr.getmaxyx()
 
         # parse keyboard input
         def kchk(command, key, up_key, down_key, delta, delta_fine):
@@ -266,8 +273,7 @@ def main_ui_function(stdscr):
 
         # Write pan, tilt, zoom values
         pan_degrees = convert.command_to_degrees(pan_command, 360.0)
-        strng = "Pan: {:.3f} ({:.1f} degrees)".format(pan_command,
-                                                      pan_degrees)
+        strng = f"Pan: {pan_command:.3f} ({pan_degrees:.1f} degrees)"
         stdscr.addstr(4, 0, strng, curses.color_pair(1))
 
         tilt_degrees = convert.command_to_degrees(tilt_command, 90.0)
@@ -304,11 +310,15 @@ def main_ui_function(stdscr):
 
 
 def main():
+    """Main executable function
+
+    """
     global ptz
 
-    display = Display()
-    display.setDaemon(True)
-    display.start()
+    if not HEADLESS:
+        displayer = CameraStreamDisplayer()
+        displayer.setDaemon(True)
+        displayer.start()
 
     curses.wrapper(main_ui_function)
 
