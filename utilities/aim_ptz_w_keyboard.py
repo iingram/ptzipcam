@@ -238,13 +238,12 @@ def main_ui_function(stdscr):
             ptz.set_exposure_time(exp_command)
             ptz.set_gain(gain_command)
             ptz.set_iris(iris_command)
-
-        # Render status bar
-        stdscr.attron(curses.color_pair(3))
-        # doing the exception as it appears to prevent a crashing bug
-        # brought about when the window is resized so the width is
-        # less than the status bar string
         try:
+            # Render status bar
+            stdscr.attron(curses.color_pair(3))
+            # doing the exception as it appears to prevent a crashing bug
+            # brought about when the window is resized so the width is
+            # less than the status bar string
             stdscr.addstr(11, 0, statusbarstr)
             # stdscr.addstr(12,
             #               len(statusbarstr),
@@ -254,50 +253,49 @@ def main_ui_function(stdscr):
             # stdscr.addstr(13,
             #               len(statusbarstr2),
             #               " " * (width - len(statusbarstr2) - 1))
-        except Exception as e:
-            print('Exception')
-            print(e)
 
-        stdscr.attroff(curses.color_pair(3))
+            stdscr.attroff(curses.color_pair(3))
 
-        # Curses title section
-        stdscr.attron(curses.color_pair(2))
-        stdscr.attron(curses.A_BOLD)
-        stdscr.addstr(0, 0, title)
+            # Curses title section
+            stdscr.attron(curses.color_pair(2))
+            stdscr.attron(curses.A_BOLD)
+            stdscr.addstr(0, 0, title)
 
-        stdscr.attroff(curses.color_pair(2))
-        stdscr.attroff(curses.A_BOLD)
-        stdscr.addstr(1, 0, subtitle)
-        stdscr.addstr(2, 0, usage_note)
-        # stdscr.addstr(3, 0, '-' * 31)
+            stdscr.attroff(curses.color_pair(2))
+            stdscr.attroff(curses.A_BOLD)
+            stdscr.addstr(1, 0, subtitle)
+            stdscr.addstr(2, 0, usage_note)
+            # stdscr.addstr(3, 0, '-' * 31)
 
-        # Write pan, tilt, zoom values
-        pan_degrees = convert.command_to_degrees(pan_command, 360.0)
-        strng = f"Pan: {pan_command:.3f} ({pan_degrees:.1f} degrees)"
-        stdscr.addstr(4, 0, strng, curses.color_pair(1))
+            # Write pan, tilt, zoom values
+            pan_degrees = convert.command_to_degrees(pan_command, 360.0)
+            strng = f"Pan: {pan_command:.3f} ({pan_degrees:.1f} degrees)"
+            stdscr.addstr(4, 0, strng, curses.color_pair(1))
 
-        tilt_degrees = convert.command_to_degrees(tilt_command, 90.0)
-        strng = "Tilt: {:.3f} ({:.1f} degrees)".format(tilt_command,
-                                                       tilt_degrees)
-        stdscr.addstr(5, 0, strng, curses.color_pair(1))
+            tilt_degrees = convert.command_to_degrees(tilt_command, 90.0)
+            strng = f"Tilt: {tilt_command:.3f} ({tilt_degrees:.1f} degrees)"
+            stdscr.addstr(5, 0, strng, curses.color_pair(1))
 
-        zoom_power = convert.zoom_to_power(zoom_command, CAM_ZOOM_POWER)
-        strng = "Zoom: {:.3f} ({:.2f} zoom)".format(zoom_command,
-                                                    zoom_power)
-        stdscr.addstr(6, 0, strng, curses.color_pair(1))
+            zoom_power = convert.zoom_to_power(zoom_command, CAM_ZOOM_POWER)
+            strng = f"Zoom: {zoom_command:.3f} ({zoom_power:.2f} zoom)"
+            stdscr.addstr(6, 0, strng, curses.color_pair(1))
 
-        print(type(exp_command))
-        strng = "Exposure Time: {:.3f}".format(exp_command)
-        stdscr.addstr(7, 0, strng, curses.color_pair(1))
+            print(type(exp_command))
+            strng = f"Exposure Time: {exp_command:.3f}"
+            stdscr.addstr(7, 0, strng, curses.color_pair(1))
 
-        strng = "Exposure Gain: {:.3f}".format(gain_command)
-        stdscr.addstr(8, 0, strng, curses.color_pair(1))
+            strng = f"Exposure Gain: {gain_command:.3f}"
+            stdscr.addstr(8, 0, strng, curses.color_pair(1))
 
-        strng = "Exposure Iris: {:.3f}".format(iris_command)
-        stdscr.addstr(9, 0, strng, curses.color_pair(1))
+            strng = f"Exposure Iris: {iris_command:.3f}"
+            stdscr.addstr(9, 0, strng, curses.color_pair(1))
 
-        strng = "Focus: Sorta unknown"
-        stdscr.addstr(10, 0, strng, curses.color_pair(1))
+            strng = "Focus: Sorta unknown"
+            stdscr.addstr(10, 0, strng, curses.color_pair(1))
+
+        except curses.error as error_msg:
+            print('Exception in curses loop')
+            print(error_msg)
 
         # hide cursor
         curses.curs_set(0)
