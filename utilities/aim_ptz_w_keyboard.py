@@ -296,8 +296,12 @@ def main_ui_function(stdscr):
         except curses.error as error_msg:
             print('Exception in curses loop')
             print(error_msg)
-            strng = "MAKE WINDOW BIGGER"
-            stdscr.addstr(1, 0, strng, curses.color_pair(1))
+            try:
+                strng = "MAKE WINDOW BIGGER"
+                stdscr.addstr(1, 0, strng, curses.color_pair(1))
+            except curses.error as deeper_error_msg:
+                print('Window not even big enough for guidance.')
+                print(deeper_error_msg)
 
         # hide cursor
         curses.curs_set(0)
