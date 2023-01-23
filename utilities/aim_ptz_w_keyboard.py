@@ -269,11 +269,11 @@ def main_ui_function(stdscr):
 
             # Write pan, tilt, zoom values
             pan_degrees = convert.command_to_degrees(pan_command, 360.0)
-            strng = f"Pan: {pan_command:.3f} ({pan_degrees:.1f} degrees)"
+            strng = f"Pan: {pan_command:.3f} ({pan_degrees:.2f} degrees)"
             stdscr.addstr(4, 0, strng, curses.color_pair(1))
 
             tilt_degrees = convert.command_to_degrees(tilt_command, 90.0)
-            strng = f"Tilt: {tilt_command:.3f} ({tilt_degrees:.1f} degrees)"
+            strng = f"Tilt: {tilt_command:.3f} ({tilt_degrees:.2f} degrees)"
             stdscr.addstr(5, 0, strng, curses.color_pair(1))
 
             zoom_power = convert.zoom_to_power(zoom_command, CAM_ZOOM_POWER)
@@ -332,7 +332,7 @@ def main():
     tilt_deg = convert.command_to_degrees(tilt, 90.0)
     zoom_power = convert.zoom_to_power(zoom, CAM_ZOOM_POWER)
 
-    print(f'Pan: {pan_deg:.2f} Tilt: {tilt_deg:.2f}, Zoom: {zoom_power:.1f}')
+    print(f'Pan: {pan_deg:.2f} Tilt: {tilt_deg:.2f}, Zoom: {zoom_power:.2f}')
 
     if not HEADLESS:
         cv2.destroyAllWindows()
