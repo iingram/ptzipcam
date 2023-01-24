@@ -27,9 +27,7 @@ args = parser.parse_args()
 CONFIG_FILE = args.config
 # OFFSET = float(args.delta)
 
-ZOOM_X_POWER = 25.0
-
-with open(CONFIG_FILE) as f:
+with open(CONFIG_FILE, encoding='utf-8') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
 # ptz camera networking constants
@@ -40,11 +38,15 @@ PASS = configs['PASS']
 
 # ptz camera setup constants
 INIT_POS = configs['INIT_POS']
+CAM_ZOOM_POWER = configs['CAM_ZOOM_POWER']
 ORIENTATION = configs['ORIENTATION']
 PID_GAINS = configs['PID_GAINS']
 
 
 def main():
+    """Main function of the utility
+
+    """
     ptz = PtzCam(IP, PORT, USER, PASS)
 
     # initialize position of camera
@@ -52,10 +54,10 @@ def main():
     # time.sleep(3)
     pan_init = convert.degrees_to_command(INIT_POS[0], 360.0)
     tilt_init = convert.degrees_to_command(INIT_POS[1], 90.0)
-    zoom_init = INIT_POS[2]/ZOOM_X_POWER
+    zoom_init = convert.power_to_zoom(INIT_POS[2], CAM_ZOOM_POWER)
 
     # left_point = pan_init + OFFSET
-    
+
     print("move to start position")
     ptz.absmove_w_zoom_waitfordone(pan_init,
                                    tilt_init,
