@@ -1,4 +1,4 @@
-# spins camera based off some "speed" given as cli argument.  serves
+# Spins camera based off some "speed" given as cli argument.  Serves
 # as an example of the basic bits to connect to and control a camera
 # using the MotorController class.
 
@@ -6,8 +6,11 @@ import time
 import argparse
 import yaml
 
+import numpy as np
+
 from ptzipcam.ptz_camera import PtzCam
-from ptzipcam.ptz_camera import MotorController
+from ptzipcam.ptz_camera import CalmMotorController
+from ptzipcam import convert
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config',
@@ -30,25 +33,26 @@ PASS = configs['PASS']
 
 # ptz camera setup constants
 INIT_POS = configs['INIT_POS']
+CAM_ZOOM_POWER = configs['CAM_ZOOM_POWER']
 ORIENTATION = configs['ORIENTATION']
 PID_GAINS = configs['PID_GAINS']
 
 
 def main():
     ptz = PtzCam(IP, PORT, USER, PASS)
-    motor_controller = MotorController(PID_GAINS, ORIENTATION)
+    fake_frame = np.zeros([10, 10])
+    motor_controller = CalmMotorController(PID_GAINS, ORIENTATION, fake_frame)
 
     # initialize position of camera
     zoom_command = 0
     ptz.zoom_out_full()
     time.sleep(1)
     pan, tilt, zoom = ptz.get_position()
-    # ptz.absmove(INIT_POS[0], INIT_POS[1])
-    pan_init = INIT_POS[0]/180.0
-    tilt_init = INIT_POS[1]/45.0
-    zoom_init = INIT_POS[2]/25.0
+    pan_init = convert.degrees_to_command(INIT_POS[0], 360.0)
+    tilt_init = convert.degrees_to_command(INIT_POS[1], 90.0)
+    zoom_init = convert.power_to_zoom(INIT_POS[2], CAM_ZOOM_POWER)
 
-    print("move to start position")
+    print("Move to start position")
     ptz.absmove_w_zoom_waitfordone(pan_init,
                                    tilt_init,
                                    zoom_init,
@@ -61,7 +65,11 @@ def main():
         time.sleep(.1)
         pan, tilt, zoom = ptz.get_position()
         # run position controller on ptz system
-        x_velocity, y_velocity = motor_controller.run(x_err, y_err)
+        commands = motor_controller.update(x_err,
+                                           y_err,
+                                           zoom_init)
+        x_velocity, y_velocity, zoom_command = commands
+
         if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
             # print('stop action')
             ptz.stop()
