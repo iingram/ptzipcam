@@ -24,7 +24,7 @@ parser.add_argument('-s',
 args = parser.parse_args()
 CONFIG_FILE = args.config
 
-with open(CONFIG_FILE) as f:
+with open(CONFIG_FILE, encoding='utf-8') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
 # ptz camera networking constants
@@ -41,6 +41,10 @@ PID_GAINS = configs['PID_GAINS']
 
 
 def main():
+    """Main function of the program
+
+    """
+
     ptz = PtzCam(IP, PORT, USER, PASS)
     fake_frame = np.zeros([10, 10])
     motor_controller = CalmMotorController(PID_GAINS, ORIENTATION, fake_frame)
@@ -49,7 +53,6 @@ def main():
     zoom_command = 0
     ptz.zoom_out_full()
     time.sleep(1)
-    pan, tilt, zoom = ptz.get_position()
     pan_init = convert.degrees_to_command(INIT_POS[0], 360.0)
     tilt_init = convert.degrees_to_command(INIT_POS[1], 90.0)
     zoom_init = convert.power_to_zoom(INIT_POS[2], CAM_ZOOM_POWER)
@@ -65,15 +68,13 @@ def main():
 
     while True:
         time.sleep(.1)
-        pan, tilt, zoom = ptz.get_position()
         # run position controller on ptz system
         commands = motor_controller.update(x_err,
                                            y_err,
                                            zoom_init)
         x_velocity, y_velocity, zoom_command = commands
 
-        if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
-            # print('stop action')
+        if x_velocity == 0 and y_velocity == 0:
             ptz.stop()
 
         ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
