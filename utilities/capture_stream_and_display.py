@@ -29,7 +29,7 @@ parser.add_argument('-n',
 args = parser.parse_args()
 CONFIG_FILE = args.config
 
-with open(CONFIG_FILE) as f:
+with open(CONFIG_FILE, encoding="utf-8") as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
 # ptz camera networking constants
@@ -59,7 +59,11 @@ HEADLESS = configs['HEADLESS']
 FRAME_RATE = 12
 TIME_BETWEEN_FRAMES = 1/FRAME_RATE
 
-if __name__ == '__main__':
+
+def main():
+    """Main function of utility
+
+    """
     # cam = Camera()
     cam = Camera(ip=IP,
                  user=USER,
@@ -79,9 +83,7 @@ if __name__ == '__main__':
     frame = cam.get_frame()
     frame_width = frame.shape[1]
     frame_height = frame.shape[0]
-    logging.info(f'Resolution {frame_width}x{frame_height}')
-
-    total_pixels = frame_width * frame_height
+    logging.info('Resolution %dx%d', frame_width, frame_height)
 
     if RECORD:
         logging.info('Recording is ON.')
@@ -113,7 +115,7 @@ if __name__ == '__main__':
 
         elapsed = time.time() - start_time
         remainder = TIME_BETWEEN_FRAMES - elapsed
-        logging.debug(f'Remainder is {remainder}')
+        logging.debug('Remainder is %d', remainder)
         if remainder > 0:
             time.sleep(remainder)
         else:
@@ -125,3 +127,7 @@ if __name__ == '__main__':
     del cam
     if not HEADLESS:
         uih.clean_up()
+
+
+if __name__ == "__main__":
+    main()
