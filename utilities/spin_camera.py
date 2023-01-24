@@ -1,11 +1,13 @@
-# Spins camera based off some "speed" given as cli argument.  Serves
-# as an example of the basic bits to connect to and control a camera
-# using the MotorController class.
+"""Spins camera based off some "speed" given as cli argument.
 
+Serves as an example of the basic bits to connect to and control a
+camera using an concrete class of the MotorController class.
+
+"""
 import time
 import argparse
-import yaml
 
+import yaml
 import numpy as np
 
 from ptzipcam.ptz_camera import PtzCam
