@@ -4,12 +4,15 @@ At this stage, this amounts to a single class for recording stills.
 
 
 """
+import logging
 import os
 import time
 import math
 
 from datetime import datetime
 import cv2
+
+log = logging.getLogger(__name__)
 
 
 class ImageStreamRecorder():  # pylint: disable=too-few-public-methods
@@ -22,6 +25,7 @@ class ImageStreamRecorder():  # pylint: disable=too-few-public-methods
     """
 
     def __init__(self, path):
+        log.debug('Initialize recorder.')
         self.path = path
         self.timestamp_format = "%Y-%m-%dT%H-%M-%S"
         timestamp_string = time.strftime(self.timestamp_format)
@@ -37,7 +41,7 @@ class ImageStreamRecorder():  # pylint: disable=too-few-public-methods
                        ' This also means that it is likely a system clock is '
                        'off for the folder name (also timestamped) to be '
                        'duplicate')
-            print(warning)
+            log.warning(warning)
         self.record_filename = timestamp_string + '.csv'
         self.record_filename = os.path.join(self.path, self.record_filename)
         with open(self.record_filename, 'w', encoding='utf-8') as record_file:
