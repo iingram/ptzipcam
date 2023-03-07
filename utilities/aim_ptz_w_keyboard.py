@@ -130,6 +130,7 @@ def main_ui_function(stdscr):
     curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_BLACK)
 
     # Declaration of strings
     title = "SageCam Test Tools Keyboard Control:"[:width-1]
@@ -270,15 +271,15 @@ def main_ui_function(stdscr):
             # Write pan, tilt, zoom values
             pan_degrees = convert.command_to_degrees(pan_command, 360.0)
             strng = f"Pan: {pan_command:.3f} ({pan_degrees:.2f} degrees)"
-            stdscr.addstr(4, 0, strng, curses.color_pair(1))
+            stdscr.addstr(4, 0, strng, curses.color_pair(4))
 
             tilt_degrees = convert.command_to_degrees(tilt_command, 90.0)
             strng = f"Tilt: {tilt_command:.3f} ({tilt_degrees:.2f} degrees)"
-            stdscr.addstr(5, 0, strng, curses.color_pair(1))
+            stdscr.addstr(5, 0, strng, curses.color_pair(4))
 
             zoom_power = convert.zoom_to_power(zoom_command, CAM_ZOOM_POWER)
             strng = f"Zoom: {zoom_command:.3f} ({zoom_power:.2f} zoom)"
-            stdscr.addstr(6, 0, strng, curses.color_pair(1))
+            stdscr.addstr(6, 0, strng, curses.color_pair(4))
 
             print(type(exp_command))
             strng = f"Exposure Time: {exp_command:.3f}"
