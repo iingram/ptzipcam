@@ -12,6 +12,7 @@ import logging
 import os
 import time
 import argparse
+import math
 
 from datetime import datetime
 import yaml
@@ -213,11 +214,16 @@ if __name__ == '__main__':
 
             if(frames_since_last_target > FRAMES_BEFORE_RETURN_TO_HOME
                and frames_since_last_return > FRAMES_BEFORE_RETURN_TO_HOME):
-                frames_since_last_return = 0
-                ptz.absmove_w_zoom_waitfordone(pan_init,
-                                               tilt_init,
-                                               zoom_init,
-                                               close_enough=CLOSE_ENUF_ON_INIT)
+                pan, tilt, zoom = ptz.get_position()
+                if(not math.isclose(pan, pan_init, rel_tol=.05)
+                   or not math.isclose(tilt, tilt_init, rel_tol=.05)
+                   or not math.isclose(zoom, zoom_init, rel_tol=.05)):
+                    log.info('Returning to home position.')
+                    frames_since_last_return = 0
+                    ptz.absmove_w_zoom_waitfordone(pan_init,
+                                                   tilt_init,
+                                                   zoom_init,
+                                                   close_enough=CLOSE_ENUF_ON_INIT)
 
         # update ui and handle user input
 
