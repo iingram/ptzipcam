@@ -73,7 +73,22 @@ if ORIENTATION == 'down':
     X_DELTA = -X_DELTA
     X_DELTA_FINE = -X_DELTA_FINE
 
-ptz = PtzCam(IP, PORT, USER, PASS)
+PTZ = PtzCam(IP, PORT, USER, PASS)
+
+STATUS_BAR_STRING = ("PTZ: "
+                     "Pan:j,l | "
+                     "Tilt:i,k | "
+                     "Zoom:z,x")
+STATUS_BAR_STRING2 = ("EXPOSURE: "
+                      "Toggle Autoexposure:e | "
+                      "Time:t,y | "
+                      "Gain:g,h | "
+                      "Iris:b,n")
+STATUS_BAR_STRING3 = ("OTHER: "
+                      "Toggle Autofocus:f | "
+                      "Focus:a,s | "
+                      "Shift:finer | "
+                      "Exit:q")
 
 
 class CameraStreamDisplayer(Thread):
@@ -93,23 +108,65 @@ class CameraStreamDisplayer(Thread):
                 _ = cv2.waitKey(33)
 
 
-def main_ui_function(stdscr):
+def kchk(command,  # pylint: disable=too-many-arguments
+         key,
+         up_key,
+         down_key,
+         delta,
+         delta_fine):
+    """Parse keyboard input
+
+    """
+    if key == ord(up_key):
+        command += delta
+    elif key == ord(up_key.upper()):
+        command += delta_fine
+    elif key == ord(down_key):
+        command -= delta
+    elif key == ord(down_key.upper()):
+        command -= delta_fine
+
+    return command
+
+
+def keep_in_bounds(command, minn, maxx):
+    """Force command within bounds
+
+    """
+    if command <= minn:
+        command = minn
+    elif command >= maxx:
+        command = maxx
+    return command
+
+
+def wrap_pan(command, minn, maxx):
+    """Handle pan command crossing 0/360 angle
+
+    """
+    if command <= minn:
+        command = maxx - minn + command
+    elif command >= maxx:
+        command = minn - maxx + command
+    return command
+
+
+def main_ui_function(stdscr):  # pylint: disable=R0912,R0914,R0915
     """Main curses UI function
 
     Renders all the UI elements for seeing state of the camera and
     commands for changing camera state.
 
     """
-    global ptz
 
-    pan, tilt, zoom = ptz.get_position()
+    pan, tilt, zoom = PTZ.get_position()
     pan_command = pan
     tilt_command = tilt
     zoom_command = zoom
 
     exposure_control_on = False
     focus_control_on = False
-    # exptime, gain, iris = ptz.get_exposure()
+    # exptime, gain, iris = PTZ.get_exposure()
     # exp_command = exptime
     # gain_command = gain
     # iris_command = iris
@@ -136,20 +193,6 @@ def main_ui_function(stdscr):
     title = "SageCam Test Tools Keyboard Control:"[:width-1]
     subtitle = "Aim PTZ IP Camera with Keyboard"[:width-1]
     usage_note = "(Only updates camera view once per keystroke)"[:width-1]
-    statusbarstr = ("PTZ: "
-                    "Pan:j,l | "
-                    "Tilt:i,k | "
-                    "Zoom:z,x")
-    statusbarstr2 = ("EXPOSURE: "
-                     "Toggle Autoexposure:e | "
-                     "Time:t,y | "
-                     "Gain:g,h | "
-                     "Iris:b,n")
-    statusbarstr3 = ("OTHER: "
-                     "Toggle Autofocus:f | "
-                     "Focus:a,s | "
-                     "Shift:finer | "
-                     "Exit:q")
 
     # MAIN LOOP
     while key != ord('q'):
@@ -157,19 +200,6 @@ def main_ui_function(stdscr):
         # Initialization
         stdscr.clear()
         _, width = stdscr.getmaxyx()
-
-        # parse keyboard input
-        def kchk(command, key, up_key, down_key, delta, delta_fine):
-            if key == ord(up_key):
-                command += delta
-            elif key == ord(up_key.upper()):
-                command += delta_fine
-            elif key == ord(down_key):
-                command -= delta
-            elif key == ord(down_key.upper()):
-                command -= delta_fine
-
-            return command
 
         tilt_command = kchk(tilt_command, key, 'k', 'i', Y_DELTA, Y_DELTA_FINE)
         pan_command = kchk(pan_command, key, 'j', 'l', X_DELTA, X_DELTA_FINE)
@@ -183,46 +213,32 @@ def main_ui_function(stdscr):
             exposure_control_on = not exposure_control_on
 
             if not exposure_control_on:
-                ptz.set_exposure_to_auto()
+                PTZ.set_exposure_to_auto()
 
         if key == ord('f'):
             focus_control_on = not focus_control_on
 
             if not focus_control_on:
-                ptz.set_focus_to_auto()
+                PTZ.set_focus_to_auto()
             else:
-                ptz.set_focus_to_manual()
+                PTZ.set_focus_to_manual()
 
         if key == ord('a'):
-            ptz.focus_in()
+            PTZ.focus_in()
             time.sleep(F_TIME)
-            ptz.focus_stop()
+            PTZ.focus_stop()
         elif key == ord('a'.upper()):
-            ptz.focus_in()
+            PTZ.focus_in()
             time.sleep(F_TIME_FINE)
-            ptz.focus_stop()
+            PTZ.focus_stop()
         elif key == ord('s'):
-            ptz.focus_out()
+            PTZ.focus_out()
             time.sleep(F_TIME)
-            ptz.focus_stop()
+            PTZ.focus_stop()
         elif key == ord('s'.upper()):
-            ptz.focus_out()
+            PTZ.focus_out()
             time.sleep(F_TIME_FINE)
-            ptz.focus_stop()
-
-        def keep_in_bounds(command, minn, maxx):
-            if command <= minn:
-                command = minn
-            elif command >= maxx:
-                command = maxx
-            return command
-
-        def wrap_pan(command, minn, maxx):
-            if command <= minn:
-                command = maxx - minn + command
-            elif command >= maxx:
-                command = minn - maxx + command
-            return command
+            PTZ.focus_stop()
 
         if INFINITE_PAN:
             pan_command = wrap_pan(pan_command, CAM_PAN_MIN, CAM_PAN_MAX)
@@ -231,29 +247,29 @@ def main_ui_function(stdscr):
         tilt_command = keep_in_bounds(tilt_command, CAM_TILT_MIN, CAM_TILT_MAX)
         zoom_command = keep_in_bounds(zoom_command, CAM_ZOOM_MIN, CAM_ZOOM_MAX)
 
-        ptz.absmove_w_zoom(pan_command,
+        PTZ.absmove_w_zoom(pan_command,
                            tilt_command,
                            zoom_command)
 
         if exposure_control_on:
-            ptz.set_exposure_time(exp_command)
-            ptz.set_gain(gain_command)
-            ptz.set_iris(iris_command)
+            PTZ.set_exposure_time(exp_command)
+            PTZ.set_gain(gain_command)
+            PTZ.set_iris(iris_command)
         try:
             # Render status bar
             stdscr.attron(curses.color_pair(3))
             # doing the exception as it appears to prevent a crashing bug
             # brought about when the window is resized so the width is
             # less than the status bar string
-            stdscr.addstr(11, 0, statusbarstr)
+            stdscr.addstr(11, 0, STATUS_BAR_STRING)
             # stdscr.addstr(12,
-            #               len(statusbarstr),
-            #               " " * (width - len(statusbarstr) - 1))
-            stdscr.addstr(12, 0, statusbarstr2)
-            stdscr.addstr(13, 0, statusbarstr3)
+            #               len(STATUS_BAR_STRING),
+            #               " " * (width - len(STATUS_BAR_STRING) - 1))
+            stdscr.addstr(12, 0, STATUS_BAR_STRING2)
+            stdscr.addstr(13, 0, STATUS_BAR_STRING3)
             # stdscr.addstr(13,
-            #               len(statusbarstr2),
-            #               " " * (width - len(statusbarstr2) - 1))
+            #               len(STATUS_BAR_STRING2),
+            #               " " * (width - len(STATUS_BAR_STRING2) - 1))
 
             stdscr.attroff(curses.color_pair(3))
 
@@ -318,7 +334,6 @@ def main():
     """Main executable function
 
     """
-    global ptz
 
     if not HEADLESS:
         displayer = CameraStreamDisplayer()
@@ -328,7 +343,7 @@ def main():
     curses.wrapper(main_ui_function)
 
     # after curses closed print out PTZ values on CLI
-    pan, tilt, zoom = ptz.get_position()
+    pan, tilt, zoom = PTZ.get_position()
     pan_deg = convert.command_to_degrees(pan, 360.0)
     tilt_deg = convert.command_to_degrees(tilt, 90.0)
     zoom_power = convert.zoom_to_power(zoom, CAM_ZOOM_POWER)
