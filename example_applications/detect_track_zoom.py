@@ -16,20 +16,20 @@ import math
 
 from datetime import datetime
 import yaml
+from camml import draw
 
 from ptzipcam import logs, ui, convert
 from ptzipcam.ptz_camera import PtzCam
 import ptzipcam.ptz_camera as ctlrs
 from ptzipcam.camera import Camera
 from ptzipcam.io import ImageStreamRecorder
-from camml import draw
 
 # quick and dirty way to detect if on Pi (and thus likely using coral
 # for inference) or on something else and relying on CPU
 if os.uname()[4].startswith("arm"):
-    from camml import coral as nn
+    from camml import coral as nn  # pylint: disable=ungrouped-imports
 else:
-    from camml import cv2dnn as nn
+    from camml import cv2dnn as nn  # pylint: disable=ungrouped-imports
 
 log = logs.prep_log(logging.INFO, suppress_verbose_loggers=True)
 
@@ -41,9 +41,9 @@ CONFIG_FILE = args.config
 
 FRAME_RATE = 15
 FRAME_WINDOW = 30
-CLOSE_ENUF_ON_INIT = .05
+CLOSE_ENUF = .05
 
-with open(CONFIG_FILE) as f:
+with open(CONFIG_FILE, encoding='utf-8') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 
 RECORD = configs['RECORD']
@@ -85,7 +85,12 @@ CLASSES = nn.read_classes_from_file(CLASSES_FILE)
 # GUI constants
 HEADLESS = configs['HEADLESS']
 
-if __name__ == '__main__':
+
+def main():
+    """Main function for this example
+
+    """
+
     ptz = PtzCam(IP, PORT, USER, PASS)
     cam = Camera(ip=IP, user=USER, passwd=FFMPEG_PASS, stream=STREAM)
     frame = cam.get_frame()
@@ -132,7 +137,7 @@ if __name__ == '__main__':
     ptz.absmove_w_zoom_waitfordone(pan_init,
                                    tilt_init,
                                    zoom_init,
-                                   close_enough=CLOSE_ENUF_ON_INIT)
+                                   close_enough=CLOSE_ENUF)
     log.info('Completed move to initial position.')
 
     pan, tilt, zoom = ptz.get_position()
@@ -212,10 +217,10 @@ if __name__ == '__main__':
             # if frames_since_last_target > 30:
             #     ptz.absmove(INIT_POS[0], INIT_POS[1])
 
-            if(frames_since_last_target > FRAMES_BEFORE_RETURN_TO_HOME
+            if (frames_since_last_target > FRAMES_BEFORE_RETURN_TO_HOME
                and frames_since_last_return > FRAMES_BEFORE_RETURN_TO_HOME):
                 pan, tilt, zoom = ptz.get_position()
-                if(not math.isclose(pan, pan_init, rel_tol=.05)
+                if (not math.isclose(pan, pan_init, rel_tol=.05)
                    or not math.isclose(tilt, tilt_init, rel_tol=.05)
                    or not math.isclose(zoom, zoom_init, rel_tol=.05)):
                     log.info('Returning to home position.')
@@ -223,7 +228,7 @@ if __name__ == '__main__':
                     ptz.absmove_w_zoom_waitfordone(pan_init,
                                                    tilt_init,
                                                    zoom_init,
-                                                   close_enough=CLOSE_ENUF_ON_INIT)
+                                                   close_enough=CLOSE_ENUF)
 
         # update ui and handle user input
 
@@ -233,7 +238,7 @@ if __name__ == '__main__':
                 break
 
         if RECORD:
-            if((RECORD_ONLY_DETECTIONS and target_lbox)
+            if ((RECORD_ONLY_DETECTIONS and target_lbox)
                or not RECORD_ONLY_DETECTIONS
                or frames_since_last_target < MIN_FRAMES_RECORD_PER_DETECT):
                 log.info('Recording activity frame.')
@@ -286,3 +291,7 @@ if __name__ == '__main__':
     ptz.stop()
     if not HEADLESS:
         uih.clean_up()
+
+
+if __name__ == '__main__':
+    main()
