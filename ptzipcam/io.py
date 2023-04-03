@@ -6,8 +6,6 @@ At this stage, this amounts to a single class for recording stills.
 """
 import logging
 import os
-import time
-import math
 
 from datetime import datetime
 import cv2
@@ -27,8 +25,8 @@ class ImageStreamRecorder():  # pylint: disable=too-few-public-methods
     def __init__(self, path):
         log.debug('Initialize recorder.')
         self.path = path
-        self.timestamp_format = "%Y-%m-%dT%H-%M-%S"
-        timestamp_string = time.strftime(self.timestamp_format)
+        self.timestamp_format = "%Y-%m-%dT%H-%M-%S_%f"
+        timestamp_string = datetime.now().strftime(self.timestamp_format[:-3])
         image_folder_name = timestamp_string + '_images'
         self.image_path = os.path.join(self.path, image_folder_name)
         if not os.path.exists(self.image_path):
@@ -77,13 +75,7 @@ class ImageStreamRecorder():  # pylint: disable=too-few-public-methods
 
         pan_angle, tilt_angle, zoom = ptz_state
 
-        front_bit = time.strftime(self.timestamp_format)
-        # maybe you should avoid a call to time and datetime and just
-        # get everything from datetime. later.
-        now = datetime.now()
-        milliseconds = math.floor(now.microsecond/1000)
-        front_bit = (front_bit
-                     + f'_{milliseconds:03d}')
+        front_bit = datetime.now().strftime(self.timestamp_format)[:-3]
         image_filename = front_bit + '.jpg'
 
         # full_path = os.path.join(self.path, 'images')
