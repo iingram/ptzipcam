@@ -1,1 +1,5 @@
-__version__ = "0.0.4"
+"""Package for controlling PTZ IP cameras that support ONVIF
+
+"""
+
+__version__ = "0.0.5"
