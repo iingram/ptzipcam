@@ -1,3 +1,7 @@
+"""Setup.py for this project
+
+"""
+
 import os
 import re
 
@@ -5,12 +9,21 @@ import setuptools
 
 
 def read(filename):
+    """Read file using path of this file to find it
+
+    """
     path = os.path.join(os.path.abspath(os.path.dirname(__file__)), filename)
-    with open(path, 'r') as f:
-        return f.read()
+    with open(path, 'r', encoding='utf-8') as readfile:
+        return readfile.read()
 
 
 def find_version(text):
+    """Extract the version from a file
+
+    Using regular expressions to find the string that looks like the
+    version number
+
+    """
     match = re.search(r"^__version__\s*=\s*['\"](.*)['\"]\s*$", text,
                       re.MULTILINE)
     return match.group(1)
@@ -30,8 +43,8 @@ setuptools.setup(
     packages=['ptzipcam'],
     include_package_data=True,
     install_requires=[
-        'numpy==1.18.3',
-        'opencv-python==3.4.2.16',
+        'numpy',
+        'opencv-python',
         'onvif-zeep',
         'camml',
     ],
@@ -48,8 +61,4 @@ setuptools.setup(
         'Development Status :: 2 - Pre-Alpha',
         'Operating System :: POSIX :: Linux',
     ],
-    # would like to add this as a CLI tool but currently needs config file...
-    # entry_points = {
-    #     'console_scripts': ['aim_ptz_w_keyboard=ptzipcam.utils.aim_ptz_w_keyboard:main']
-    #},
 )
