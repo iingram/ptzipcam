@@ -41,7 +41,7 @@ CONFIG_FILE = args.config
 
 FRAME_RATE = 15
 FRAME_WINDOW = 30
-CLOSE_ENUF = .05
+CLOSE_NUF_INIT = .05
 
 with open(CONFIG_FILE, encoding='utf-8') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
@@ -86,7 +86,7 @@ CLASSES = nn.read_classes_from_file(CLASSES_FILE)
 HEADLESS = configs['HEADLESS']
 
 
-def main():
+def main():  # pylint: disable=R0912, R0915, R0914
     """Main function for this example
 
     """
@@ -116,8 +116,8 @@ def main():
     if not HEADLESS:
         uih = ui.UI_Handler(frame, window_name)
 
-    log.info("Using: " + nn.__name__)
-    log.info("Frame shape: " + str(frame.shape[:2]))
+    log.info("Using: %s", nn.__name__)
+    log.info("Frame shape: %s",  str(frame.shape[:2]))
     logs.log_configuration(log, configs)
 
     if RECORD:
@@ -132,12 +132,12 @@ def main():
     tilt_init = convert.degrees_to_command(INIT_POS[1], 90.0)
     zoom_init = convert.power_to_zoom(INIT_POS[2], CAM_ZOOM_POWER)
 
-    log.debug(f'Inits: {pan_init}, {tilt_init}, {zoom_init}')
+    log.debug('Inits: %.2f, %.2f, %.2f', pan_init, tilt_init, zoom_init)
     log.info('Moving to initial position.')
     ptz.absmove_w_zoom_waitfordone(pan_init,
                                    tilt_init,
                                    zoom_init,
-                                   close_enough=CLOSE_ENUF)
+                                   close_enough=CLOSE_NUF_INIT)
     log.info('Completed move to initial position.')
 
     pan, tilt, zoom = ptz.get_position()
@@ -163,7 +163,7 @@ def main():
         tic = time.perf_counter()
         elapsed_time = (time.time() - start_time) * 1000
         start_time = time.time()
-        log.debug(f'     Loop time: {elapsed_time:.1f} milliseconds')
+        log.debug('     Loop time: %.1f milliseconds', elapsed_time)
 
         pan, tilt, zoom = ptz.get_position()
         raw_frame = cam.get_frame()
@@ -228,7 +228,7 @@ def main():
                     ptz.absmove_w_zoom_waitfordone(pan_init,
                                                    tilt_init,
                                                    zoom_init,
-                                                   close_enough=CLOSE_ENUF)
+                                                   close_enough=CLOSE_NUF_INIT)
 
         # update ui and handle user input
 
@@ -249,7 +249,7 @@ def main():
             elif (time.time() - timelapse_delay_start_time) > TIMELAPSE_DELAY:
                 now = datetime.now()
                 strng = now.strftime("%m/%d/%Y, %H:%M:%S")
-                log.info(f'Recording timelapse frame at {strng}')
+                log.info('Recording timelapse frame at %s', strng)
                 recorder.record_image(raw_frame,
                                       (pan, tilt, zoom),
                                       'n/a: timelapse frame',
@@ -275,17 +275,17 @@ def main():
         if tilt >= 1.0 and y_velocity <= 0:
             y_velocity = 0.0
 
-        log.debug(f'{pan}, {tilt}, {zoom}')
-        log.debug(f'x_err: {x_err:.2f} || y_err: {y_err:.2f}')
-        log.debug(f'x_vel: {x_velocity:.2f} || y_vel: {y_velocity:.2f}')
+        log.debug('Pan: %.2f Tilt: %.2f Zoom: %.2f', pan, tilt, zoom)
+        log.debug('x_err: %.2f || y_err: %.2f', x_err, y_err)
+        log.debug('x_vel: %.2f || y_vel: %.2f', x_velocity, y_velocity)
 
         if x_velocity == 0 and y_velocity == 0 and zoom < 0.001:
             ptz.stop()
 
         ptz.move_w_zoom(x_velocity, y_velocity, zoom_command)
 
-        toc = time.perf_counter()
-        log.debug(f"This bit: {(toc - tic)*1000:0.4f} milliseconds")
+        milliseconds = (time.perf_counter() - tic)*1000
+        log.debug("This bit: %.1f milliseconds.", milliseconds)
 
     del cam
     ptz.stop()
