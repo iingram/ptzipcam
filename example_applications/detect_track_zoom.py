@@ -67,6 +67,7 @@ STREAM = configs['STREAM']
 INIT_POS = configs['INIT_POS']
 ORIENTATION = configs['ORIENTATION']
 PID_GAINS = configs['PID_GAINS']
+MOTOR_CONTROLLER_CLASS = configs['MOTOR_CONTROLLER_CLASS']
 CAM_ZOOM_POWER = configs['CAM_ZOOM_POWER']
 
 # CV constants
@@ -97,10 +98,11 @@ def main():  # pylint: disable=R0912, R0915, R0914
     if frame is None:
         log.warning('Frame is None.')
 
-    motor_controller = ctlrs.TwitchyMotorController(PID_GAINS,
-                                                    ORIENTATION,
-                                                    frame,
-                                                    zoom_pickup=.001)
+    motor_controller_class = getattr(ctlrs, MOTOR_CONTROLLER_CLASS)
+    motor_controller = motor_controller_class(PID_GAINS,
+                                              ORIENTATION,
+                                              frame,
+                                              zoom_pickup=.001)
 
     detector = nn.TargetDetector(MODEL_CONFIG,
                                  MODEL_WEIGHTS,

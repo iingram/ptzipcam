@@ -10,19 +10,20 @@ HEADLESS: False
 # class(es) you want to track; must be a label from ML model labels being used
 TRACKED_CLASS: [cup, person]
 
-# Stream: Main = 1, Sub = 2, Third = 3 
+# Stream: Main = 1, Sub = 2, Third = 3
 STREAM: 3
 
 TIMELAPSE_CONFIG_FILENAME: PATH_TO_TIMELAPSE_CONFIG_FILE
 
 PID_GAINS: [-1.0, 1.0]
+MOTOR_CONTROLLER_CLASS: CalmMotorController
 
 INIT_POS: [90.0, 45, 4.0]  # e.g. (depending on camera): pan (0-360), tilt (0-90), zoom (1-25)
 ORIENTATION: up  # left up down right
 
 IP: IP_ADDRESS_OF_CAMERA
-USER: USERNAME_ON_CAMERA        
-PASS: PASSWORD_FOR_THAT_USERNAME  
+USER: USERNAME_ON_CAMERA
+PASS: PASSWORD_FOR_THAT_USERNAME
 PORT: 80
 RTSP_PORT: 554
 
