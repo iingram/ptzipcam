@@ -1,4 +1,4 @@
-"""Tools for control of pan-tilt-zoom functionality of the camera
+"""Tools for control of pan-tilt-zoom functionality of PTZ IP camera
 
 """
 import logging
@@ -43,6 +43,9 @@ def _check_zeroness(number):
 
 
 class MotorController():
+    """Base class for motor controllers
+
+    """
 
     def __init__(self,
                  pid_gains,
@@ -57,8 +60,8 @@ class MotorController():
 
         self.total_frame_pixels = self.frame_width * self.frame_height
 
-    def calc_errors(self,
-                    target_lbox):
+    def _calc_errors(self,
+                     target_lbox):
         """Calculate errors from box coordinates
 
         Given a labeled box that is the bounding box of a detected
@@ -69,7 +72,7 @@ class MotorController():
         """
         if target_lbox:
             x_c, y_c = draw.box_to_coords(target_lbox['box'],
-                                        return_kind='center')
+                                          return_kind='center')
             ret = draw.box_to_coords(target_lbox['box'])
             self.box_x, self.box_y, self.box_width, self.box_height = ret
             x_err = self.frame_width/2 - x_c
@@ -81,10 +84,13 @@ class MotorController():
         else:
             x_err = 0.0
             y_err = 0.0
-            
+
         return x_err, y_err
 
-    def update(self, x_err, y_err, zoom_command):
+    def update(self, target_lbox, zoom_command):
+        errors = self._calc_errors(target_lbox)
+        x_err, y_err = errors
+
         if self.orientation == 'down':
             x_err = -x_err
             y_err = -y_err
@@ -92,6 +98,9 @@ class MotorController():
         x_velocity = self._calc_command(x_err, self.pid_gains[0])
         y_velocity = self._calc_command(y_err, self.pid_gains[1])
         zoom_command = self._calc_zoom_command(x_err, y_err, zoom_command)
+
+        log.debug('x_err: %.2f || y_err: %.2f', x_err, y_err)
+        log.debug('x_vel: %.2f || y_vel: %.2f', x_velocity, y_velocity)
 
         return (x_velocity, y_velocity, zoom_command)
 
