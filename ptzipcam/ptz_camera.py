@@ -88,6 +88,13 @@ class MotorController():
         return x_err, y_err
 
     def update(self, target_lbox, zoom_command):
+        """Update the camera commands 
+
+        Generates commands for pan, tilt, and zoom given the current
+        target_lbox (which is None when no detection) and the current
+        zoom_command.
+
+        """
         errors = self._calc_errors(target_lbox)
         x_err, y_err = errors
 
@@ -287,7 +294,7 @@ class PtzCam():
 
     """
     def __init__(self,
-                 ip=None,
+                 ip_address=None,
                  port='80',
                  user=None,
                  pword=None):
@@ -295,7 +302,7 @@ class PtzCam():
 
         Parameters
         ----------
-        ip : str
+        ip_address : str
            The IP address of the camera to connect to.
         port : str
            ONVIF port on the camera. This is usually 80
@@ -306,7 +313,7 @@ class PtzCam():
 
         """
 
-        mycam = ONVIFCamera(ip, port, user, pword)
+        mycam = ONVIFCamera(ip_address, port, user, pword)
         media_service = mycam.create_media_service()
         self.ptz_service = mycam.create_ptz_service()
         self.imaging_service = mycam.create_imaging_service()
