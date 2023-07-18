@@ -1,13 +1,15 @@
 """Tools for control of pan-tilt-zoom functionality of the camera
 
 """
-
+import logging
 import time
 
 import numpy as np
 from onvif import ONVIFCamera
 
 from camml import draw
+
+log = logging.getLogger(__name__)
 
 
 def _check_zeroness(number):
