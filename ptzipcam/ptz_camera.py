@@ -59,13 +59,21 @@ class MotorController():
 
     def calc_errors(self,
                     target_lbox):
+        """Calculate errors from box coordinates
+
+        Given a labeled box that is the bounding box of a detected
+        target, this function calculates an error for each of x and y
+        (pan and tilt) based on the offset of the centroid of the
+        bounding box from the center of the frame.
+
+        """
         if target_lbox:
-            xc, yc = draw.box_to_coords(target_lbox['box'],
+            x_c, y_c = draw.box_to_coords(target_lbox['box'],
                                         return_kind='center')
             ret = draw.box_to_coords(target_lbox['box'])
             self.box_x, self.box_y, self.box_width, self.box_height = ret
-            x_err = self.frame_width/2 - xc
-            y_err = self.frame_height/2 - yc
+            x_err = self.frame_width/2 - x_c
+            y_err = self.frame_height/2 - y_c
 
             # normalize errors
             x_err = x_err/self.frame_width
@@ -332,11 +340,11 @@ class PtzCam():
         vst = {'VideoSourceToken': self.video_source.token}
         self.imaging_settings = self.imaging_service.GetImagingSettings(vst)
 
-        time = self.imaging_settings.Exposure.ExposureTime
+        exp_time = self.imaging_settings.Exposure.ExposureTime
         gain = self.imaging_settings.Exposure.Gain
         iris = self.imaging_settings.Exposure.Iris
 
-        return time, gain, iris
+        return exp_time, gain, iris
 
     def _send_imaging_settings(self):
         command_dict = {'VideoSourceToken': self.video_source.token,
