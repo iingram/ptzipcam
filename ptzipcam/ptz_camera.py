@@ -59,17 +59,21 @@ class MotorController():
 
     def calc_errors(self,
                     target_lbox):
-        xc, yc = draw.box_to_coords(target_lbox['box'],
-                                    return_kind='center')
-        ret = draw.box_to_coords(target_lbox['box'])
-        self.box_x, self.box_y, self.box_width, self.box_height = ret
-        x_err = self.frame_width/2 - xc
-        y_err = self.frame_height/2 - yc
+        if target_lbox:
+            xc, yc = draw.box_to_coords(target_lbox['box'],
+                                        return_kind='center')
+            ret = draw.box_to_coords(target_lbox['box'])
+            self.box_x, self.box_y, self.box_width, self.box_height = ret
+            x_err = self.frame_width/2 - xc
+            y_err = self.frame_height/2 - yc
 
-        # normalize errors
-        x_err = x_err/self.frame_width
-        y_err = y_err/self.frame_height
-
+            # normalize errors
+            x_err = x_err/self.frame_width
+            y_err = y_err/self.frame_height
+        else:
+            x_err = 0.0
+            y_err = 0.0
+            
         return x_err, y_err
 
     def update(self, x_err, y_err, zoom_command):
