@@ -163,13 +163,13 @@ class CalmMotorController(MotorController):
                 zoom_command = 0.0
 
             ratio = self.ZOOM_STOP_RATIO
-            filling_much_of_width = self.box_width >= ratio * self.frame_width
-            filling_much_of_height = self.box_height >= ratio * self.frame_height
-            if filling_much_of_width or filling_much_of_height:
+            spans_much_width = self.box_width >= ratio * self.frame_width
+            spans_much_height = self.box_height >= ratio * self.frame_height
+            if spans_much_width or spans_much_height:
                 zoom_command = 0.0
 
             margin = 100
-            if((self.box_y + self.box_height) >= (self.frame_height - margin)
+            if ((self.box_y + self.box_height) >= (self.frame_height - margin)
                or (self.box_y <= margin)):
                 zoom_command = 0.0
 
@@ -205,10 +205,10 @@ class TwitchyMotorController(MotorController):
             zoom_command = 0.05 * error
 
             # stop zoom if either dimension of bounding box is
-            length_ratio = self.ZOOM_STOP_RATIO
-            filling_much_of_width = self.box_width >= length_ratio * self.frame_width
-            filling_much_of_height = self.box_height >= length_ratio * self.frame_height
-            if filling_much_of_width or filling_much_of_height:
+            l_ratio = self.ZOOM_STOP_RATIO  # length ratio
+            spans_much_width = self.box_width >= l_ratio * self.frame_width
+            spans_much_height = self.box_height >= l_ratio * self.frame_height
+            if spans_much_width or spans_much_height:
                 zoom_command = -0.1
 
             # margin = 100
