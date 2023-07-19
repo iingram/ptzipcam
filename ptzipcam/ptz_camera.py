@@ -36,7 +36,7 @@ def _check_zeroness(number):
     """
     e = .001
 
-    if number < e and number > -e:
+    if -e < number < e:
         return 0
     else:
         return number
@@ -46,11 +46,15 @@ class MotorController():
     """Base class for motor controllers
 
     """
+    # pylint: disable='too-few-public-methods'
 
     def __init__(self,
                  pid_gains,
                  orientation,
                  example_frame):
+        """Constructor for MotorController class
+
+        """
 
         self.pid_gains = pid_gains
         self.orientation = orientation
@@ -128,11 +132,14 @@ class MotorController():
 
         log.debug('x_err: %.2f || y_err: %.2f', x_err, y_err)
         log.debug('x_vel: %.2f || y_vel: %.2f', x_velocity, y_velocity)
-        log.info('zoom_command: %.2f', zoom_command)
+        log.debug('zoom_command: %.2f', zoom_command)
 
         return (x_velocity, y_velocity, zoom_command)
 
     def _ensure_command_in_bounds(self, command):
+        """Util to force command is within necessary bounds
+
+        """
         if command >= 1.0:
             command = 1.0
         if command <= -1.0:
@@ -155,24 +162,36 @@ class MotorController():
         return command
 
     def _calc_zoom_command(self, target_lbox, x_err, y_err, zoom_command):
+        """Calculate the next zoom command
+
+        Not implemented in the base class. But should be implemented
+        to effect zoom control based on position/size of target_lbox.
+
+        """
         raise NotImplementedError
 
 
 class CalmMotorController(MotorController):
+    """MotorController with calm movements/behaviors
+
+    In certain instances, the desire is not for rapid and exacting
+    tracking but for tracking that doesn't distract from the scene
+    through quick movements and jitteriness.  This subclass is
+    intended to be that sort of calm tracker.
+
+    """
 
     def __init__(self,
                  pid_gains,
                  orientation,
-                 example_frame,
-                 zoom_pickup=.01):
+                 example_frame):
 
         super().__init__(pid_gains,
                          orientation,
                          example_frame)
 
-        self.zoom_pickup = zoom_pickup
-        self.ZOOM_STOP_RATIO = .6
-        self.STOP_RANGE = .1
+        self.zoom_stop_ratio = .6
+        self.stop_range = .1
 
     def _calc_command(self, err, k):
         """Override controller command method
@@ -184,7 +203,7 @@ class CalmMotorController(MotorController):
 
         """
 
-        if np.abs(err) < self.STOP_RANGE:
+        if np.abs(err) < self.stop_range:
             command = 0
         else:
             command = k * err
@@ -196,6 +215,9 @@ class CalmMotorController(MotorController):
     def _calc_zoom_command(self, target_lbox, x_err, y_err, zoom_command):
         """Calculate the zoom command give pan/tilt errors
 
+        This is where most of the behavior of the tracking is
+        implemented.
+
         """
 
         if (x_err <= 0.5 and y_err <= 0.5
@@ -203,17 +225,14 @@ class CalmMotorController(MotorController):
             target_bb_pixels = self.box_width * self.box_height
 
             box_ratio = target_bb_pixels / self.total_frame_pixels
-            log.info('Ratio of box to whole %.2f', box_ratio)
+            log.debug('Ratio of box to whole %.2f', box_ratio)
 
             if box_ratio < .3:
                 zoom_command = 1.0
-                # zoom_command += self.zoom_pickup
-                # if zoom_command >= 1.0:
-                #     zoom_command = 1.0
             else:
                 zoom_command = 0.0
 
-            ratio = self.ZOOM_STOP_RATIO
+            ratio = self.zoom_stop_ratio
             spans_much_width = self.box_width >= ratio * self.frame_width
             spans_much_height = self.box_height >= ratio * self.frame_height
             if spans_much_width or spans_much_height:
@@ -232,17 +251,15 @@ class TwitchyMotorController(MotorController):
     def __init__(self,
                  pid_gains,
                  orientation,
-                 example_frame,
-                 zoom_pickup=.01):
+                 example_frame):
 
         super().__init__(pid_gains,
                          orientation,
                          example_frame)
 
-        self.zoom_pickup = zoom_pickup
-        self.ZOOM_STOP_RATIO = .7
+        self.zoom_stop_ratio = .7
 
-    def _calc_zoom_command(self, x_err, y_err, zoom_command):
+    def _calc_zoom_command(self, target_lbox, x_err, y_err, zoom_command):
         """Calculate the zoom command give pan/tilt errors
 
         """
@@ -256,7 +273,7 @@ class TwitchyMotorController(MotorController):
             zoom_command = 0.05 * error
 
             # stop zoom if either dimension of bounding box is
-            l_ratio = self.ZOOM_STOP_RATIO  # length ratio
+            l_ratio = self.zoom_stop_ratio  # length ratio
             spans_much_width = self.box_width >= l_ratio * self.frame_width
             spans_much_height = self.box_height >= l_ratio * self.frame_height
             if spans_much_width or spans_much_height:
@@ -277,17 +294,15 @@ class BouncyZoomMotorController(MotorController):
     def __init__(self,
                  pid_gains,
                  orientation,
-                 example_frame,
-                 zoom_pickup=.01):
+                 example_frame):
 
         super().__init__(pid_gains,
                          orientation,
                          example_frame)
 
-        self.zoom_pickup = zoom_pickup
-        self.ZOOM_STOP_RATIO = .7
+        self.zoom_stop_ratio = .7
 
-    def _calc_zoom_command(self, x_err, y_err, zoom_command):
+    def _calc_zoom_command(self, target_lbox, x_err, y_err, zoom_command):
         """Calculate the zoom command give pan/tilt errors
 
         """
