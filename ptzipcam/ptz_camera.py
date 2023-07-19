@@ -88,11 +88,28 @@ class MotorController():
         return x_err, y_err
 
     def update(self, target_lbox, zoom_command):
-        """Update the camera commands 
+        """Update the camera commands
 
         Generates commands for pan, tilt, and zoom given the current
         target_lbox (which is None when no detection) and the current
         zoom_command.
+
+        Parameters
+        ----------
+
+        target_lbox :
+
+        zoom_command : float
+            Current zoom_command
+
+        Returns
+        -------
+
+        x_velocity :
+
+        y_velocity :
+
+        zoom_command :
 
         """
         errors = self._calc_errors(target_lbox)
@@ -104,10 +121,14 @@ class MotorController():
 
         x_velocity = self._calc_command(x_err, self.pid_gains[0])
         y_velocity = self._calc_command(y_err, self.pid_gains[1])
-        zoom_command = self._calc_zoom_command(x_err, y_err, zoom_command)
+        zoom_command = self._calc_zoom_command(target_lbox,
+                                               x_err,
+                                               y_err,
+                                               zoom_command)
 
         log.debug('x_err: %.2f || y_err: %.2f', x_err, y_err)
         log.debug('x_vel: %.2f || y_vel: %.2f', x_velocity, y_velocity)
+        log.info('zoom_command: %.2f', zoom_command)
 
         return (x_velocity, y_velocity, zoom_command)
 
@@ -133,7 +154,7 @@ class MotorController():
         command = self._ensure_command_in_bounds(command)
         return command
 
-    def _calc_zoom_command(self, x_err, y_err, zoom_command):
+    def _calc_zoom_command(self, target_lbox, x_err, y_err, zoom_command):
         raise NotImplementedError
 
 
@@ -150,7 +171,7 @@ class CalmMotorController(MotorController):
                          example_frame)
 
         self.zoom_pickup = zoom_pickup
-        self.ZOOM_STOP_RATIO = .7
+        self.ZOOM_STOP_RATIO = .6
         self.STOP_RANGE = .1
 
     def _calc_command(self, err, k):
@@ -172,21 +193,23 @@ class CalmMotorController(MotorController):
 
         return command
 
-    def _calc_zoom_command(self, x_err, y_err, zoom_command):
+    def _calc_zoom_command(self, target_lbox, x_err, y_err, zoom_command):
         """Calculate the zoom command give pan/tilt errors
 
         """
 
-        if x_err != 0.0 and y_err != 0.0:
+        if (x_err <= 0.5 and y_err <= 0.5
+           and target_lbox):
             target_bb_pixels = self.box_width * self.box_height
 
-            # if x_err < 50 and y_err < 50:
-            # if x_err != 0 and x_err < 50 and y_err < 50:
-            if (target_bb_pixels / self.total_frame_pixels) < .3:
-                zoom_command += self.zoom_pickup
-                if zoom_command >= 1.0:
-                    zoom_command = 1.0
-                # zoom_command = 1.0
+            box_ratio = target_bb_pixels / self.total_frame_pixels
+            log.info('Ratio of box to whole %.2f', box_ratio)
+
+            if box_ratio < .3:
+                zoom_command = 1.0
+                # zoom_command += self.zoom_pickup
+                # if zoom_command >= 1.0:
+                #     zoom_command = 1.0
             else:
                 zoom_command = 0.0
 
@@ -196,10 +219,10 @@ class CalmMotorController(MotorController):
             if spans_much_width or spans_much_height:
                 zoom_command = 0.0
 
-            margin = 100
+            margin = 20
             if ((self.box_y + self.box_height) >= (self.frame_height - margin)
                or (self.box_y <= margin)):
-                zoom_command = 0.0
+                zoom_command = -1.0
 
         return zoom_command
 
