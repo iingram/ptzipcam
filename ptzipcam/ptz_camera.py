@@ -21,16 +21,12 @@ def _check_zeroness(number):
 
     Parameters
     ----------
-
     number : float
-
         A number to be checked for closeness to zero
 
     Returns
     -------
-
     number : float
-
         The "fixed" number
 
     """
@@ -100,7 +96,6 @@ class MotorController():
 
         Parameters
         ----------
-
         target_lbox :
 
         zoom_command : float
@@ -108,7 +103,6 @@ class MotorController():
 
         Returns
         -------
-
         x_velocity :
 
         y_velocity :
@@ -514,19 +508,16 @@ class PtzCam():
         Parameters
         ----------
         pan_pos : float
-
             The desired pan position expressed as a value in accepted
             range (often -1.0 to 1.0) that maps to the actual range of
             the camera (e.g. 0-350 degrees or 0-360 degrees).
 
         tilt_pos : float
-
             The desired tilt position expressed as a value in accepted
             range (often -1.0 to 1.0) that maps to the actual range of
             the camera (e.g. 0-90 degrees or -5 to 90 degrees)
 
         zoom_pos : float
-
             The desired zoom "position" expressed as a value in
             accepted range (often 0.0 to 1.0) that maps to the actual
             zoom range of the camera.
