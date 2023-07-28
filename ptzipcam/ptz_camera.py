@@ -1,13 +1,15 @@
-"""Tools for control of pan-tilt-zoom functionality of the camera
+"""Tools for control of pan-tilt-zoom functionality of PTZ IP camera
 
 """
-
+import logging
 import time
 
 import numpy as np
 from onvif import ONVIFCamera
 
 from camml import draw
+
+log = logging.getLogger(__name__)
 
 
 def _check_zeroness(number):
@@ -19,33 +21,36 @@ def _check_zeroness(number):
 
     Parameters
     ----------
-
     number : float
-
         A number to be checked for closeness to zero
 
     Returns
     -------
-
     number : float
-
         The "fixed" number
 
     """
     e = .001
 
-    if number < e and number > -e:
+    if -e < number < e:
         return 0
     else:
         return number
 
 
 class MotorController():
+    """Base class for motor controllers
+
+    """
+    # pylint: disable='too-few-public-methods'
 
     def __init__(self,
                  pid_gains,
                  orientation,
                  example_frame):
+        """Constructor for MotorController class
+
+        """
 
         self.pid_gains = pid_gains
         self.orientation = orientation
@@ -55,33 +60,80 @@ class MotorController():
 
         self.total_frame_pixels = self.frame_width * self.frame_height
 
-    def calc_errors(self,
-                    target_lbox):
-        xc, yc = draw.box_to_coords(target_lbox['box'],
-                                    return_kind='center')
-        ret = draw.box_to_coords(target_lbox['box'])
-        self.box_x, self.box_y, self.box_width, self.box_height = ret
-        x_err = self.frame_width/2 - xc
-        y_err = self.frame_height/2 - yc
+    def _calc_errors(self,
+                     target_lbox):
+        """Calculate errors from box coordinates
 
-        # normalize errors
-        x_err = x_err/self.frame_width
-        y_err = y_err/self.frame_height
+        Given a labeled box that is the bounding box of a detected
+        target, this function calculates an error for each of x and y
+        (pan and tilt) based on the offset of the centroid of the
+        bounding box from the center of the frame.
+
+        """
+        if target_lbox:
+            x_c, y_c = draw.box_to_coords(target_lbox['box'],
+                                          return_kind='center')
+            ret = draw.box_to_coords(target_lbox['box'])
+            self.box_x, self.box_y, self.box_width, self.box_height = ret
+            x_err = self.frame_width/2 - x_c
+            y_err = self.frame_height/2 - y_c
+
+            # normalize errors
+            x_err = x_err/self.frame_width
+            y_err = y_err/self.frame_height
+        else:
+            x_err = 0.0
+            y_err = 0.0
 
         return x_err, y_err
 
-    def update(self, x_err, y_err, zoom_command):
+    def update(self, target_lbox, zoom_command):
+        """Update the camera commands
+
+        Generates commands for pan, tilt, and zoom given the current
+        target_lbox (which is None when no detection) and the current
+        zoom_command.
+
+        Parameters
+        ----------
+        target_lbox :
+
+        zoom_command : float
+            Current zoom_command
+
+        Returns
+        -------
+        x_velocity :
+
+        y_velocity :
+
+        zoom_command :
+
+        """
+        errors = self._calc_errors(target_lbox)
+        x_err, y_err = errors
+
         if self.orientation == 'down':
             x_err = -x_err
             y_err = -y_err
 
         x_velocity = self._calc_command(x_err, self.pid_gains[0])
         y_velocity = self._calc_command(y_err, self.pid_gains[1])
-        zoom_command = self._calc_zoom_command(x_err, y_err, zoom_command)
+        zoom_command = self._calc_zoom_command(target_lbox,
+                                               x_err,
+                                               y_err,
+                                               zoom_command)
+
+        log.debug('x_err: %.2f || y_err: %.2f', x_err, y_err)
+        log.debug('x_vel: %.2f || y_vel: %.2f', x_velocity, y_velocity)
+        log.debug('zoom_command: %.2f', zoom_command)
 
         return (x_velocity, y_velocity, zoom_command)
 
     def _ensure_command_in_bounds(self, command):
+        """Util to force command is within necessary bounds
+
+        """
         if command >= 1.0:
             command = 1.0
         if command <= -1.0:
@@ -103,25 +155,37 @@ class MotorController():
         command = self._ensure_command_in_bounds(command)
         return command
 
-    def _calc_zoom_command(self, x_err, y_err, zoom_command):
+    def _calc_zoom_command(self, target_lbox, x_err, y_err, zoom_command):
+        """Calculate the next zoom command
+
+        Not implemented in the base class. But should be implemented
+        to effect zoom control based on position/size of target_lbox.
+
+        """
         raise NotImplementedError
 
 
 class CalmMotorController(MotorController):
+    """MotorController with calm movements/behaviors
+
+    In certain instances, the desire is not for rapid and exacting
+    tracking but for tracking that doesn't distract from the scene
+    through quick movements and jitteriness.  This subclass is
+    intended to be that sort of calm tracker.
+
+    """
 
     def __init__(self,
                  pid_gains,
                  orientation,
-                 example_frame,
-                 zoom_pickup=.01):
+                 example_frame):
 
         super().__init__(pid_gains,
                          orientation,
                          example_frame)
 
-        self.zoom_pickup = zoom_pickup
-        self.ZOOM_STOP_RATIO = .7
-        self.STOP_RANGE = .1
+        self.zoom_stop_ratio = .6
+        self.stop_range = .1
 
     def _calc_command(self, err, k):
         """Override controller command method
@@ -133,7 +197,7 @@ class CalmMotorController(MotorController):
 
         """
 
-        if np.abs(err) < self.STOP_RANGE:
+        if np.abs(err) < self.stop_range:
             command = 0
         else:
             command = k * err
@@ -142,34 +206,36 @@ class CalmMotorController(MotorController):
 
         return command
 
-    def _calc_zoom_command(self, x_err, y_err, zoom_command):
+    def _calc_zoom_command(self, target_lbox, x_err, y_err, zoom_command):
         """Calculate the zoom command give pan/tilt errors
+
+        This is where most of the behavior of the tracking is
+        implemented.
 
         """
 
-        if x_err != 0.0 and y_err != 0.0:
+        if (x_err <= 0.5 and y_err <= 0.5
+           and target_lbox):
             target_bb_pixels = self.box_width * self.box_height
 
-            # if x_err < 50 and y_err < 50:
-            # if x_err != 0 and x_err < 50 and y_err < 50:
-            if (target_bb_pixels / self.total_frame_pixels) < .3:
-                zoom_command += self.zoom_pickup
-                if zoom_command >= 1.0:
-                    zoom_command = 1.0
-                # zoom_command = 1.0
+            box_ratio = target_bb_pixels / self.total_frame_pixels
+            log.debug('Ratio of box to whole %.2f', box_ratio)
+
+            if box_ratio < .3:
+                zoom_command = 1.0
             else:
                 zoom_command = 0.0
 
-            ratio = self.ZOOM_STOP_RATIO
-            filling_much_of_width = self.box_width >= ratio * self.frame_width
-            filling_much_of_height = self.box_height >= ratio * self.frame_height
-            if filling_much_of_width or filling_much_of_height:
+            ratio = self.zoom_stop_ratio
+            spans_much_width = self.box_width >= ratio * self.frame_width
+            spans_much_height = self.box_height >= ratio * self.frame_height
+            if spans_much_width or spans_much_height:
                 zoom_command = 0.0
 
-            margin = 100
-            if((self.box_y + self.box_height) >= (self.frame_height - margin)
+            margin = 20
+            if ((self.box_y + self.box_height) >= (self.frame_height - margin)
                or (self.box_y <= margin)):
-                zoom_command = 0.0
+                zoom_command = -1.0
 
         return zoom_command
 
@@ -179,17 +245,15 @@ class TwitchyMotorController(MotorController):
     def __init__(self,
                  pid_gains,
                  orientation,
-                 example_frame,
-                 zoom_pickup=.01):
+                 example_frame):
 
         super().__init__(pid_gains,
                          orientation,
                          example_frame)
 
-        self.zoom_pickup = zoom_pickup
-        self.ZOOM_STOP_RATIO = .7
+        self.zoom_stop_ratio = .7
 
-    def _calc_zoom_command(self, x_err, y_err, zoom_command):
+    def _calc_zoom_command(self, target_lbox, x_err, y_err, zoom_command):
         """Calculate the zoom command give pan/tilt errors
 
         """
@@ -203,10 +267,10 @@ class TwitchyMotorController(MotorController):
             zoom_command = 0.05 * error
 
             # stop zoom if either dimension of bounding box is
-            length_ratio = self.ZOOM_STOP_RATIO
-            filling_much_of_width = self.box_width >= length_ratio * self.frame_width
-            filling_much_of_height = self.box_height >= length_ratio * self.frame_height
-            if filling_much_of_width or filling_much_of_height:
+            l_ratio = self.zoom_stop_ratio  # length ratio
+            spans_much_width = self.box_width >= l_ratio * self.frame_width
+            spans_much_height = self.box_height >= l_ratio * self.frame_height
+            if spans_much_width or spans_much_height:
                 zoom_command = -0.1
 
             # margin = 100
@@ -224,17 +288,15 @@ class BouncyZoomMotorController(MotorController):
     def __init__(self,
                  pid_gains,
                  orientation,
-                 example_frame,
-                 zoom_pickup=.01):
+                 example_frame):
 
         super().__init__(pid_gains,
                          orientation,
                          example_frame)
 
-        self.zoom_pickup = zoom_pickup
-        self.ZOOM_STOP_RATIO = .7
+        self.zoom_stop_ratio = .7
 
-    def _calc_zoom_command(self, x_err, y_err, zoom_command):
+    def _calc_zoom_command(self, target_lbox, x_err, y_err, zoom_command):
         """Calculate the zoom command give pan/tilt errors
 
         """
@@ -264,7 +326,7 @@ class PtzCam():
 
     """
     def __init__(self,
-                 ip=None,
+                 ip_address=None,
                  port='80',
                  user=None,
                  pword=None):
@@ -272,7 +334,7 @@ class PtzCam():
 
         Parameters
         ----------
-        ip : str
+        ip_address : str
            The IP address of the camera to connect to.
         port : str
            ONVIF port on the camera. This is usually 80
@@ -283,7 +345,7 @@ class PtzCam():
 
         """
 
-        mycam = ONVIFCamera(ip, port, user, pword)
+        mycam = ONVIFCamera(ip_address, port, user, pword)
         media_service = mycam.create_media_service()
         self.ptz_service = mycam.create_ptz_service()
         self.imaging_service = mycam.create_imaging_service()
@@ -326,11 +388,11 @@ class PtzCam():
         vst = {'VideoSourceToken': self.video_source.token}
         self.imaging_settings = self.imaging_service.GetImagingSettings(vst)
 
-        time = self.imaging_settings.Exposure.ExposureTime
+        exp_time = self.imaging_settings.Exposure.ExposureTime
         gain = self.imaging_settings.Exposure.Gain
         iris = self.imaging_settings.Exposure.Iris
 
-        return time, gain, iris
+        return exp_time, gain, iris
 
     def _send_imaging_settings(self):
         command_dict = {'VideoSourceToken': self.video_source.token,
@@ -446,19 +508,16 @@ class PtzCam():
         Parameters
         ----------
         pan_pos : float
-
             The desired pan position expressed as a value in accepted
             range (often -1.0 to 1.0) that maps to the actual range of
             the camera (e.g. 0-350 degrees or 0-360 degrees).
 
         tilt_pos : float
-
             The desired tilt position expressed as a value in accepted
             range (often -1.0 to 1.0) that maps to the actual range of
             the camera (e.g. 0-90 degrees or -5 to 90 degrees)
 
         zoom_pos : float
-
             The desired zoom "position" expressed as a value in
             accepted range (often 0.0 to 1.0) that maps to the actual
             zoom range of the camera.
