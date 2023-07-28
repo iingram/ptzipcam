@@ -51,57 +51,67 @@ csv_filename = args.filename
 SCORE_THRESH = int(args.threshold)
 stride = int(args.stride)
 msecs_per_frame = int(1000 * (1.0/int(args.rate)))
-print('[INFO] FPS results in '
-      '{} milliseconds per frame.'.format(msecs_per_frame))
-main_timestamp = csv_filename.split('.')[0]
 
-df = pd.read_csv(csv_filename)
 
-base_path = os.path.split(csv_filename)[0]
-base_path = os.path.join(base_path, main_timestamp + '_images')
+def main():
+    """Main function of script
 
-count = -1
-for index, row in df.iterrows():
-    if index < int(args.jump):
-        continue
-    count += 1
-    if count % stride == 0:
-        count = 0
-        filename = os.path.join(base_path, row.IMAGE_FILE)
-        # print(filename)
-        img = cv2.imread(filename)
-        if(args.box
-           and row.CLASS != 'nothing detected'
-           and row.CLASS != 'n/a: timelapse frame'
-           and row.CLASS != 'n/a: start-up frame'):
-            lbox = {}
-            lbox['box'] = (int(row.X),
-                           int(row.Y),
-                           int(row.W),
-                           int(row.H))
-            lbox['class_name'] = row.CLASS
-            lbox['confidence'] = int(row.SCORE)
+    """
+    print('[INFO] FPS results in '
+          f'{msecs_per_frame} milliseconds per frame.')
+    main_timestamp = csv_filename.split('.')[0]
 
-            if row.SCORE > SCORE_THRESH:
-                draw.labeled_box(img,
-                                 None,
-                                 lbox,
-                                 thickness=3,
-                                 # font_size=3,
-                                 show_score=False,
-                                 color=(235, 234, 206))  # 229, 171, 4
+    df_image_data = pd.read_csv(csv_filename)
 
-        if args.output_path:
-            if not os.path.isdir(args.output_path):
-                os.mkdir(args.output_path)
-            just_name = os.path.split(filename)[1]
-            filename = os.path.join(args.output_path, just_name)
-            cv2.imwrite(filename, img)
+    base_path = os.path.split(csv_filename)[0]
+    base_path = os.path.join(base_path, main_timestamp + '_images')
 
-        cv2.imshow('Playback', img)
-        key = cv2.waitKey(msecs_per_frame)
-        if key == ord('q'):
-            break
+    count = -1
+    for index, row in df_image_data.iterrows():
+        if index < int(args.jump):
+            continue
+        count += 1
+        if count % stride == 0:
+            count = 0
+            filename = os.path.join(base_path, row.IMAGE_FILE)
+            # print(filename)
+            img = cv2.imread(filename)
+            if (args.box
+               and row.CLASS != 'nothing detected'
+               and row.CLASS != 'n/a: timelapse frame'
+               and row.CLASS != 'n/a: start-up frame'):
+                lbox = {}
+                lbox['box'] = (int(row.X),
+                               int(row.Y),
+                               int(row.W),
+                               int(row.H))
+                lbox['class_name'] = row.CLASS
+                lbox['confidence'] = int(row.SCORE)
 
-cv2.destroyAllWindows()
-# sys.exit()
+                if row.SCORE > SCORE_THRESH:
+                    draw.labeled_box(img,
+                                     None,
+                                     lbox,
+                                     thickness=3,
+                                     # font_size=3,
+                                     show_score=False,
+                                     color=(235, 234, 206))  # 229, 171, 4
+
+            if args.output_path:
+                if not os.path.isdir(args.output_path):
+                    os.mkdir(args.output_path)
+                just_name = os.path.split(filename)[1]
+                filename = os.path.join(args.output_path, just_name)
+                cv2.imwrite(filename, img)
+
+            cv2.imshow('Playback', img)
+            key = cv2.waitKey(msecs_per_frame)
+            if key == ord('q'):
+                break
+
+    cv2.destroyAllWindows()
+    # sys.exit()
+
+
+if __name__ == "__main__":
+    main()
