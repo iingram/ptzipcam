@@ -13,7 +13,7 @@ import argparse
 import cv2
 import pandas as pd
 
-from dnntools import draw
+from camml import draw
 
 ap = argparse.ArgumentParser()
 
