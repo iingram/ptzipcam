@@ -13,6 +13,31 @@ import cv2
 log = logging.getLogger(__name__)
 
 
+def prep_timestamp(include_milliseconds=False):
+    """Calculates, formats, and returns current timestamp
+
+    Parameters
+    ----------
+
+    include_milliseconds : bool
+      Whether to include milliseconds in timestamp string
+
+    Returns
+    -------
+
+    timestamp_string : str
+      A timestamp string formatted per package default
+    """
+    timestamp_format = "%Y-%m-%dT%H-%M-%S_%f"
+
+    if include_milliseconds:
+        timestamp_string = datetime.now().strftime(timestamp_format)[:-3]
+    else:
+        timestamp_string = datetime.now().strftime(timestamp_format[:-3])
+
+    return timestamp_string
+
+
 class ImageStreamRecorder():  # pylint: disable=too-few-public-methods
     """Handles recording images with their associate metadata
 
@@ -25,8 +50,7 @@ class ImageStreamRecorder():  # pylint: disable=too-few-public-methods
     def __init__(self, path):
         log.debug('Initialize recorder.')
         self.path = path
-        self.timestamp_format = "%Y-%m-%dT%H-%M-%S_%f"
-        timestamp_string = datetime.now().strftime(self.timestamp_format[:-3])
+        timestamp_string = prep_timestamp()
         image_folder_name = timestamp_string + '_images'
         self.image_path = os.path.join(self.path, image_folder_name)
         if not os.path.exists(self.image_path):
@@ -75,8 +99,8 @@ class ImageStreamRecorder():  # pylint: disable=too-few-public-methods
 
         pan_angle, tilt_angle, zoom = ptz_state
 
-        front_bit = datetime.now().strftime(self.timestamp_format)[:-3]
-        image_filename = front_bit + '.jpg'
+        timestamp_string = prep_timestamp(include_milliseconds=True)
+        image_filename = timestamp_string + '.jpg'
 
         # full_path = os.path.join(self.path, 'images')
         # if not os.path.exists(full_path):
