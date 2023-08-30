@@ -5,7 +5,9 @@
 import logging
 
 
-def prep_log(level, suppress_verbose_loggers=True):
+def prep_log(level,
+             suppress_verbose_loggers=True,
+             log_filename='./ptzipcam.log'):
     """Prepare logging
 
     Parameters
@@ -29,11 +31,19 @@ def prep_log(level, suppress_verbose_loggers=True):
     log.setLevel(level)
     if log.hasHandlers():
         log.handlers.clear()
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.DEBUG)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG)
+
+    file_handler = logging.FileHandler(log_filename)
+    file_handler.setLevel(logging.DEBUG)
+
     formatter = logging.Formatter('[%(levelname)s] %(message)s (%(name)s)')
-    handler.setFormatter(formatter)
-    log.addHandler(handler)
+    console_handler.setFormatter(formatter)
+    file_handler.setFormatter(formatter)
+
+    log.addHandler(console_handler)
+    log.addHandler(file_handler)
 
     if suppress_verbose_loggers:
         dont_log_list = ['zeep.xsd.schema', 'zeep', 'zeep.transports',
