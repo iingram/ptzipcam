@@ -1,9 +1,4 @@
 import logging
-
-logging.basicConfig(level='INFO',
-                    format='[%(levelname)s] %(message)s (%(name)s)')
-
-import os
 import sys
 import time
 import threading
@@ -15,8 +10,6 @@ import argparse
 import cv2
 import yaml
 
-import numpy as np
-
 from ptzipcam.camera import Camera
 from ptzipcam import ui
 from ptzipcam.io import ImageStreamRecorder
@@ -24,7 +17,8 @@ from ptzipcam.io import ImageStreamRecorder
 import movement_functions
 import globalvars
 
-
+logging.basicConfig(level='INFO',
+                    format='[%(levelname)s] %(message)s (%(name)s)')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config_file_path',
@@ -51,7 +45,7 @@ if args.host_ip:
 else:
     CLIENT_MODE = False
 
-with open(CONFIG_FILE) as f:
+with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 # ptz camera networking constants
 IP = configs['IP']
@@ -65,7 +59,7 @@ TIMELAPSE_CONFIG_FILENAME = configs['TIMELAPSE_CONFIG_FILENAME']
 # ptz camera setup constants
 ORIENTATION = configs['ORIENTATION']
 
-with open(TIMELAPSE_CONFIG_FILENAME) as f:
+with open(TIMELAPSE_CONFIG_FILENAME, 'r', encoding='utf-8') as f:
     configs = yaml.load(f, Loader=yaml.SafeLoader)
 HEADLESS = configs['HEADLESS']
 MODE = configs['MODE']
@@ -82,9 +76,9 @@ class Sender():
         self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 
     def send(self, frame, pan_angle, tilt_angle):
-        result, frame_to_send = cv2.imencode('.jpg',
-                                             frame,
-                                             self.encode_param)
+        _, frame_to_send = cv2.imencode('.jpg',
+                                        frame,
+                                        self.encode_param)
         data = pickle.dumps(frame_to_send, 0)
         size = len(data)
         header = struct.pack(">Lff", size, pan_angle, tilt_angle)
@@ -113,7 +107,7 @@ if __name__ == '__main__':
     # logging.debug('anything?')
 
     recorder = ImageStreamRecorder(RECORD_FOLDER)
-    with open('/home/ian/timelapse.log', 'w') as f:
+    with open('/home/ian/timelapse.log', 'w', encoding='utf-8') as f:
         f.write('[INFO] Just started.\n')
 
     preamble = '[INFO] Movement function:'
@@ -132,7 +126,7 @@ if __name__ == '__main__':
                                                daemon=True)
     movement_control_thread.start()
 
-    with open('/home/ian/timelapse.log', 'a') as f:
+    with open('/home/ian/timelapse.log', 'a', encoding='utf-8') as f:
         f.write('[INFO] started movement control thread\n')
 
     cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
@@ -166,7 +160,7 @@ if __name__ == '__main__':
 
     # j = 0
 
-    with open('/home/ian/timelapse.log', 'a') as f:
+    with open('/home/ian/timelapse.log', 'a', encoding='utf-8') as f:
         f.write('[INFO] about to start main loop\n')
 
     try:
@@ -179,7 +173,7 @@ if __name__ == '__main__':
             if globalvars.camera_still and frame is not None:
                 if latch:
                     print('Taking a shot.')
-                    with open('/home/ian/timelapse.log', 'a') as f:
+                    with open('/home/ian/timelapse.log', 'a', encoding='utf-8') as f:
                         f.write('[INFO] taking a shot\n')
 
                     frame = ui.orient_frame(frame, ORIENTATION)
