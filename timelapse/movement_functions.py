@@ -6,7 +6,7 @@ import numpy as np
 
 from ptzipcam.ptz_camera import PtzCam
 
-import convert
+from ptzipcam import convert
 import globalvars
 
 
@@ -44,13 +44,13 @@ def mow_the_lawn(zoom_power, config_file):
 
     print('[INFO] Grid: {} {}'.format(PAN_STEPS, TILT_STEPS))
     globalvars.grid = (PAN_STEPS, TILT_STEPS)
-    
+
     # global globalvars.camera_still
     ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
-    print('[INFO] Connected to camera.') 
+    print('[INFO] Connected to camera.')
     ptz.twitch()
-    print('[INFO] Twitching camera so user has some indication things are OK.') 
-    
+    print('[INFO] Twitching camera so user has some indication things are OK.')
+
     pan_min = convert.degrees_to_command(PAN_MIN, 350.0)
     pan_max = convert.degrees_to_command(PAN_MAX, 350.0)
     tilt_min = convert.degrees_to_command(TILT_MIN, 90.0)
@@ -89,8 +89,8 @@ def mow_the_lawn(zoom_power, config_file):
                                             PAN_STEPS)
             for x_pos in pan_positions:
                 # just for printing for user
-                x_pos_degrees = convert.pan_command_to_degrees(x_pos, 350.0) 
-                y_pos_degrees = convert.pan_command_to_degrees(y_pos, 90.0)
+                x_pos_degrees = convert.command_to_degrees(x_pos, 350.0)
+                y_pos_degrees = convert.command_to_degrees(y_pos, 90.0)
                 print('Moving to {x_pos:.2f} degrees pan and {y_pos:.2f} degrees tilt.'.format(x_pos=x_pos_degrees, y_pos=y_pos_degrees))
 
                 ptz.absmove_w_zoom(x_pos, y_pos, zoom_command)
@@ -119,11 +119,11 @@ def visit_spots(zoom_power, config_file):
     with open('config_timelapse.yaml') as f:
         configs = yaml.load(f, Loader=yaml.SafeLoader)
     STEP_DUR = configs['STEP_DUR']
-    
+
     with open('spots_to_visit.yaml', 'r') as f:
         spots = yaml.load(f, Loader=yaml.SafeLoader)
         spots = np.array(spots)
-    
+
     # global globalvars.camera_still
     ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
 
@@ -147,7 +147,7 @@ def visit_spots(zoom_power, config_file):
 
     ptz.stop()
 
-    
+
 def visit_spots_two_cameras(zoom_power):
     """Thread function for moving two cameras through a series of spots of
     interest
@@ -161,7 +161,7 @@ def visit_spots_two_cameras(zoom_power):
              [230.0, 80.0, 2.0],
              [78.0, 80.0, 4.0]]
              # [345.0, 85.0, 3.5]]
-    
+
     # global globalvars.camera_still
     ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
     ptz_2 = PtzCam('192.168.1.63', ONVIF_PORT, USER, PASS)
