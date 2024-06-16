@@ -1,4 +1,5 @@
 import logging
+
 logging.basicConfig(level='INFO',
                     format='[%(levelname)s] %(message)s (%(name)s)')
 
@@ -24,7 +25,6 @@ import movement_functions
 import globalvars
 
 
-            
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config_file_path',
@@ -191,8 +191,9 @@ if __name__ == '__main__':
                             break
 
                     recorder.record_image(frame,
-                                          globalvars.pan_angle,
-                                          globalvars.tilt_angle,
+                                          (globalvars.pan_angle,
+                                           globalvars.tilt_angle,
+                                           -1),
                                           'N/A',
                                           0.0)
 
