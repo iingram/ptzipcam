@@ -38,7 +38,7 @@ class Camera():
                              + str(stream))
         else:
             print('[ERROR] Camera type not recognized.')
-            
+
         address = ('rtsp://'
                    + user
                    + ':'
@@ -65,8 +65,9 @@ class Camera():
     def get_resolution(self):
         return self.frame[0].shape[1], self.frame[0].shape[0]
 
-    # def release(self):
-    #     self.cap.release()
+    def release(self):
+        log.info("Release camera object's capture object.")
+        self.cap.release()
 
     def __del__(self):
         log.info('Camera object deletion')
