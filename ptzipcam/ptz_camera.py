@@ -382,7 +382,7 @@ class PtzCam():
         #                              'Zoom': {'x': 0.0}}
 
     def __del__(self):
-        print('[INFO] PtzCam object deletion.')
+        log.info('PtzCam object deletion.')
 
     def get_exposure(self):
         vst = {'VideoSourceToken': self.video_source.token}
