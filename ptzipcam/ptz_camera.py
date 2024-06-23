@@ -30,12 +30,12 @@ def _check_zeroness(number):
         The "fixed" number
 
     """
-    e = .001
+    eps = .001
 
-    if -e < number < e:
-        return 0
-    else:
-        return number
+    if -eps < number < eps:
+        number = 0
+
+    return number
 
 
 class MotorController():
@@ -382,7 +382,7 @@ class PtzCam():
         #                              'Zoom': {'x': 0.0}}
 
     def __del__(self):
-        print('[INFO] PtzCam object deletion.')
+        log.info('PtzCam object deletion.')
 
     def get_exposure(self):
         vst = {'VideoSourceToken': self.video_source.token}
@@ -463,18 +463,23 @@ class PtzCam():
         self.ptz_service.ContinuousMove(move_request)
 
     def _prep_abs_move(self):
-        move_request = self.ptz_service.create_type('AbsoluteMove')
-        move_request.ProfileToken = self.media_profile.token
-        if move_request.Position is None:
-            move_request.Position = self.ptz_service.GetStatus({'ProfileToken': self.media_profile.token}).Position
-            move_request.Speed = self.media_profile.PTZConfiguration.DefaultPTZSpeed
+        """Prep move request
 
-        return move_request
+        """
+        mov_req = self.ptz_service.create_type('AbsoluteMove')
+        mov_req.ProfileToken = self.media_profile.token
+        if mov_req.Position is None:
+            t_dict = {'ProfileToken': self.media_profile.token}
+            mov_req.Position = self.ptz_service.GetStatus(t_dict).Position
+            mov_req.Speed = self.media_profile.PTZConfiguration.DefaultPTZSpeed
+
+        return mov_req
 
     def get_position(self):
         move_request = self.ptz_service.create_type('AbsoluteMove')
         move_request.ProfileToken = self.media_profile.token
-        position = self.ptz_service.GetStatus({'ProfileToken': self.media_profile.token}).Position
+        token_dict = {'ProfileToken': self.media_profile.token}
+        position = self.ptz_service.GetStatus(token_dict).Position
 
         # x = pan, y = tilt
         return (position['PanTilt']['x'],
