@@ -30,7 +30,7 @@ class Camera():
 
     # def __init__(self, address='udp://127.0.0.1:5000'):
     def __init__(self,
-                 ip_address,
+                 ip,
                  user,
                  passwd,
                  stream=3,
@@ -54,7 +54,7 @@ class Camera():
                    + ':'
                    + passwd
                    + '@'
-                   + ip_address
+                   + ip
                    + stream_string)
         self.frame = [None]
         # self.cap = cv2.VideoCapture(address, cv2.CAP_FFMPEG)
