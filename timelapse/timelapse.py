@@ -17,8 +17,11 @@ from ptzipcam.io import ImageStreamRecorder
 import movement_functions
 import globalvars
 
-logging.basicConfig(level='INFO',
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
+logging.basicConfig(level=logging.INFO,
                     format='[%(levelname)s] %(message)s (%(name)s)')
+log = logging.getLogger('main')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config_file_path',
@@ -89,6 +92,8 @@ class Sender():
 
 
 if __name__ == '__main__':
+    log.info("---- TIMELAPSE ----")
+    log.info("Starting up.")
     if CLIENT_MODE:
         sender = Sender(HOST, PORT)
 
@@ -101,33 +106,22 @@ if __name__ == '__main__':
     #                           cv2.WND_PROP_FULLSCREEN,
     #                           cv2.WINDOW_FULLSCREEN)
 
-    # logging.basicConfig(level=logging.DEBUG,
-    #                     filename='/home/ian/timelapse.log')
-    # logging.basicConfig(level=logging.DEBUG, filename='timelapse.log')
-    # logging.debug('anything?')
-
     recorder = ImageStreamRecorder(RECORD_FOLDER)
-    with open('/home/ian/timelapse.log', 'w', encoding='utf-8') as f:
-        f.write('[INFO] Just started.\n')
 
-    preamble = '[INFO] Movement function:'
     if MODE == 'mow':
-        print(preamble, 'Mow the lawn')
+        log.info("Movement function: Mow the lawn")
         movement_function = movement_functions.mow_the_lawn
     elif MODE == 'spots':
-        print(preamble, 'Visit spots')
+        log.info("Movement function: Visit spots")
         movement_function = movement_functions.visit_spots
     else:
-        print('Invalid movement function specified in config file.  Quitting.')
+        log.error("Invalid movement function specified in config file.  Quitting.")
         sys.exit()
 
     movement_control_thread = threading.Thread(target=movement_function,
                                                args=(ZOOM_POWER, CONFIG_FILE),
                                                daemon=True)
     movement_control_thread.start()
-
-    with open('/home/ian/timelapse.log', 'a', encoding='utf-8') as f:
-        f.write('[INFO] started movement control thread\n')
 
     cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
     width, height = cam.get_resolution()
@@ -158,11 +152,6 @@ if __name__ == '__main__':
 
     latch = True
 
-    # j = 0
-
-    with open('/home/ian/timelapse.log', 'a', encoding='utf-8') as f:
-        f.write('[INFO] about to start main loop\n')
-
     try:
         while True:
 
@@ -172,9 +161,7 @@ if __name__ == '__main__':
 
             if globalvars.camera_still and frame is not None:
                 if latch:
-                    print('Taking a shot.')
-                    with open('/home/ian/timelapse.log', 'a', encoding='utf-8') as f:
-                        f.write('[INFO] taking a shot\n')
+                    log.info("Capturing an image.")
 
                     frame = ui.orient_frame(frame, ORIENTATION)
 

@@ -1,3 +1,4 @@
+import logging
 import time
 
 import yaml
@@ -8,6 +9,8 @@ from ptzipcam.ptz_camera import PtzCam
 
 from ptzipcam import convert
 import globalvars
+
+log = logging.getLogger(__name__)
 
 
 def _read_configs(config_file):
@@ -42,14 +45,14 @@ def mow_the_lawn(zoom_power, config_file):
     TILT_MAX = configs['TILT_MAX']
     TILT_STEPS = configs['TILT_STEPS']
 
-    print('[INFO] Grid: {} {}'.format(PAN_STEPS, TILT_STEPS))
+    log.info("Grid: %d %d", PAN_STEPS, TILT_STEPS)
     globalvars.grid = (PAN_STEPS, TILT_STEPS)
 
     # global globalvars.camera_still
     ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
-    print('[INFO] Connected to camera.')
+    log.info("Connected to camera.")
     ptz.twitch()
-    print('[INFO] Twitching camera so user has some indication things are OK.')
+    log.info("Twitching camera so user has some indication things are OK.")
 
     pan_min = convert.degrees_to_command(PAN_MIN, 350.0)
     pan_max = convert.degrees_to_command(PAN_MAX, 350.0)
@@ -57,15 +60,20 @@ def mow_the_lawn(zoom_power, config_file):
     tilt_max = convert.degrees_to_command(TILT_MAX, 90.0)
     zoom_command = ZOOM_FACTOR/zoom_power
 
-    print('[INFO] Moving camera to initial position {}, {}, {}'.format(PAN_MIN, TILT_MIN, ZOOM_FACTOR))
+    log.info("Moving to initial position. "
+             "Pan: %.2f deg, Tilt: %.2f deg, Zoom: %.2f",
+             PAN_MIN,
+             TILT_MIN,
+             ZOOM_FACTOR)
     ptz.absmove_w_zoom_waitfordone(pan_min, tilt_min, zoom_command, close_enough=.1)
-    print('[INFO] Finished moving camera to initial position')
+    log.info("Finished moving camera to initial position")
 
     going_up = True
 
     pan_pass_duration_estimate = int(((2 + 2 + STEP_DUR) * PAN_STEPS)/60)
 
-    print('[INFO] Will take about {} minutes to complete a pan pass.'.format(pan_pass_duration_estimate))
+    log.info("Will take about %s minutes to complete a pan pass",
+             pan_pass_duration_estimate)
 
     while True:
         going_forward = True
@@ -88,10 +96,11 @@ def mow_the_lawn(zoom_power, config_file):
                                             pan_min,
                                             PAN_STEPS)
             for x_pos in pan_positions:
-                # just for printing for user
                 x_pos_degrees = convert.command_to_degrees(x_pos, 350.0)
                 y_pos_degrees = convert.command_to_degrees(y_pos, 90.0)
-                print('Moving to {x_pos:.2f} degrees pan and {y_pos:.2f} degrees tilt.'.format(x_pos=x_pos_degrees, y_pos=y_pos_degrees))
+                log.info("Moving to Pan: %.2f deg, Tilt: %.2f deg",
+                         x_pos_degrees,
+                         y_pos_degrees)
 
                 ptz.absmove_w_zoom(x_pos, y_pos, zoom_command)
                 time.sleep(9)
@@ -112,6 +121,18 @@ def mow_the_lawn(zoom_power, config_file):
     ptz.stop()
 
 
+def log_spot(spot_num, spot):
+    pan_degrees, tilt_degrees, zoom_factor = spot
+    
+    log.info(
+        "Moving to spot %d: %.2f deg pan, %.2f deg tilt, %.1fx zoom",
+        spot_num,
+        pan_degrees,
+        tilt_degrees,
+        zoom_factor
+    )
+
+
 def visit_spots(zoom_power, config_file):
     """Thread function for moving the camera through a series of spots of interest
     """
@@ -130,10 +151,9 @@ def visit_spots(zoom_power, config_file):
     while True:
         for num, spot in enumerate(spots):
             pan_degrees, tilt_degrees, zoom_factor = spot
-            print('Moving to spot {num} at {pan_degrees:.2f} degrees pan, {tilt_degrees:.2f} degrees tilt, {zoom_factor:.1f}x zoom'.format(num=num,
-                                                                                                                                           pan_degrees=pan_degrees,
-                                                                                                                                           tilt_degrees=tilt_degrees,
-                                                                                                                                           zoom_factor=zoom_factor))
+
+            log_spot(num, spot)
+            
             pan_command = convert.degrees_to_command(pan_degrees, 350.0)
             tilt_command = convert.degrees_to_command(tilt_degrees, 90.0)
             zoom_command = zoom_factor/zoom_power
@@ -168,11 +188,9 @@ def visit_spots_two_cameras(zoom_power):
 
     while True:
         for num, spot in enumerate(spots):
+            log_spot(num, spot)
             pan_degrees, tilt_degrees, zoom_factor = spot
-            print('Moving to spot {num} at {pan_degrees:.2f} degrees pan, {tilt_degrees:.2f} degrees tilt, {zoom_factor:.1f}x zoom'.format(num=num,
-                                                                                                                                           pan_degrees=pan_degrees,
-                                                                                                                                           tilt_degrees=tilt_degrees,
-                                                                                                                                           zoom_factor=zoom_factor))
+
             pan_command = convert.degrees_to_command(pan_degrees, 350.0)
             tilt_command = convert.degrees_to_command(tilt_degrees, 90.0)
             zoom_command = zoom_factor/zoom_power
