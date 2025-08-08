@@ -1,8 +1,12 @@
-import logging
-logging.basicConfig(level='INFO',
-                    format='[%(levelname)s] %(message)s (%(name)s)')
+"""Script to generate a timelapse with camera movement
 
-import os
+Captures frames for a timelapse movie while moving the camera in a
+prescribed manner so that in the resulting timelapse video the camera
+is, for example, panning across the scene.
+
+"""
+
+import logging
 import sys
 import time
 import threading
@@ -12,19 +16,19 @@ import struct
 import argparse
 
 import cv2
-import yaml
-
-import numpy as np
 
 from ptzipcam.camera import Camera
 from ptzipcam import ui
-from ptzipcam.io import ImageStreamRecorder
+from ptzipcam.io import ImageStreamRecorder, read_configs
 
 import movement_functions
 import globalvars
 
-
-            
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
+logging.basicConfig(level=logging.INFO,
+                    format='[%(levelname)s] %(message)s (%(name)s)')
+log = logging.getLogger('main')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('config_file_path',
@@ -40,8 +44,6 @@ parser.add_argument('-p',
 
 args = parser.parse_args()
 
-CONFIG_FILE = args.config_file_path
-
 ZOOM_POWER = 4.0
 
 if args.host_ip:
@@ -51,30 +53,15 @@ if args.host_ip:
 else:
     CLIENT_MODE = False
 
-with open(CONFIG_FILE) as f:
-    configs = yaml.load(f, Loader=yaml.SafeLoader)
-# ptz camera networking constants
-IP = configs['IP']
-USER = configs['USER']
-PASS = configs['PASS']
-STREAM = configs['STREAM']
-
-RECORD_FOLDER = configs['RECORD_FOLDER']
-TIMELAPSE_CONFIG_FILENAME = configs['TIMELAPSE_CONFIG_FILENAME']
-
-# ptz camera setup constants
-ORIENTATION = configs['ORIENTATION']
-
-with open(TIMELAPSE_CONFIG_FILENAME) as f:
-    configs = yaml.load(f, Loader=yaml.SafeLoader)
-HEADLESS = configs['HEADLESS']
-MODE = configs['MODE']
+configs = read_configs(args.config_file_path)
+timelapse_configs = read_configs(configs['TIMELAPSE_CONFIG_FILENAME'])
 
 # init global variables
 globalvars.init()
 
 
 class Sender():
+    """Handles sending frames to a remote program."""
 
     def __init__(self, host, port):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -82,60 +69,61 @@ class Sender():
         self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 
     def send(self, frame, pan_angle, tilt_angle):
-        result, frame_to_send = cv2.imencode('.jpg',
-                                             frame,
-                                             self.encode_param)
+        """Send frame and meta data over socket."""
+        _, frame_to_send = cv2.imencode('.jpg',
+                                        frame,
+                                        self.encode_param)
         data = pickle.dumps(frame_to_send, 0)
         size = len(data)
         header = struct.pack(">Lff", size, pan_angle, tilt_angle)
         self.sock.sendall(header + data)
 
     def close(self):
+        """Close socket."""
         self.sock.close()
 
 
 if __name__ == '__main__':
+    log.info("---- TIMELAPSE ----")
+    log.info("Starting up.")
     if CLIENT_MODE:
         sender = Sender(HOST, PORT)
 
-    window_name = 'Mow The Lawn'
-    # if not HEADLESS:
-    #     cv2.namedWindow(window_name,
-    #                     cv2.WINDOW_NORMAL)
+    WINDOW_NAME = "Timelapse View"
+    if not configs['HEADLESS']:
+        cv2.namedWindow(WINDOW_NAME,
+                        cv2.WINDOW_NORMAL)
 
-    #     cv2.setWindowProperty(window_name,
-    #                           cv2.WND_PROP_FULLSCREEN,
-    #                           cv2.WINDOW_FULLSCREEN)
+        cv2.setWindowProperty(WINDOW_NAME,
+                              cv2.WND_PROP_FULLSCREEN,
+                              cv2.WINDOW_FULLSCREEN)
 
-    # logging.basicConfig(level=logging.DEBUG,
-    #                     filename='/home/ian/timelapse.log')
-    # logging.basicConfig(level=logging.DEBUG, filename='timelapse.log')
-    # logging.debug('anything?')
+    recorder = ImageStreamRecorder(configs['RECORD_FOLDER'])
 
-    recorder = ImageStreamRecorder(RECORD_FOLDER)
-    with open('/home/ian/timelapse.log', 'w') as f:
-        f.write('[INFO] Just started.\n')
-
-    preamble = '[INFO] Movement function:'
-    if MODE == 'mow':
-        print(preamble, 'Mow the lawn')
+    if timelapse_configs['MODE'] == 'mow':
+        log.info("Movement function: Mow the lawn")
         movement_function = movement_functions.mow_the_lawn
-    elif MODE == 'spots':
-        print(preamble, 'Visit spots')
+    elif timelapse_configs['MODE'] == 'spots':
+        log.info("Movement function: Visit spots")
         movement_function = movement_functions.visit_spots
     else:
-        print('Invalid movement function specified in config file.  Quitting.')
+        log.error("Invalid movement function specified in config file. "
+                  "Quitting.")
         sys.exit()
 
     movement_control_thread = threading.Thread(target=movement_function,
-                                               args=(ZOOM_POWER, CONFIG_FILE),
+                                               args=(ZOOM_POWER,
+                                                     args.config_file_path),
                                                daemon=True)
     movement_control_thread.start()
 
-    with open('/home/ian/timelapse.log', 'a') as f:
-        f.write('[INFO] started movement control thread\n')
+    cam = Camera(
+        configs['IP'],
+        configs['USER'],
+        configs['PASS'],
+        configs['STREAM']
+    )
 
-    cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
     width, height = cam.get_resolution()
 
     hostname = socket.gethostname()
@@ -147,7 +135,7 @@ if __name__ == '__main__':
     # print('Number of output videos is {}'.format(num_output_videos))
     # for i in range(num_output_videos):
     #     video_filename = ('video_timelapse_'
-    #                       + MODE
+    #                       + timelapse_configs['MODE']
     #                       + '_'
     #                       + hostname
     #                       + '_'
@@ -164,11 +152,6 @@ if __name__ == '__main__':
 
     latch = True
 
-    # j = 0
-
-    with open('/home/ian/timelapse.log', 'a') as f:
-        f.write('[INFO] about to start main loop\n')
-
     try:
         while True:
 
@@ -178,21 +161,21 @@ if __name__ == '__main__':
 
             if globalvars.camera_still and frame is not None:
                 if latch:
-                    print('Taking a shot.')
-                    with open('/home/ian/timelapse.log', 'a') as f:
-                        f.write('[INFO] taking a shot\n')
+                    log.info("Capturing an image.")
 
-                    frame = ui.orient_frame(frame, ORIENTATION)
+                    frame = ui.orient_frame(frame,
+                                            configs['ORIENTATION'])
 
-                    if not HEADLESS:
-                        cv2.imshow(window_name, frame)
+                    if not configs['HEADLESS']:
+                        cv2.imshow(WINDOW_NAME, frame)
                         key = cv2.waitKey(30)
                         if key == ord('q'):
                             break
 
                     recorder.record_image(frame,
-                                          globalvars.pan_angle,
-                                          globalvars.tilt_angle,
+                                          (globalvars.pan_angle,
+                                           globalvars.tilt_angle,
+                                           -1),
                                           'N/A',
                                           0.0)
 
@@ -219,7 +202,7 @@ if __name__ == '__main__':
         if CLIENT_MODE:
             sender.close()
 
-        if not HEADLESS:
+        if not configs['HEADLESS']:
             cv2.destroyAllWindows()
 
         sys.exit()

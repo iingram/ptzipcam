@@ -584,3 +584,50 @@ class PtzCam():
     def stop(self):
         move_request = self._prep_abs_move()
         self.ptz_service.Stop({'ProfileToken': move_request.ProfileToken})
+
+
+class CalmNoZoomMotorController(MotorController):
+
+    def __init__(self,
+                 pid_gains,
+                 orientation,
+                 example_frame,
+                 zoom_pickup=.01):
+
+        super().__init__(pid_gains,
+                         orientation,
+                         example_frame)
+
+        # this class has not been updated to way things work now
+        raise NotImplementedError("class not up-to-date w/ current mechanics")
+
+        self.zoom_pickup = zoom_pickup
+        self.ZOOM_STOP_RATIO = .7
+        self.STOP_RANGE = .1
+
+    def _calc_command(self, err, k):
+        """Override controller command method
+
+        The meat here is that the controller stops moving axis under
+        control if error is inside of some range.  This range is
+        currently hardcoded but maybe should be given as an argument
+        to the constructor.
+
+        """
+
+        if np.abs(err) < self.STOP_RANGE:
+            command = 0
+        else:
+            command = k * err
+
+        command = self._ensure_command_in_bounds(command)
+
+        return command
+
+    def _calc_zoom_command(self, x_err, y_err, zoom_command):
+        """Calculate the zoom command give pan/tilt errors
+
+        """
+        zoom_command = 0.0
+
+        return zoom_command
