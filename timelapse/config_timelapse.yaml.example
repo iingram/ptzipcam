@@ -1,5 +1,3 @@
-HEADLESS: True
-
 MODE: mow # spots, mow
 
 PAN_MIN: 0 # in degrees
