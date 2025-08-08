@@ -8,11 +8,10 @@ import struct
 import argparse
 
 import cv2
-import yaml
 
 from ptzipcam.camera import Camera
 from ptzipcam import ui
-from ptzipcam.io import ImageStreamRecorder
+from ptzipcam.io import ImageStreamRecorder, read_configs
 
 import movement_functions
 import globalvars
@@ -37,8 +36,6 @@ parser.add_argument('-p',
 
 args = parser.parse_args()
 
-CONFIG_FILE = args.config_file_path
-
 ZOOM_POWER = 4.0
 
 if args.host_ip:
@@ -48,24 +45,14 @@ if args.host_ip:
 else:
     CLIENT_MODE = False
 
-with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
-    configs = yaml.load(f, Loader=yaml.SafeLoader)
-# ptz camera networking constants
-IP = configs['IP']
-USER = configs['USER']
-PASS = configs['PASS']
-STREAM = configs['STREAM']
+configs = read_configs(args.config_file_path)
+timelapse_configs = read_configs(configs['TIMELAPSE_CONFIG_FILENAME'])
 
 RECORD_FOLDER = configs['RECORD_FOLDER']
 TIMELAPSE_CONFIG_FILENAME = configs['TIMELAPSE_CONFIG_FILENAME']
 
 # ptz camera setup constants
 ORIENTATION = configs['ORIENTATION']
-
-with open(TIMELAPSE_CONFIG_FILENAME, 'r', encoding='utf-8') as f:
-    configs = yaml.load(f, Loader=yaml.SafeLoader)
-HEADLESS = configs['HEADLESS']
-MODE = configs['MODE']
 
 # init global variables
 globalvars.init()
@@ -97,33 +84,41 @@ if __name__ == '__main__':
     if CLIENT_MODE:
         sender = Sender(HOST, PORT)
 
-    window_name = 'Mow The Lawn'
-    # if not HEADLESS:
-    #     cv2.namedWindow(window_name,
-    #                     cv2.WINDOW_NORMAL)
+    WINDOW_NAME = "Timelapse View"
+    if not configs['HEADLESS']:
+        cv2.namedWindow(WINDOW_NAME,
+                        cv2.WINDOW_NORMAL)
 
-    #     cv2.setWindowProperty(window_name,
-    #                           cv2.WND_PROP_FULLSCREEN,
-    #                           cv2.WINDOW_FULLSCREEN)
+        cv2.setWindowProperty(WINDOW_NAME,
+                              cv2.WND_PROP_FULLSCREEN,
+                              cv2.WINDOW_FULLSCREEN)
 
     recorder = ImageStreamRecorder(RECORD_FOLDER)
 
-    if MODE == 'mow':
+    if timelapse_configs['MODE'] == 'mow':
         log.info("Movement function: Mow the lawn")
         movement_function = movement_functions.mow_the_lawn
-    elif MODE == 'spots':
+    elif timelapse_configs['MODE'] == 'spots':
         log.info("Movement function: Visit spots")
         movement_function = movement_functions.visit_spots
     else:
-        log.error("Invalid movement function specified in config file.  Quitting.")
+        log.error("Invalid movement function specified in config file. "
+                  "Quitting.")
         sys.exit()
 
     movement_control_thread = threading.Thread(target=movement_function,
-                                               args=(ZOOM_POWER, CONFIG_FILE),
+                                               args=(ZOOM_POWER,
+                                                     args.config_file_path),
                                                daemon=True)
     movement_control_thread.start()
 
-    cam = Camera(ip=IP, user=USER, passwd=PASS, stream=STREAM)
+    cam = Camera(
+        configs['IP'],
+        configs['USER'],
+        configs['PASS'],
+        configs['STREAM']
+    )
+
     width, height = cam.get_resolution()
 
     hostname = socket.gethostname()
@@ -135,7 +130,7 @@ if __name__ == '__main__':
     # print('Number of output videos is {}'.format(num_output_videos))
     # for i in range(num_output_videos):
     #     video_filename = ('video_timelapse_'
-    #                       + MODE
+    #                       + timelapse_configs['MODE']
     #                       + '_'
     #                       + hostname
     #                       + '_'
@@ -165,8 +160,8 @@ if __name__ == '__main__':
 
                     frame = ui.orient_frame(frame, ORIENTATION)
 
-                    if not HEADLESS:
-                        cv2.imshow(window_name, frame)
+                    if not configs['HEADLESS']:
+                        cv2.imshow(WINDOW_NAME, frame)
                         key = cv2.waitKey(30)
                         if key == ord('q'):
                             break
@@ -201,7 +196,7 @@ if __name__ == '__main__':
         if CLIENT_MODE:
             sender.close()
 
-        if not HEADLESS:
+        if not configs['HEADLESS']:
             cv2.destroyAllWindows()
 
         sys.exit()

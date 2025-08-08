@@ -5,6 +5,7 @@ import yaml
 
 import numpy as np
 
+from ptzipcam.io import read_configs
 from ptzipcam.ptz_camera import PtzCam
 
 from ptzipcam import convert
@@ -13,16 +14,6 @@ import globalvars
 log = logging.getLogger(__name__)
 
 
-def _read_configs(config_file):
-    with open(config_file) as f:
-        configs = yaml.load(f, Loader=yaml.SafeLoader)
-    # ptz camera networking constants
-    ip = configs['IP']
-    onvif_port = configs['PORT']
-    user = configs['USER']
-    password = configs['PASS']
-    timelapse_config_filename = configs['TIMELAPSE_CONFIG_FILENAME']
-    return ip, onvif_port, user, password, timelapse_config_filename
 
 
 def mow_the_lawn(zoom_power, config_file):
@@ -30,47 +21,56 @@ def mow_the_lawn(zoom_power, config_file):
     pattern: panning across, then tilting up a step, panning back, tilting
     up a step, etc.
     """
-    ZOOM_FACTOR = 4.0
-    RASTER_PATTERN = True
+    zoom_factor = 4.0
+    raster_pattern = True
 
-    IP, ONVIF_PORT, USER, PASS, TIMELAPSE_CONFIG_FILENAME = _read_configs(config_file)
+    configs = read_configs(config_file)
+    timelapse_configs = read_configs(configs['TIMELAPSE_CONFIG_FILENAME'])
 
-    with open(TIMELAPSE_CONFIG_FILENAME) as f:
-        configs = yaml.load(f, Loader=yaml.SafeLoader)
-    PAN_MIN = configs['PAN_MIN']
-    PAN_MAX = configs['PAN_MAX']
-    PAN_STEPS = configs['PAN_STEPS']
-    STEP_DUR = configs['STEP_DUR']
-    TILT_MIN = configs['TILT_MIN']
-    TILT_MAX = configs['TILT_MAX']
-    TILT_STEPS = configs['TILT_STEPS']
-
-    log.info("Grid: %d %d", PAN_STEPS, TILT_STEPS)
-    globalvars.grid = (PAN_STEPS, TILT_STEPS)
+    log.info("Grid: %d %d",
+             timelapse_configs['PAN_STEPS'],
+             timelapse_configs['TILT_STEPS'])
+    globalvars.grid = (timelapse_configs['PAN_STEPS'],
+                       timelapse_configs['TILT_STEPS'])
 
     # global globalvars.camera_still
-    ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
+    ptz = PtzCam(
+        configs['IP'],
+        configs['PORT'],
+        configs['USER'],
+        configs['PASS']
+    )
+
     log.info("Connected to camera.")
     ptz.twitch()
     log.info("Twitching camera so user has some indication things are OK.")
 
-    pan_min = convert.degrees_to_command(PAN_MIN, 350.0)
-    pan_max = convert.degrees_to_command(PAN_MAX, 350.0)
-    tilt_min = convert.degrees_to_command(TILT_MIN, 90.0)
-    tilt_max = convert.degrees_to_command(TILT_MAX, 90.0)
-    zoom_command = ZOOM_FACTOR/zoom_power
+    pan_min = convert.degrees_to_command(timelapse_configs['PAN_MIN'],
+                                         350.0)
+    pan_max = convert.degrees_to_command(timelapse_configs['PAN_MAX'],
+                                         350.0)
+    tilt_min = convert.degrees_to_command(timelapse_configs['TILT_MIN'],
+                                          90.0)
+    tilt_max = convert.degrees_to_command(timelapse_configs['TILT_MAX'],
+                                          90.0)
+    zoom_command = zoom_factor/zoom_power
 
     log.info("Moving to initial position. "
              "Pan: %.2f deg, Tilt: %.2f deg, Zoom: %.2f",
-             PAN_MIN,
-             TILT_MIN,
-             ZOOM_FACTOR)
-    ptz.absmove_w_zoom_waitfordone(pan_min, tilt_min, zoom_command, close_enough=.1)
+             timelapse_configs['PAN_MIN'],
+             timelapse_configs['TILT_MIN'],
+             zoom_factor)
+    ptz.absmove_w_zoom_waitfordone(pan_min,
+                                   tilt_min,
+                                   zoom_command,
+                                   close_enough=.1)
     log.info("Finished moving camera to initial position")
 
     going_up = True
 
-    pan_pass_duration_estimate = int(((2 + 2 + STEP_DUR) * PAN_STEPS)/60)
+    step_dur = timelapse_configs['STEP_DUR']
+    pan_steps = timelapse_configs['PAN_STEPS']
+    pan_pass_duration_estimate = int(((2 + 2 + step_dur) * pan_steps)/60)
 
     log.info("Will take about %s minutes to complete a pan pass",
              pan_pass_duration_estimate)
@@ -81,20 +81,20 @@ def mow_the_lawn(zoom_power, config_file):
         if going_up:
             tilt_positions = np.linspace(tilt_min,
                                          tilt_max,
-                                         TILT_STEPS)
+                                         timelapse_configs['TILT_STEPS'])
         else:
             tilt_positions = np.linspace(tilt_max,
                                          tilt_min,
-                                         TILT_STEPS)
+                                         timelapse_configs['TILT_STEPS'])
         for y_pos in tilt_positions:
             if going_forward:
                 pan_positions = np.linspace(pan_min,
                                             pan_max,
-                                            PAN_STEPS)
+                                            timelapse_configs['PAN_STEPS'])
             else:
                 pan_positions = np.linspace(pan_max,
                                             pan_min,
-                                            PAN_STEPS)
+                                            timelapse_configs['PAN_STEPS'])
             for x_pos in pan_positions:
                 x_pos_degrees = convert.command_to_degrees(x_pos, 350.0)
                 y_pos_degrees = convert.command_to_degrees(y_pos, 90.0)
@@ -109,13 +109,11 @@ def mow_the_lawn(zoom_power, config_file):
                 globalvars.camera_still = True
                 time.sleep(2)
                 globalvars.camera_still = False
-                time.sleep(STEP_DUR)
+                time.sleep(timelapse_configs['STEP_DUR'])
 
             going_forward = not going_forward
 
-        if RASTER_PATTERN:
-            going_up = going_up
-        else:
+        if not raster_pattern:
             going_up = not going_up
 
     ptz.stop()
@@ -123,7 +121,7 @@ def mow_the_lawn(zoom_power, config_file):
 
 def log_spot(spot_num, spot):
     pan_degrees, tilt_degrees, zoom_factor = spot
-    
+
     log.info(
         "Moving to spot %d: %.2f deg pan, %.2f deg tilt, %.1fx zoom",
         spot_num,
@@ -134,26 +132,28 @@ def log_spot(spot_num, spot):
 
 
 def visit_spots(zoom_power, config_file):
-    """Thread function for moving the camera through a series of spots of interest
-    """
+    """Move camera through a series of spots of interest."""
 
-    with open('config_timelapse.yaml') as f:
-        configs = yaml.load(f, Loader=yaml.SafeLoader)
-    STEP_DUR = configs['STEP_DUR']
+    configs = read_configs(config_file)
+    timelapse_configs = read_configs(configs['TIMELAPSE_CONFIG_FILENAME'])
 
-    with open('spots_to_visit.yaml', 'r') as f:
-        spots = yaml.load(f, Loader=yaml.SafeLoader)
+    with open('spots_to_visit.yaml', 'r', encoding='utf8') as spots_fh:
+        spots = yaml.load(spots_fh, Loader=yaml.SafeLoader)
         spots = np.array(spots)
 
-    # global globalvars.camera_still
-    ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
+    ptz = PtzCam(
+        configs['IP'],
+        configs['PORT'],
+        configs['USER'],
+        configs['PASS']
+    )
 
     while True:
         for num, spot in enumerate(spots):
             pan_degrees, tilt_degrees, zoom_factor = spot
 
             log_spot(num, spot)
-            
+
             pan_command = convert.degrees_to_command(pan_degrees, 350.0)
             tilt_command = convert.degrees_to_command(tilt_degrees, 90.0)
             zoom_command = zoom_factor/zoom_power
@@ -163,16 +163,13 @@ def visit_spots(zoom_power, config_file):
             globalvars.camera_still = True
             time.sleep(2)
             globalvars.camera_still = False
-            time.sleep(STEP_DUR)
+            time.sleep(timelapse_configs['STEP_DUR'])
 
     ptz.stop()
 
 
-def visit_spots_two_cameras(zoom_power):
-    """Thread function for moving two cameras through a series of spots of
-    interest
-
-    """
+def visit_spots_two_cameras(zoom_power, config_file):
+    """Move two cameras through a series of spots of interest."""
 
     spots = [[210.0, 90.0, 4.0],
              [288.75, 90.0, 4.0],
@@ -180,11 +177,23 @@ def visit_spots_two_cameras(zoom_power):
              [10.0, 85.0, 3.0],
              [230.0, 80.0, 2.0],
              [78.0, 80.0, 4.0]]
-             # [345.0, 85.0, 3.5]]
 
-    # global globalvars.camera_still
-    ptz = PtzCam(IP, ONVIF_PORT, USER, PASS)
-    ptz_2 = PtzCam('192.168.1.63', ONVIF_PORT, USER, PASS)
+    configs = read_configs(config_file)
+    timelapse_configs = read_configs(configs['TIMELAPSE_CONFIG_FILENAME'])
+
+    ptz = PtzCam(
+        configs['IP'],
+        configs['PORT'],
+        configs['USER'],
+        configs['PASS']
+    )
+
+    ptz_2 = PtzCam(
+        '192.168.1.63',
+        configs['PORT'],
+        configs['USER'],
+        configs['PASS']
+    )
 
     while True:
         for num, spot in enumerate(spots):
@@ -201,7 +210,7 @@ def visit_spots_two_cameras(zoom_power):
             globalvars.camera_still = True
             time.sleep(1)
             globalvars.camera_still = False
-            time.sleep(STEP_DUR)
+            time.sleep(timelapse_configs['STEP_DUR'])
 
     ptz.stop()
     ptz_2.stop()

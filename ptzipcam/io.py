@@ -6,11 +6,20 @@ At this stage, this amounts to a single class for recording stills.
 """
 import logging
 import os
-
 from datetime import datetime
+
+import yaml
 import cv2
 
 log = logging.getLogger(__name__)
+
+
+def read_configs(config_file):
+    """Read configuration values given config file path."""
+
+    with open(config_file, encoding='utf8') as config_fh:
+        configs = yaml.load(config_fh, Loader=yaml.SafeLoader)
+    return configs
 
 
 def prep_timestamp(include_milliseconds=False):
