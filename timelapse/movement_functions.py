@@ -1,3 +1,8 @@
+"""Defines functions that move camera in different patterns
+
+Used in the timelapse script.
+
+"""
 import logging
 import time
 
@@ -14,12 +19,13 @@ import globalvars
 log = logging.getLogger(__name__)
 
 
-
-
 def mow_the_lawn(zoom_power, config_file):
-    """Thread function for moving the camera through a "mow the lawn"
-    pattern: panning across, then tilting up a step, panning back, tilting
-    up a step, etc.
+    """Run camera through a "mow the lawn" pattern.
+
+    Thread function for moving the camera through a "mow the lawn"
+    pattern: panning across, then tilting up a step, panning back,
+    tilting up a step, etc.
+
     """
     zoom_factor = 4.0
     raster_pattern = True
@@ -120,6 +126,7 @@ def mow_the_lawn(zoom_power, config_file):
 
 
 def log_spot(spot_num, spot):
+    """Write current spot to log."""
     pan_degrees, tilt_degrees, zoom_factor = spot
 
     log.info(

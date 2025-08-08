@@ -1,3 +1,11 @@
+"""Script to generate a timelapse with camera movement
+
+Captures frames for a timelapse movie while moving the camera in a
+prescribed manner so that in the resulting timelapse video the camera
+is, for example, panning across the scene.
+
+"""
+
 import logging
 import sys
 import time
@@ -59,6 +67,7 @@ globalvars.init()
 
 
 class Sender():
+    """Handles sending frames to a remote program."""
 
     def __init__(self, host, port):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -66,6 +75,7 @@ class Sender():
         self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 
     def send(self, frame, pan_angle, tilt_angle):
+        """Send frame and meta data over socket."""
         _, frame_to_send = cv2.imencode('.jpg',
                                         frame,
                                         self.encode_param)
@@ -75,6 +85,7 @@ class Sender():
         self.sock.sendall(header + data)
 
     def close(self):
+        """Close socket."""
         self.sock.close()
 
 
