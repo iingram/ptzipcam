@@ -56,12 +56,6 @@ else:
 configs = read_configs(args.config_file_path)
 timelapse_configs = read_configs(configs['TIMELAPSE_CONFIG_FILENAME'])
 
-RECORD_FOLDER = configs['RECORD_FOLDER']
-TIMELAPSE_CONFIG_FILENAME = configs['TIMELAPSE_CONFIG_FILENAME']
-
-# ptz camera setup constants
-ORIENTATION = configs['ORIENTATION']
-
 # init global variables
 globalvars.init()
 
@@ -104,7 +98,7 @@ if __name__ == '__main__':
                               cv2.WND_PROP_FULLSCREEN,
                               cv2.WINDOW_FULLSCREEN)
 
-    recorder = ImageStreamRecorder(RECORD_FOLDER)
+    recorder = ImageStreamRecorder(configs['RECORD_FOLDER'])
 
     if timelapse_configs['MODE'] == 'mow':
         log.info("Movement function: Mow the lawn")
@@ -169,7 +163,8 @@ if __name__ == '__main__':
                 if latch:
                     log.info("Capturing an image.")
 
-                    frame = ui.orient_frame(frame, ORIENTATION)
+                    frame = ui.orient_frame(frame,
+                                            configs['ORIENTATION'])
 
                     if not configs['HEADLESS']:
                         cv2.imshow(WINDOW_NAME, frame)
